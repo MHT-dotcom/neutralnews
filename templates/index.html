@@ -1,0 +1,434 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Neutral News</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <style>
+            :root {
+                --background: #f5f7fa;
+                --card-bg: #ffffff;
+                --primary: #1a202c;
+                --secondary: #4a5568;
+                --accent: #6366f1;
+                --accent-light: #e0e7ff;
+                --border: #e2e8f0;
+                --error: #e53e3e;
+            }
+            
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                background-color: var(--background);
+                color: var(--primary);
+                line-height: 1.6;
+                padding: 0;
+                margin: 0;
+                background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            
+            .app-container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 2rem 1rem;
+            }
+            
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem 0;
+                margin-bottom: 2rem;
+            }
+            
+            .branding {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--primary);
+            }
+            
+            .badge {
+                background-color: #a5f3fc;
+                color: #0891b2;
+                padding: 0.25rem 0.75rem;
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+            
+            .headline {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            
+            .headline h1 {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: var(--primary);
+                margin-bottom: 0.5rem;
+                letter-spacing: -0.025em;
+            }
+            
+            .headline p {
+                color: var(--secondary);
+                font-size: 1.125rem;
+            }
+            
+            .search-container {
+                margin-bottom: 2rem;
+            }
+            
+            .search-prompt {
+                text-align: center;
+                margin-bottom: 1rem;
+                font-size: 1.125rem;
+                color: var(--secondary);
+            }
+            
+            .search-form {
+                display: flex;
+                align-items: center;
+                background-color: var(--card-bg);
+                border-radius: 9999px;
+                padding: 0.25rem;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -1px rgb(0 0 0 / 6%);
+            }
+            
+            .search-input {
+                flex: 1;
+                padding: 0.875rem 1.25rem;
+                border: none;
+                border-radius: 9999px;
+                font-size: 1rem;
+                color: var(--primary);
+                background-color: transparent;
+            }
+            
+            .search-input:focus {
+                outline: none;
+            }
+            
+            .search-button {
+                background-color: var(--accent);
+                color: white;
+                border: none;
+                border-radius: 9999px;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .search-button:hover {
+                background-color: #4f46e5;
+            }
+            
+            .arrow-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .current-topic {
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                border-radius: 0.375rem;
+                background-color: var(--accent-light);
+                color: var(--accent);
+                font-size: 0.875rem;
+                font-weight: 500;
+                margin-top: 1rem;
+            }
+            
+            .content-card {
+                background-color: var(--card-bg);
+                border-radius: 0.75rem;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -1px rgb(0 0 0 / 6%);
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .card-title {
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: var(--primary);
+                margin-bottom: 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .card-title-dot {
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background-color: var(--accent);
+            }
+            
+            .summary-content {
+                line-height: 1.8;
+                color: var(--secondary);
+            }
+            
+            .article-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .article-item {
+                border-bottom: 1px solid var(--border);
+                padding-bottom: 1rem;
+            }
+            
+            .article-item:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+            
+            .article-link {
+                color: var(--primary);
+                font-weight: 500;
+                text-decoration: none;
+                margin-bottom: 0.25rem;
+                display: block;
+                transition: color 0.2s;
+            }
+            
+            .article-link:hover {
+                color: var(--accent);
+            }
+            
+            .article-description {
+                font-size: 0.875rem;
+                color: var(--secondary);
+                margin-bottom: 0.5rem;
+            }
+            
+            .article-meta {
+                font-size: 0.875rem;
+                color: var(--secondary);
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+            
+            .article-date {
+                font-size: 0.875rem;
+                color: var(--secondary);
+            }
+            
+            .article-source {
+                font-size: 0.875rem;
+                color: var(--secondary);
+            }
+            
+            .error-message {
+                background-color: #fff5f5;
+                color: var(--error);
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin-bottom: 1.5rem;
+                border-left: 4px solid var(--error);
+            }
+            
+            .clear-button {
+                background-color: var(--background);
+                color: var(--secondary);
+                border: 1px solid var(--border);
+                border-radius: 9999px;
+                padding: 0.75rem 1.5rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: block;
+                margin: 0 auto;
+            }
+            
+            .clear-button:hover {
+                background-color: var(--border);
+                color: var(--primary);
+            }
+            
+            .loading {
+                display: none;
+                text-align: center;
+                margin-top: 20px;
+                color: var(--secondary);
+                font-size: 1.125rem;
+            }
+            
+            @media (max-width: 640px) {
+                .headline h1 {
+                    font-size: 2rem;
+                }
+                
+                .search-form {
+                    flex-direction: column;
+                    background-color: transparent;
+                    box-shadow: none;
+                    padding: 0;
+                }
+                
+                .search-input {
+                    width: 100%;
+                    margin-bottom: 0.5rem;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+                }
+                
+                .search-button {
+                    width: 100%;
+                    border-radius: 9999px;
+                    height: 40px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <header class="header">
+                <div class="branding">
+                    <div class="logo">Neutral News</div>
+                </div>
+                <div class="badge">Balanced Coverage</div>
+            </header>
+            
+            <div class="headline">
+                <h1>neutral and unbiased news coverage</h1>
+                <p>an AI based summary from multiple perspectives</p>
+            </div>
+            
+            <div class="search-container">
+                <div class="search-prompt">Type a news topic to research</div>
+                <form id="search-form" class="search-form">
+                    <input type="text" name="event" class="search-input" placeholder="Enter news event (e.g., Election 2025)"/>
+                    <button type="submit" class="search-button">
+                        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+                
+                <div class="current-topic" style="display: none;"></div>
+            </div>
+            
+            <div class="loading" style="display: none;">Loading...</div>
+            
+            <div id="results" style="display: none;">
+                <div class="error-message" style="display: none;"></div>
+                <div class="content-card summary-card" style="display: none;">
+                    <div class="card-title">
+                        <span class="card-title-dot"></span> Summary
+                    </div>
+                    <div class="summary-content"></div>
+                </div>
+                <div class="content-card articles-card" style="display: none;">
+                    <div class="card-title">
+                        <span class="card-title-dot"></span> Articles
+                    </div>
+                    <div class="article-list"></div>
+                </div>
+                <button class="clear-button" style="display: none;">Clear Results</button>
+            </div>
+        </div>
+
+        <script>
+            $(document).ready(function() {
+                var $loading = $('.loading');
+                var $results = $('#results');
+                var $errorMessage = $results.find('.error-message');
+                var $summaryCard = $results.find('.summary-card');
+                var $articlesCard = $results.find('.articles-card');
+                var $clearButton = $results.find('.clear-button');
+                var $currentTopic = $('.current-topic');
+
+                $('#search-form').submit(function(event) {
+                    event.preventDefault();
+                    var eventQuery = $('input[name="event"]', this).val();
+                    if (!eventQuery) {
+                        alert('Please enter a news event to search for.');
+                        return;
+                    }
+                    $loading.show();
+                    $results.hide();
+                    $errorMessage.text('').hide();
+                    $summaryCard.hide();
+                    $articlesCard.hide();
+                    $clearButton.hide();
+                    $currentTopic.text('').hide();
+
+                    $.post('/data', {event: eventQuery}, function(data) {
+                        if (data.error) {
+                            $errorMessage.text(data.error).show();
+                        } else {
+                            $currentTopic.text('Current topic: ' + eventQuery).show();
+                            if (data.warning) {
+                                $errorMessage.text(data.warning).show();
+                            } else {
+                                $errorMessage.hide();
+                            }
+                            $summaryCard.find('.summary-content').html(data.summary);
+                            $summaryCard.show();
+                            var articlesHtml = '';
+                            for (let article of data.articles) {
+                                articlesHtml += '<div class="article-item">';
+                                articlesHtml += '<a href="' + article.url + '" target="_blank" class="article-link">' + article.title + '</a>';
+                                if (article.description) {
+                                    articlesHtml += '<div class="article-description">' + article.description + '</div>';
+                                }
+                                articlesHtml += '<div class="article-meta">';
+                                if (article.publishedAt) {
+                                    const date = new Date(article.publishedAt);
+                                    articlesHtml += '<span class="article-date">' + date.toLocaleDateString() + '</span> • ';
+                                }
+                                articlesHtml += '<span class="article-source">Source: ' + article.source + '</span>';
+                                articlesHtml += '</div>';
+                                articlesHtml += '</div>';
+                            }
+                            $articlesCard.find('.article-list').html(articlesHtml);
+                            $articlesCard.show();
+                            $clearButton.show();
+                        }
+                        $loading.hide();
+                        if (!data.error) {
+                            $results.show();
+                        }
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        if (textStatus === 'timeout') {
+                            $errorMessage.text('Request timed out. Please try again later.').show();
+                        } else {
+                            $errorMessage.text('An error occurred: ' + textStatus + ' - ' + errorThrown).show();
+                        }
+                        $loading.hide();
+                    }).always(function() {
+                        $loading.hide();
+                    });
+                });
+
+                $clearButton.on('click', function() {
+                    window.location.href = "/";
+                });
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,16 @@
+# Web framework
+flask>=2.0.0
+
+# HTTP requests for API calls
+requests>=2.28.0
+
+# Summarization with Hugging Face Transformers
+transformers>=4.30.0
+
+# Text processing and relevance filtering
+scikit-learn>=1.2.0
+
+# Aylien News API client
+aylien-news-api>=5.0.0
+
+flask-caching
