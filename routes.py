@@ -254,19 +254,52 @@ def get_news_data():
         
         logger.info(f"Processing event: {event}")
         result = fetch_and_process_data(event)
+        
+        # Check if result is a tuple (old format) or a dictionary (new format)
         if isinstance(result, tuple):
             summary, articles, error = result
+            # Create metadata if it's not available
+            if articles:
+                # Calculate average sentiment
+                total_sentiment = sum(article.get('sentiment_score', 0) for article in articles)
+                avg_sentiment = total_sentiment / len(articles) if articles else 0
+                
+                # Count sources
+                source_counts = {}
+                for article in articles:
+                    source = article.get('source', 'Unknown')
+                    source_counts[source] = source_counts.get(source, 0) + 1
+                
+                metadata = {
+                    'total_articles': len(articles),
+                    'average_sentiment': avg_sentiment,
+                    'source_distribution': source_counts
+                }
+            else:
+                metadata = {
+                    'total_articles': 0,
+                    'average_sentiment': 0,
+                    'source_distribution': {}
+                }
         else:
+            # Result is already in the correct format
             summary = result.get('summary')
             articles = result.get('articles', [])
+            metadata = result.get('metadata', {
+                'total_articles': len(articles),
+                'average_sentiment': 0,
+                'source_distribution': {}
+            })
             error = None
+            
         logger.info(f"AJAX response - summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
         
         # Even if there's a partial error, return success if we have articles
         if articles:
             response_data = {
                 'summary': summary if summary else "Summary not available.",
-                'articles': articles
+                'articles': articles,
+                'metadata': metadata
             }
             if error:  # Add warning if there was a partial failure
                 response_data['warning'] = error
