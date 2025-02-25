@@ -161,10 +161,37 @@ def fetch_and_process_data(event):
         # Log the final number of articles
         logger.info(f"Final number of articles for event '{event}': {len(relevant_articles)}")
 
+        # Calculate average sentiment and prepare article data
+        total_sentiment = 0
+        article_data = []
+        
+        for article in relevant_articles:
+            sentiment_score = article.get('sentiment_score', 0)
+            total_sentiment += sentiment_score
+            article_data.append({
+                'title': article.get('title', ''),
+                'url': article.get('url', ''),
+                'content': article.get('content', ''),
+                'source': article.get('source', 'Unknown'),
+                'sentiment_score': sentiment_score
+            })
+        
+        avg_sentiment = total_sentiment / len(relevant_articles) if relevant_articles else 0
+        
+        response = {
+            'articles': article_data,
+            'summary': summary,
+            'metadata': {
+                'total_articles': len(relevant_articles),
+                'average_sentiment': avg_sentiment,
+                'source_distribution': source_counts
+            }
+        }
+
         total_time = time.time() - start_time
         logger.info(f"Total time for fetch_and_process_data: {total_time:.2f} seconds, ending at {time.time()}")
 
-        return summary, relevant_articles, None
+        return response
     except Exception as e:
         total_time = time.time() - start_time
         logger.error(f"Exception occurred, total time: {total_time:.2f} seconds, error: {str(e)}, ending at {time.time()}")
@@ -189,7 +216,13 @@ def index():
             logger.warning("No event provided in POST request")
         else:
             logger.info(f"Calling fetch_and_process_data for event: {event}")
-            summary, articles, error = fetch_and_process_data(event)
+            result = fetch_and_process_data(event)
+            if isinstance(result, tuple):
+                summary, articles, error = result
+            else:
+                summary = result.get('summary')
+                articles = result.get('articles', [])
+                error = None
             logger.info(f"After fetch_and_process_data, summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
             if error:
                 logger.error(f"Error in processing event '{event}': {error}")
@@ -220,7 +253,13 @@ def get_news_data():
             return jsonify({'error': "Please enter a news event to search for."}), 400
         
         logger.info(f"Processing event: {event}")
-        summary, articles, error = fetch_and_process_data(event)
+        result = fetch_and_process_data(event)
+        if isinstance(result, tuple):
+            summary, articles, error = result
+        else:
+            summary = result.get('summary')
+            articles = result.get('articles', [])
+            error = None
         logger.info(f"AJAX response - summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
         
         # Even if there's a partial error, return success if we have articles

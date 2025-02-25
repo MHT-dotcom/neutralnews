@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 # Initialize summarization pipeline
 summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
 
+# Initialize sentiment analysis pipeline
+sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+
 def get_share_count(url, sharecount_api_key):
     url = f"https://api.sharedcount.com/?url={url}&key={sharecount_api_key}"
     try:
@@ -86,11 +89,34 @@ def standardize_articles(articles, source):
 def process_articles(articles, source):
     """Process articles based on their fetch source by applying the appropriate standardization."""
     if source == 'Aylien':
-        return standardize_aylien_articles(articles)
+        standardized = standardize_aylien_articles(articles)
     elif source == 'GNews':
-        return standardize_gnews_articles(articles)
+        standardized = standardize_gnews_articles(articles)
     else:  # NewsAPI.org or Guardian
-        return standardize_articles(articles, source)
+        standardized = standardize_articles(articles, source)
+    
+    # Add sentiment analysis to each article
+    for article in standardized:
+        # Analyze sentiment of both title and content
+        title_sentiment = analyze_sentiment(article['title'])
+        content_sentiment = analyze_sentiment(article['content'])
+        # Weighted average: title (30%) and content (70%)
+        article['sentiment_score'] = (0.3 * title_sentiment + 0.7 * content_sentiment)
+        
+    return standardized
+
+def analyze_sentiment(text):
+    """Analyze the sentiment of a text and return a normalized score between -1 and 1."""
+    try:
+        result = sentiment_analyzer(text[:512])  # Limit text length for efficiency
+        # Convert POSITIVE/NEGATIVE to numerical score
+        score = result[0]['score']
+        if result[0]['label'] == 'NEGATIVE':
+            score = -score
+        return score
+    except Exception as e:
+        logger.error(f"Error in sentiment analysis: {e}")
+        return 0
 
 def remove_duplicates(articles):
     """Remove duplicate articles based on their titles."""

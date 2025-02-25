@@ -277,6 +277,86 @@
                 font-size: 1.125rem;
             }
             
+            .sentiment-bar {
+                height: 4px;
+                width: 100%;
+                background: #e2e8f0;
+                margin-top: 8px;
+                border-radius: 2px;
+                overflow: hidden;
+                position: relative;
+            }
+
+            .sentiment-indicator {
+                height: 100%;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                transition: width 0.3s ease, background-color 0.3s ease;
+            }
+
+            .sentiment-label {
+                font-size: 0.75rem;
+                color: var(--secondary);
+                text-align: right;
+                margin-top: 4px;
+            }
+            
+            .sentiment-summary {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 1rem;
+                background: var(--card-bg);
+                border-radius: 0.5rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+
+            .sentiment-stats {
+                display: flex;
+                gap: 2rem;
+            }
+
+            .sentiment-stat {
+                text-align: center;
+            }
+
+            .stat-label {
+                font-size: 0.875rem;
+                color: var(--secondary);
+                margin-bottom: 0.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: var(--primary);
+            }
+
+            .overall-sentiment {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .sentiment-gauge {
+                width: 200px;
+                height: 8px;
+                background: #e2e8f0;
+                border-radius: 4px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .sentiment-gauge-indicator {
+                height: 100%;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                transition: width 0.3s ease, background-color 0.3s ease;
+            }
+            
             @media (max-width: 640px) {
                 .headline h1 {
                     font-size: 2rem;
@@ -336,6 +416,23 @@
             
             <div id="results" style="display: none;">
                 <div class="error-message" style="display: none;"></div>
+                <div class="sentiment-summary">
+                    <div class="sentiment-stats">
+                        <div class="sentiment-stat">
+                            <div class="stat-label">Articles Analyzed</div>
+                            <div class="stat-value" id="articles-analyzed"></div>
+                        </div>
+                        <div class="sentiment-stat">
+                            <div class="stat-label">Average Sentiment</div>
+                            <div class="stat-value" id="average-sentiment"></div>
+                        </div>
+                    </div>
+                    <div class="overall-sentiment">
+                        <div class="sentiment-gauge">
+                            <div class="sentiment-gauge-indicator" id="sentiment-gauge-indicator"></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="content-card summary-card" style="display: none;">
                     <div class="card-title">
                         <span class="card-title-dot"></span> Summary
@@ -357,10 +454,84 @@
                 var $loading = $('.loading');
                 var $results = $('#results');
                 var $errorMessage = $results.find('.error-message');
-                var $summaryCard = $results.find('.summary-card');
-                var $articlesCard = $results.find('.articles-card');
-                var $clearButton = $results.find('.clear-button');
-                var $currentTopic = $('.current-topic');
+                
+                function getSentimentColor(score) {
+                    // Convert score (-1 to 1) to a color
+                    if (score === 0) return '#e2e8f0';  // Neutral gray
+                    
+                    let red, green, blue;
+                    if (score < 0) {
+                        // Negative: red to gray
+                        let factor = 1 + score;  // Convert -1..0 to 0..1
+                        red = 239;  // #ef4444
+                        green = Math.round(68 + (148 * factor));
+                        blue = Math.round(68 + (148 * factor));
+                    } else {
+                        // Positive: gray to blue
+                        let factor = score;  // Already 0..1
+                        red = Math.round(226 - (127 * factor));
+                        green = Math.round(232 - (111 * factor));
+                        blue = Math.round(240 + (15 * factor));
+                    }
+                    return `rgb(${red}, ${green}, ${blue})`;
+                }
+                
+                function getSentimentWidth(score) {
+                    // Convert score (-1 to 1) to width percentage (20% to 100%)
+                    return 20 + (Math.abs(score) * 80) + '%';
+                }
+                
+                function getSentimentLabel(score) {
+                    if (Math.abs(score) < 0.2) return "Neutral";
+                    if (score < -0.6) return "Very Negative";
+                    if (score < -0.2) return "Somewhat Negative";
+                    if (score > 0.6) return "Very Positive";
+                    if (score > 0.2) return "Somewhat Positive";
+                    return "Neutral";
+                }
+
+                function displayArticles(articles, summary, metadata) {
+                    $loading.hide();
+                    if (articles && articles.length > 0) {
+                        let articlesHtml = articles.map(article => {
+                            return `
+                                <div class="article-card">
+                                    <h3 class="article-title">
+                                        <a href="${article.url}" target="_blank" rel="noopener noreferrer">
+                                            ${article.title}
+                                        </a>
+                                    </h3>
+                                    <div class="article-meta">
+                                        <span class="source">${article.source}</span>
+                                    </div>
+                                    <p class="article-content">${article.content}</p>
+                                    <div class="sentiment-bar">
+                                        <div class="sentiment-indicator" style="
+                                            width: ${getSentimentWidth(article.sentiment_score)};
+                                            background-color: ${getSentimentColor(article.sentiment_score)};
+                                        "></div>
+                                    </div>
+                                    <div class="sentiment-label">${getSentimentLabel(article.sentiment_score)}</div>
+                                </div>
+                            `;
+                        }).join('');
+                        $results.find('.article-list').html(articlesHtml);
+                        $results.find('.summary-card .summary-content').html(summary);
+                        $results.find('#articles-analyzed').text(articles.length);
+                        $results.find('#average-sentiment').text(getSentimentLabel(metadata.average_sentiment));
+                        $results.find('#sentiment-gauge-indicator').css({
+                            'width': getSentimentWidth(metadata.average_sentiment),
+                            'background-color': getSentimentColor(metadata.average_sentiment)
+                        });
+                        $results.show();
+                        $results.find('.summary-card').show();
+                        $results.find('.articles-card').show();
+                        $results.find('.clear-button').show();
+                        $results.find('.sentiment-summary').show();
+                    } else {
+                        $errorMessage.text('No articles found.').show();
+                    }
+                }
 
                 $('#search-form').submit(function(event) {
                     event.preventDefault();
@@ -372,46 +543,22 @@
                     $loading.show();
                     $results.hide();
                     $errorMessage.text('').hide();
-                    $summaryCard.hide();
-                    $articlesCard.hide();
-                    $clearButton.hide();
-                    $currentTopic.text('').hide();
+                    $results.find('.summary-card').hide();
+                    $results.find('.articles-card').hide();
+                    $results.find('.clear-button').hide();
+                    $results.find('.sentiment-summary').hide();
 
                     $.post('/data', {event: eventQuery}, function(data) {
                         if (data.error) {
                             $errorMessage.text(data.error).show();
                         } else {
-                            $currentTopic.text('Current topic: ' + eventQuery).show();
+                            $results.find('.current-topic').text('Current topic: ' + eventQuery).show();
                             if (data.warning) {
                                 $errorMessage.text(data.warning).show();
                             } else {
                                 $errorMessage.hide();
                             }
-                            $summaryCard.find('.summary-content').html(data.summary);
-                            $summaryCard.show();
-                            var articlesHtml = '';
-                            for (let article of data.articles) {
-                                articlesHtml += '<div class="article-item">';
-                                articlesHtml += '<a href="' + article.url + '" target="_blank" class="article-link">' + article.title + '</a>';
-                                if (article.description) {
-                                    articlesHtml += '<div class="article-description">' + article.description + '</div>';
-                                }
-                                articlesHtml += '<div class="article-meta">';
-                                if (article.publishedAt) {
-                                    const date = new Date(article.publishedAt);
-                                    articlesHtml += '<span class="article-date">' + date.toLocaleDateString() + '</span> • ';
-                                }
-                                articlesHtml += '<span class="article-source">Source: ' + article.source + '</span>';
-                                articlesHtml += '</div>';
-                                articlesHtml += '</div>';
-                            }
-                            $articlesCard.find('.article-list').html(articlesHtml);
-                            $articlesCard.show();
-                            $clearButton.show();
-                        }
-                        $loading.hide();
-                        if (!data.error) {
-                            $results.show();
+                            displayArticles(data.articles, data.summary, data.metadata);
                         }
                     }).fail(function(jqXHR, textStatus, errorThrown) {
                         if (textStatus === 'timeout') {
@@ -419,13 +566,12 @@
                         } else {
                             $errorMessage.text('An error occurred: ' + textStatus + ' - ' + errorThrown).show();
                         }
-                        $loading.hide();
                     }).always(function() {
                         $loading.hide();
                     });
                 });
 
-                $clearButton.on('click', function() {
+                $results.find('.clear-button').on('click', function() {
                     window.location.href = "/";
                 });
             });
