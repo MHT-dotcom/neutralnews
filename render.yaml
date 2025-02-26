@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: neutral-news
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --timeout 120 --log-level debug
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: NEWSAPI_ORG_KEY
+        sync: false
+      - key: GUARDIAN_API_KEY
+        sync: false
+      - key: AYLIEN_APP_ID
+        sync: false
+      - key: AYLIEN_API_KEY
+        sync: false
+      - key: GNEWS_API_KEY
+        sync: false
+      - key: NEWSAPI_AI_KEY
+        sync: false
+      - key: MEDIASTACK_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SHARECOUNT_API_KEY
+        sync: false
+      - key: NYT_API_KEY
+        sync: false
+    autoDeploy: true
+    healthCheckPath: /test 
