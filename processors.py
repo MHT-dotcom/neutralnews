@@ -5,15 +5,40 @@ from transformers import pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from config import DEFAULT_TOP_N, RELEVANCE_THRESHOLD, OPENAI_API_KEY, SUMMARIZER_BY_GPT, WEIGHT_RELEVANCE, WEIGHT_POPULARITY
+import torch
+import re
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Initialize summarization pipeline
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+class ModelManager:
+    _instance = None
+    _summarizer = None
+    _sentiment_analyzer = None
 
-# Initialize sentiment analysis pipeline
-sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def get_summarizer(self):
+        if self._summarizer is None:
+            logger.info("Loading summarization model...")
+            self._summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+        return self._summarizer
+
+    def get_sentiment_analyzer(self):
+        if self._sentiment_analyzer is None:
+            logger.info("Loading sentiment analysis model...")
+            self._sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+        return self._sentiment_analyzer
+
+    def clear_models(self):
+        logger.info("Clearing models from memory...")
+        self._summarizer = None
+        self._sentiment_analyzer = None
+        torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
 def get_share_count(url, sharecount_api_key):
     url = f"https://api.sharedcount.com/?url={url}&key={sharecount_api_key}"
@@ -195,6 +220,8 @@ def process_articles(articles, source):
 def analyze_sentiment(text):
     """Analyze the sentiment of a text and return a normalized score between -1 and 1."""
     try:
+        model_manager = ModelManager.get_instance()
+        sentiment_analyzer = model_manager.get_sentiment_analyzer()
         result = sentiment_analyzer(text[:512])  # Limit text length for efficiency
         # Convert POSITIVE/NEGATIVE to numerical score
         score = result[0]['score']
@@ -277,12 +304,16 @@ else:
         combined_content = " ".join([article.get('content', '') or article.get('title', '') for article in articles])
         if combined_content.strip():
             try:
+                model_manager = ModelManager.get_instance()
+                summarizer = model_manager.get_summarizer()
                 summary = summarizer(combined_content, max_length=300, min_length=100, do_sample=False)
                 summary_text = summary[0]['summary_text']
                 # Split into sentences and join with <br> tags
                 sentences = re.split(r'(?<=[.!?])\s+', summary_text.strip())
                 formatted_summary = '<br>'.join(sentences)
                 logger.info("Summary generated successfully with sentence splitting")
+                # Clear models after use
+                model_manager.clear_models()
                 return formatted_summary
             except Exception as e:
                 logger.error(f"Error generating summary: {e}")

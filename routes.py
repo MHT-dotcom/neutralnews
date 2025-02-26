@@ -14,7 +14,8 @@ from processors import (
     process_articles,
     remove_duplicates,
     filter_relevant_articles,
-    summarize_articles
+    summarize_articles,
+    ModelManager
 )
 from config import MAX_ARTICLES_PER_SOURCE, cache
 
@@ -213,10 +214,23 @@ def fetch_and_process_data(event):
         total_time = time.time() - start_time
         logger.info(f"Total time for fetch_and_process_data: {total_time:.2f} seconds, ending at {time.time()}")
 
+        # Ensure models are cleared after processing
+        try:
+            ModelManager.get_instance().clear_models()
+        except Exception as e:
+            logger.warning(f"Failed to clear models: {e}")
+
         return response
     except Exception as e:
         total_time = time.time() - start_time
         logger.error(f"Exception occurred, total time: {total_time:.2f} seconds, error: {str(e)}, ending at {time.time()}")
+        
+        # Ensure models are cleared even if an error occurs
+        try:
+            ModelManager.get_instance().clear_models()
+        except Exception as clear_error:
+            logger.warning(f"Failed to clear models after error: {clear_error}")
+            
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
 @routes.route('/', methods=['GET', 'POST'])
