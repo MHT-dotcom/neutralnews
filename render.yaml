@@ -2,7 +2,6 @@ services:
   - type: web
     name: neutral-news
     runtime: python
-    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --workers 1 --timeout 120 --log-level debug
     envVars:
