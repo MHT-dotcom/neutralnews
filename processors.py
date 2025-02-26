@@ -86,12 +86,99 @@ def standardize_articles(articles, source):
         standardized_articles.append(standardized_article)
     return standardized_articles
 
+def standardize_nyt_articles(articles):
+    """Standardize articles from the New York Times API."""
+    logger.info(f"Standardizing {len(articles)} NYT articles")
+    standardized_articles = []
+    
+    for i, article in enumerate(articles):
+        try:
+            headline = article.get('headline', {}).get('main', '')
+            content = article.get('abstract', '') or article.get('lead_paragraph', '')
+            if not content.strip():
+                logger.warning(f"NYT: Skipping article {i+1} due to empty content")
+                continue
+            
+            standardized_article = {
+                'title': headline or 'No title available',
+                'url': article.get('web_url', '#'),
+                'content': content,
+                'source': 'New York Times'
+            }
+            logger.debug(f"NYT: Successfully standardized article {i+1}: {standardized_article['title']}")
+            standardized_articles.append(standardized_article)
+        except Exception as e:
+            logger.error(f"NYT: Error standardizing article {i+1}: {e}")
+    
+    logger.info(f"NYT: Successfully standardized {len(standardized_articles)} out of {len(articles)} articles")
+    return standardized_articles
+
+def standardize_mediastack_articles(articles):
+    """Standardize articles from the Mediastack API."""
+    logger.info(f"Standardizing {len(articles)} Mediastack articles")
+    standardized_articles = []
+    
+    for i, article in enumerate(articles):
+        try:
+            title = article.get('title', '')
+            content = article.get('description', '')
+            if not content.strip():
+                logger.warning(f"Mediastack: Skipping article {i+1} due to empty content")
+                continue
+            
+            standardized_article = {
+                'title': title or 'No title available',
+                'url': article.get('url', '#'),
+                'content': content,
+                'source': article.get('source', 'Mediastack')
+            }
+            logger.debug(f"Mediastack: Successfully standardized article {i+1}: {standardized_article['title']}")
+            standardized_articles.append(standardized_article)
+        except Exception as e:
+            logger.error(f"Mediastack: Error standardizing article {i+1}: {e}")
+    
+    logger.info(f"Mediastack: Successfully standardized {len(standardized_articles)} out of {len(articles)} articles")
+    return standardized_articles
+
+def standardize_newsapi_ai_articles(articles):
+    """Standardize articles from the NewsAPI.ai API."""
+    logger.info(f"Standardizing {len(articles)} NewsAPI.ai articles")
+    standardized_articles = []
+    
+    for i, article in enumerate(articles):
+        try:
+            title = article.get('title', '')
+            content = article.get('body', '') or article.get('description', '')
+            if not content.strip():
+                logger.warning(f"NewsAPI.ai: Skipping article {i+1} due to empty content")
+                continue
+            
+            standardized_article = {
+                'title': title or 'No title available',
+                'url': article.get('url', '#'),
+                'content': content,
+                'source': article.get('source', {}).get('title', 'NewsAPI.ai')
+            }
+            logger.debug(f"NewsAPI.ai: Successfully standardized article {i+1}: {standardized_article['title']}")
+            standardized_articles.append(standardized_article)
+        except Exception as e:
+            logger.error(f"NewsAPI.ai: Error standardizing article {i+1}: {e}")
+    
+    logger.info(f"NewsAPI.ai: Successfully standardized {len(standardized_articles)} out of {len(articles)} articles")
+    return standardized_articles
+
 def process_articles(articles, source):
     """Process articles based on their fetch source by applying the appropriate standardization."""
     if source == 'Aylien':
         standardized = standardize_aylien_articles(articles)
     elif source == 'GNews':
         standardized = standardize_gnews_articles(articles)
+    elif source == 'NYT':
+        standardized = standardize_nyt_articles(articles)
+    elif source == 'Mediastack':
+        standardized = standardize_mediastack_articles(articles)
+    elif source == 'NewsAPI.ai':
+        standardized = standardize_newsapi_ai_articles(articles)
     else:  # NewsAPI.org or Guardian
         standardized = standardize_articles(articles, source)
     
@@ -102,7 +189,7 @@ def process_articles(articles, source):
         content_sentiment = analyze_sentiment(article['content'])
         # Weighted average: title (30%) and content (70%)
         article['sentiment_score'] = (0.3 * title_sentiment + 0.7 * content_sentiment)
-        
+    
     return standardized
 
 def analyze_sentiment(text):

@@ -5,7 +5,10 @@ from fetchers import (
     fetch_newsapi_org,
     fetch_guardian,
     fetch_aylien_articles,
-    fetch_gnews_articles
+    fetch_gnews_articles,
+    fetch_nyt_articles,
+    fetch_mediastack_articles,
+    fetch_newsapi_ai_articles
 )
 from processors import (
     process_articles,
@@ -34,6 +37,9 @@ def fetch_and_process_data(event):
         guardian_articles = fetch_guardian(event)
         aylien_articles = fetch_aylien_articles(event)
         gnews_articles = fetch_gnews_articles(event)
+        nyt_articles = fetch_nyt_articles(event)
+        mediastack_articles = fetch_mediastack_articles(event)
+        newsapi_ai_articles = fetch_newsapi_ai_articles(event)
         fetch_time = time.time() - fetch_start
         logger.info(f"Fetching articles took {fetch_time:.2f} seconds for event '{event}', end time: {time.time()}")
 
@@ -42,10 +48,16 @@ def fetch_and_process_data(event):
                    f"NewsAPI.org: {len(newsapi_org_articles)}, "
                    f"Guardian: {len(guardian_articles)}, "
                    f"Aylien: {len(aylien_articles)}, "
-                   f"GNews: {len(gnews_articles)}")
+                   f"GNews: {len(gnews_articles)}, "
+                   f"NYT: {len(nyt_articles)}, "
+                   f"Mediastack: {len(mediastack_articles)}, "
+                   f"NewsAPI.ai: {len(newsapi_ai_articles)}")
 
         # Check for partial API failures
-        total_fetched = len(newsapi_org_articles) + len(guardian_articles) + len(aylien_articles) + len(gnews_articles)
+        total_fetched = (len(newsapi_org_articles) + len(guardian_articles) + 
+                        len(aylien_articles) + len(gnews_articles) +
+                        len(nyt_articles) + len(mediastack_articles) + 
+                        len(newsapi_ai_articles))
         logger.info(f"Total articles fetched for event '{event}': {total_fetched}")
         if total_fetched == 0:
             total_time = time.time() - start_time
@@ -59,11 +71,15 @@ def fetch_and_process_data(event):
         std_guardian = process_articles(guardian_articles, "Guardian")
         std_aylien = process_articles(aylien_articles, "Aylien")
         std_gnews = process_articles(gnews_articles, "GNews")
+        std_nyt = process_articles(nyt_articles, "NYT")
+        std_mediastack = process_articles(mediastack_articles, "Mediastack")
+        std_newsapi_ai = process_articles(newsapi_ai_articles, "NewsAPI.ai")
         standardize_time = time.time() - standardize_start
         logger.info(f"Standardizing articles took {standardize_time:.2f} seconds for event '{event}', end time: {time.time()}")
 
         # Combine all standardized articles
-        all_articles = std_newsapi + std_guardian + std_aylien + std_gnews
+        all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
+                       std_nyt + std_mediastack + std_newsapi_ai)
         logger.info(f"Combined articles count for event '{event}': {len(all_articles)}")
 
         # Group by true source and cap at MAX_ARTICLES_PER_SOURCE
@@ -99,6 +115,12 @@ def fetch_and_process_data(event):
             failed_sources.append("Aylien")
         if not gnews_articles:
             failed_sources.append("GNews")
+        if not nyt_articles:
+            failed_sources.append("NYT")
+        if not mediastack_articles:
+            failed_sources.append("Mediastack")
+        if not newsapi_ai_articles:
+            failed_sources.append("NewsAPI.ai")
         
         if failed_sources:
             error_message = "Showing results from available sources"
