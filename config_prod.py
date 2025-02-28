@@ -12,6 +12,8 @@ NEWSDATA_API_KEY = os.environ.get("NEWSDATA_API_KEY", "")
 AYLIEN_APP_ID = os.environ.get("AYLIEN_APP_ID", "")
 AYLIEN_API_KEY = os.environ.get("AYLIEN_API_KEY", "")
 
+DEFAULT_DAYS_BACK = 7
+
 # Feature flags
 USE_NEWSAPI_ORG = bool(NEWSAPI_ORG_KEY)
 USE_GUARDIAN = bool(GUARDIAN_API_KEY)
