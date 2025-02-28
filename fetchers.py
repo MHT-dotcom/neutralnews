@@ -1,11 +1,21 @@
 import requests
 from datetime import datetime, timedelta
 import logging
-from config import (
-    NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, 
-    GNEWS_API_KEY, DEFAULT_DAYS_BACK, NYT_API_KEY, MEDIASTACK_API_KEY, 
-    NEWSAPI_AI_KEY, MAX_ARTICLES_PER_API
-)
+try:
+    from config import (
+        NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
+        MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
+        USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
+        USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN
+    )
+except ImportError:
+    # In production, use environment variables
+    from config_prod import (
+        NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
+        MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
+        USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
+        USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN
+    )
 from aylienapiclient import textapi
 from aylienapiclient.errors import Error as AylienError
 

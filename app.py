@@ -8,6 +8,7 @@ from config import cache, MAX_ARTICLES_PER_SOURCE  # Ensure cache is imported fr
 import sys
 from flask_cors import CORS  # Add CORS support
 import argparse  # Add argument parser
+import os
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -43,15 +44,20 @@ logger.info("Routes blueprint registered")
 logger.info(f"Available routes after registration: {app.url_map}")
 logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
 
+try:
+    from config import DEBUG
+except ImportError:
+    from config_prod import DEBUG
+
 if __name__ == '__main__':
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Run the Neutral News application')
     parser.add_argument('-p', '--port', type=int, default=5000, help='Port to run the server on')
     args = parser.parse_args()
     
-    port = args.port
+    port = int(os.environ.get("PORT", 5002))
     logger.info(f"Application configuration complete, starting server on port {port}")
     try:
-        app.run(host='0.0.0.0', port=port, debug=True)  # Enable debug mode
+        app.run(host='0.0.0.0', port=port, debug=DEBUG)  # Enable debug mode
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
