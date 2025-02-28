@@ -49,15 +49,11 @@ try:
 except ImportError:
     from config_prod import DEBUG
 
-if __name__ == '__main__':
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Run the Neutral News application')
-    parser.add_argument('-p', '--port', type=int, default=5000, help='Port to run the server on')
-    args = parser.parse_args()
-    
-    port = int(os.environ.get("PORT", 5002))
+if __name__ == "__main__":
+    # Get port from environment variable or default to 10000
+    port = int(os.environ.get("PORT", 10000))
     logger.info(f"Application configuration complete, starting server on port {port}")
     try:
-        app.run(host='0.0.0.0', port=port, debug=DEBUG)  # Enable debug mode
+        app.run(host="0.0.0.0", port=port, debug=DEBUG)
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
