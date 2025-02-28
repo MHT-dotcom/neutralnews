@@ -6,7 +6,8 @@ try:
         NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
         MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
         USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
-        USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN
+        USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
+        DEFAULT_DAYS_BACK
     )
 except ImportError:
     # In production, use environment variables
@@ -14,7 +15,8 @@ except ImportError:
         NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
         MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
         USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
-        USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN
+        USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
+        DEFAULT_DAYS_BACK
     )
 from aylienapiclient import textapi
 from aylienapiclient.errors import Error as AylienError
