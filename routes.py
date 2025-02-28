@@ -17,7 +17,7 @@ from processors import (
     summarize_articles,
     ModelManager
 )
-from config import MAX_ARTICLES_PER_SOURCE, cache
+from config_prod import MAX_ARTICLES_PER_SOURCE, cache
 
 # Set up logging
 logger = logging.getLogger(__name__)

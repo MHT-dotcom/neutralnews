@@ -44,10 +44,10 @@ logger.info("Routes blueprint registered")
 logger.info(f"Available routes after registration: {app.url_map}")
 logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
 
-try:
-    from config import DEBUG
-except ImportError:
-    from config_prod import DEBUG
+# try:
+#     from config import DEBUG
+# except ImportError:
+from config_prod import DEBUG
 
 if __name__ == "__main__":
     # Get port from environment variable or default to 10000
