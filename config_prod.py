@@ -29,3 +29,6 @@ CACHE_DEFAULT_TIMEOUT = 1800  # 30 minutes
 
 # App configuration
 DEBUG = False
+
+# Default Settings
+DEFAULT_DAYS_BACK = 7
