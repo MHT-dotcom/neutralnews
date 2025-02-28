@@ -3,6 +3,7 @@ import os
 
 # News API keys
 NEWSAPI_ORG_KEY = os.environ.get("NEWSAPI_ORG_KEY", "")
+NEWSAPI_AI_KEY = os.environ.get("NEWSAPI_AI_KEY", "")
 GUARDIAN_API_KEY = os.environ.get("GUARDIAN_API_KEY", "")
 GNEWS_API_KEY = os.environ.get("GNEWS_API_KEY", "")
 NYT_API_KEY = os.environ.get("NYT_API_KEY", "")
@@ -12,6 +13,7 @@ NEWSDATA_API_KEY = os.environ.get("NEWSDATA_API_KEY", "")
 AYLIEN_APP_ID = os.environ.get("AYLIEN_APP_ID", "")
 AYLIEN_API_KEY = os.environ.get("AYLIEN_API_KEY", "")
 
+# Default Settings
 DEFAULT_DAYS_BACK = 7
 
 # Feature flags
@@ -31,6 +33,3 @@ CACHE_DEFAULT_TIMEOUT = 1800  # 30 minutes
 
 # App configuration
 DEBUG = False
-
-# Default Settings
-DEFAULT_DAYS_BACK = 7
