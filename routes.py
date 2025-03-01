@@ -20,6 +20,7 @@ from processors import (
 from config_prod import MAX_ARTICLES_PER_SOURCE, cache
 
 # Set up logging
+logging.basicConfig(level=logging.INFO)  # Ensure logs are captured at INFO level and above
 logger = logging.getLogger(__name__)
 
 logger.info("Initializing routes Blueprint")
@@ -223,7 +224,7 @@ def fetch_and_process_data(event):
         return response
     except Exception as e:
         total_time = time.time() - start_time
-        logger.error(f"Exception occurred, total time: {total_time:.2f} seconds, error: {str(e)}, ending at {time.time()}")
+        logger.error(f"Exception occurred, total time: {total_time:.2f} seconds, error: {str(e)}, ending at {time.time()}", exc_info=True)
         
         # Ensure models are cleared even if an error occurs
         try:
@@ -269,20 +270,20 @@ def index():
 
 @routes.route('/data', methods=['POST'])
 def get_news_data():
-    """Handle the AJAX request for fetching news data."""
+    """Handle the AJAX request for fetching news data with detailed error logging."""
+    logger.info("Route /data accessed")
+    logger.info(f"Request method: {request.method}")
+    logger.info(f"Request headers: {dict(request.headers)}")  # Log headers for more context
+    logger.info(f"Request form data: {request.form}")
+    logger.info(f"Request JSON data: {request.get_json(silent=True)}")
+    logger.info(f"Request args: {request.args}")
+    logger.info(f"Raw data: {request.data}")
+
     try:
-        # Log the entire request for debugging
-        logger.info("Route /data accessed")
-        logger.info(f"Request method: {request.method}")
-        logger.info(f"Request form data: {request.form}")
-        logger.info(f"Request JSON data: {request.get_json(silent=True)}")
-        logger.info(f"Request args: {request.args}")
-        logger.info(f"Raw data: {request.data}")
-        
         # Try to get the event from various sources
         event = (request.form.get('event') or 
-                (request.get_json(silent=True) or {}).get('event') or 
-                request.args.get('event'))
+                 (request.get_json(silent=True) or {}).get('event') or 
+                 request.args.get('event'))
         
         if not event:
             logger.error("No event provided in request")
@@ -291,21 +292,19 @@ def get_news_data():
         logger.info(f"Processing event: {event}")
         result = fetch_and_process_data(event)
         
-        # Check if result is a tuple (old format) or a dictionary (new format)
+        # Log detailed result info
         if isinstance(result, tuple):
             summary, articles, error = result
+            logger.info(f"fetch_and_process_data returned tuple - summary: {summary is not None}, "
+                        f"articles: {len(articles) if articles else 0}, error: {error}")
             # Create metadata if it's not available
             if articles:
-                # Calculate average sentiment
                 total_sentiment = sum(article.get('sentiment_score', 0) for article in articles)
                 avg_sentiment = total_sentiment / len(articles) if articles else 0
-                
-                # Count sources
                 source_counts = {}
                 for article in articles:
                     source = article.get('source', 'Unknown')
                     source_counts[source] = source_counts.get(source, 0) + 1
-                
                 metadata = {
                     'total_articles': len(articles),
                     'average_sentiment': avg_sentiment,
@@ -318,7 +317,6 @@ def get_news_data():
                     'source_distribution': {}
                 }
         else:
-            # Result is already in the correct format
             summary = result.get('summary')
             articles = result.get('articles', [])
             metadata = result.get('metadata', {
@@ -327,10 +325,10 @@ def get_news_data():
                 'source_distribution': {}
             })
             error = None
-            
-        logger.info(f"AJAX response - summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
-        
-        # Even if there's a partial error, return success if we have articles
+            logger.info(f"fetch_and_process_data returned dict - summary: {summary is not None}, "
+                        f"articles: {len(articles)}, metadata: {metadata}, error: {error}")
+
+        # Prepare and log the response
         if articles:
             response_data = {
                 'summary': summary if summary else "Summary not available.",
@@ -339,15 +337,19 @@ def get_news_data():
             }
             if error:  # Add warning if there was a partial failure
                 response_data['warning'] = error
+                logger.warning(f"Partial failure warning: {error}")
+            logger.info(f"Returning success response - articles: {len(articles)}, summary: {summary is not None}")
             return jsonify(response_data), 200
-        elif error:  # Only return error status if we have no articles
+        elif error:
+            logger.error(f"Returning error response: {error}")
             return jsonify({'error': error}), 400
         else:
+            logger.error("No articles found and no specific error provided")
             return jsonify({'error': 'No articles found.'}), 404
-            
+
     except Exception as e:
-        logger.error(f"Error processing request: {str(e)}")
-        return jsonify({'error': 'An internal server error occurred'}), 500
+        logger.error(f"Unexpected error in get_news_data: {str(e)}", exc_info=True)  # Include stack trace
+        return jsonify({'error': f"An internal server error occurred: {str(e)}"}), 500
 
 @routes.route('/test', methods=['GET'])
 def test():
