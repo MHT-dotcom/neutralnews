@@ -1,5 +1,8 @@
 # Production configuration using environment variables
 import os
+from flask_caching import Cache
+cache = Cache(config={'CACHE_TYPE': 'simple'})  # Basic in-memory cache
+
 
 # News API keys
 NEWSAPI_ORG_KEY = os.environ.get("NEWSAPI_ORG_KEY", "")
@@ -56,3 +59,5 @@ MAX_ARTICLES_PER_SOURCE = 10  # Increased from 5 to allow more articles per sour
 SUMMARIZER_BY_GPT = 1
 WEIGHT_RELEVANCE = 0.7
 WEIGHT_POPULARITY = 0.3
+MAX_ARTICLES_PER_SOURCE = 10  # Example value, adjust as needed
+
