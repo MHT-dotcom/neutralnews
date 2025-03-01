@@ -286,6 +286,8 @@ if SUMMARIZER_BY_GPT:
             prompt += f"Article {i+1}:\n{content}\n\n"
         prompt += "Please generate a summary that is approximately 150 words long, focusing on the main points and maintaining neutrality. The summary needs to be straight to the point and easy to read. Use simple language (B1 english).\n"
         
+        logger.info(f"Prompt length: {len(prompt)} characters")  # Added here
+        
         try:
             client = openai.OpenAI(
                 api_key=OPENAI_API_KEY
