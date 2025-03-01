@@ -27,10 +27,11 @@ logger.info("Initializing routes Blueprint")
 routes = Blueprint('routes', __name__, template_folder='templates')
 logger.info("Routes Blueprint initialized")
 
-@cache.cached(timeout=3600, key_prefix='summary')
+@cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
 def fetch_and_process_data(event):
     start_time = time.time()
-    logger.info(f"Starting fetch_and_process_data for event '{event}', total start time: {start_time}")
+    cache_key = f"summary_{event}"  # Log the effective cache key
+    logger.info(f"Starting fetch_and_process_data for event '{event}', total start time: {start_time}, cache key: {cache_key}")
     try:
         # Fetch articles from multiple APIs
         fetch_start = time.time()
@@ -146,8 +147,10 @@ def fetch_and_process_data(event):
             logger.info(f"Starting summarization with partial results for event '{event}' at {summarize_start}")
             summary = summarize_articles(relevant_articles, event)
             summarize_time = time.time() - summarize_start
-            logger.info(f"Summarizing articles took {summarize_time:.2f} seconds for event '{event}', end time: {time.time()}")
+            logger.info(f"Summarizing articles took {summarize_time:.2f} seconds for event '{event}', completed at {time.time()}")
             
+            total_time = time.time() - start_time
+            logger.info(f"Total request time after summarization: {total_time:.2f} seconds")
             return summary, relevant_articles, error_message
 
         # Log source distribution after capping
@@ -177,6 +180,9 @@ def fetch_and_process_data(event):
         summarize_time = time.time() - summarize_start
         logger.info(f"Summarizing articles took {summarize_time:.2f} seconds for event '{event}', completed at {time.time()}")
         
+        total_time = time.time() - start_time
+        logger.info(f"Total request time after summarization: {total_time:.2f} seconds")
+
         if summary.startswith("Error"):
             total_time = time.time() - start_time
             logger.info(f"Total time for summarization error: {total_time:.2f} seconds, ending at {time.time()}")
