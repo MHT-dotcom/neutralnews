@@ -1,23 +1,13 @@
 import requests
 from datetime import datetime, timedelta
 import logging
-# try:
-#     from config import (
-#         NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
-#         MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
-#         USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
-#         USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
-#         DEFAULT_DAYS_BACK, NEWSAPI_AI_KEY
-#     )
-# except ImportError:
-    # In production, use environment variables
-try: 
+try:
     from config_prod import (
         NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
         MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
         USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
         USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
-        DEFAULT_DAYS_BACK, NEWSAPI_AI_KEY
+        DEFAULT_DAYS_BACK, NEWSAPI_AI_KEY, MAX_ARTICLES_PER_SOURCE
     )
 except ImportError:
     raise Exception("Could not load production config")
@@ -29,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"https://newsapi.org/v2/everything?q={event}&from={from_date}&pageSize={MAX_ARTICLES_PER_API}&apiKey={NEWSAPI_ORG_KEY}"
+    url = f"https://newsapi.org/v2/everything?q={event}&from={from_date}&pageSize={MAX_ARTICLES_PER_SOURCE}&apiKey={NEWSAPI_ORG_KEY}"
     try:
         response = requests.get(url, timeout=5)  # 5 seconds timeout
         if response.status_code == 200:
@@ -49,7 +39,7 @@ def fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
 
 def fetch_guardian(event, days_back=DEFAULT_DAYS_BACK):
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"https://content.guardianapis.com/search?q={event}&from-date={from_date}&page-size={MAX_ARTICLES_PER_API}&api-key={GUARDIAN_API_KEY}"
+    url = f"https://content.guardianapis.com/search?q={event}&from-date={from_date}&page-size={MAX_ARTICLES_PER_SOURCE}&api-key={GUARDIAN_API_KEY}"
     try:
         response = requests.get(url, timeout=5)  # 5 seconds timeout
         if response.status_code == 200:
@@ -83,7 +73,7 @@ def fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, d
             response = client.Stories(
                 text=event,
                 language=['en'],
-                per_page=MAX_ARTICLES_PER_API,
+                per_page=MAX_ARTICLES_PER_SOURCE,
                 published_at_start=from_date,
                 _request_timeout=5
             )
@@ -103,7 +93,7 @@ def fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, d
 
 def fetch_gnews_articles(event, api_key=GNEWS_API_KEY, days_back=DEFAULT_DAYS_BACK):
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"https://gnews.io/api/v4/search?q={event}&from={from_date}&token={api_key}&max={MAX_ARTICLES_PER_API}"
+    url = f"https://gnews.io/api/v4/search?q={event}&from={from_date}&token={api_key}&max={MAX_ARTICLES_PER_SOURCE}"
     try:
         response = requests.get(url, timeout=5)  # 5 seconds timeout
         if response.status_code == 200:
@@ -124,7 +114,7 @@ def fetch_gnews_articles(event, api_key=GNEWS_API_KEY, days_back=DEFAULT_DAYS_BA
 def fetch_nyt_articles(event, api_key=NYT_API_KEY, days_back=DEFAULT_DAYS_BACK):
     """Fetch articles from the New York Times API."""
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"https://api.nytimes.com/svc/search/v2/articlesearch.json?q={event}&api-key={api_key}&begin_date={from_date}&page-size={MAX_ARTICLES_PER_API}"
+    url = f"https://api.nytimes.com/svc/search/v2/articlesearch.json?q={event}&api-key={api_key}&begin_date={from_date}&page-size={MAX_ARTICLES_PER_SOURCE}"
     try:
         logger.info(f"NYT: Making request to {url} for event '{event}'")
         response = requests.get(url, timeout=5)  # 5 seconds timeout
@@ -148,7 +138,7 @@ def fetch_nyt_articles(event, api_key=NYT_API_KEY, days_back=DEFAULT_DAYS_BACK):
 def fetch_mediastack_articles(event, api_key=MEDIASTACK_API_KEY, days_back=DEFAULT_DAYS_BACK):
     """Fetch articles from the Mediastack API."""
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"http://api.mediastack.com/v1/news?access_key={api_key}&keywords={event}&date={from_date}&languages=en&limit={MAX_ARTICLES_PER_API}"
+    url = f"http://api.mediastack.com/v1/news?access_key={api_key}&keywords={event}&date={from_date}&languages=en&limit={MAX_ARTICLES_PER_SOURCE}"
     try:
         logger.info(f"Mediastack: Making request to API for event '{event}'")
         response = requests.get(url, timeout=5)  # 5 seconds timeout
@@ -180,7 +170,7 @@ def fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_D
         "keyword": event,
         "dateStart": from_date,
         "language": "eng",
-        "articlesCount": MAX_ARTICLES_PER_API
+        "articlesCount": MAX_ARTICLES_PER_SOURCE
     }
     try:
         logger.info(f"NewsAPI.ai: Making request to API for event '{event}' with params: {params}")

@@ -16,6 +16,10 @@ NEWSDATA_API_KEY = os.environ.get("NEWSDATA_API_KEY", "")
 AYLIEN_APP_ID = os.environ.get("AYLIEN_APP_ID", "")
 AYLIEN_API_KEY = os.environ.get("AYLIEN_API_KEY", "")
 
+# api endpoints
+# NEWSAPI_URL = "https://newsapi.org/v2/everything"
+GUARDIAN_URL = "https://content.guardianapis.com/search"
+GNEWS_URL = "https://gnews.io/api/v4/search"
 # Default Settings
 DEFAULT_DAYS_BACK = 7
 
