@@ -7,6 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from config_prod import DEFAULT_TOP_N, RELEVANCE_THRESHOLD, OPENAI_API_KEY, SUMMARIZER_BY_GPT, WEIGHT_RELEVANCE, WEIGHT_POPULARITY
 import torch
 import re
+import time
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -275,6 +276,9 @@ if SUMMARIZER_BY_GPT:
     def summarize_articles(articles, query):
         """Summarize the combined content of articles using the OpenAI API."""
         logger.info(f"Summarizing {len(articles)} articles for query '{query}'")
+        total_chars = sum(len(article.get('content', '')) for article in articles)
+        logger.info(f"Total input character length: {total_chars}")
+        
         articles_content = [article.get('content', '') or article.get('title', '') for article in articles]
         
         prompt = "You are an expert in summarizing news articles neutrally. Your task is to generate a balanced summary from the following articles, ensuring that you present a fair and unbiased view.\n\n"
@@ -286,14 +290,19 @@ if SUMMARIZER_BY_GPT:
             client = openai.OpenAI(
                 api_key=OPENAI_API_KEY
             )
+            start_time = time.time()
+            logger.info(f"Starting OpenAI API call at {start_time}")
             response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=300,
                 temperature=0.2
             )
+            end_time = time.time()
+            logger.info(f"OpenAI API call completed in {end_time - start_time:.2f}s")
             summary = response.choices[0].message.content
         except Exception as e:
+            logger.error(f"OpenAI API call failed: {str(e)}", exc_info=True)
             summary = f"Error generating summary: {str(e)}"
         
         return summary

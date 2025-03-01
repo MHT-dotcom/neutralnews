@@ -172,11 +172,11 @@ def fetch_and_process_data(event):
 
         # Summarize articles
         summarize_start = time.time()
-        logger.info(f"Starting summarization for event '{event}' at {summarize_start}")
+        logger.info(f"Starting summarization with partial results for event '{event}' at {summarize_start}")
         summary = summarize_articles(relevant_articles, event)
         summarize_time = time.time() - summarize_start
-        logger.info(f"Summarizing articles took {summarize_time:.2f} seconds for event '{event}', end time: {time.time()}")
-
+        logger.info(f"Summarizing articles took {summarize_time:.2f} seconds for event '{event}', completed at {time.time()}")
+        
         if summary.startswith("Error"):
             total_time = time.time() - start_time
             logger.info(f"Total time for summarization error: {total_time:.2f} seconds, ending at {time.time()}")
