@@ -4,7 +4,7 @@ import flask
 from flask import Flask
 from routes import routes
 import logging
-from config import cache, MAX_ARTICLES_PER_SOURCE  # Ensure cache is imported from config
+from config_prod import cache, MAX_ARTICLES_PER_SOURCE  # Ensure cache is imported from config
 import sys
 from flask_cors import CORS  # Add CORS support
 import argparse  # Add argument parser
