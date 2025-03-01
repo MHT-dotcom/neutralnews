@@ -50,18 +50,18 @@ GNEWS_URL = "https://gnews.io/api/v4/search"
 SUMMARIZER_MODEL = "facebook/bart-large-cnn"
 
 # Default Settings
-MAX_ARTICLES_PER_API = 10  # Maximum number of articles to request from each API source
-DEFAULT_TOP_N = 20  # Number of articles to return after filtering
+MAX_ARTICLES_PER_API = 8  # Maximum number of articles to request from each API source
+DEFAULT_TOP_N = 7  # Number of articles to return after filtering
 RELEVANCE_THRESHOLD = 0.05  # Lowered from 0.1 to allow more articles through
-SUMMARIZER_MAX_LENGTH = 300
+SUMMARIZER_MAX_LENGTH = 250
 SUMMARIZER_MIN_LENGTH = 100
 AYLIEN_PER_PAGE = MAX_ARTICLES_PER_API
 GNEWS_MAX_ARTICLES = MAX_ARTICLES_PER_API
 REQUEST_TIMEOUT = 10
 DEFAULT_DAYS_BACK = 7
-MAX_ARTICLES_PER_SOURCE = 10  # Increased from 5 to allow more articles per source
+MAX_ARTICLES_PER_SOURCE = 5  # Increased from 5 to allow more articles per source
 SUMMARIZER_BY_GPT = 1
 WEIGHT_RELEVANCE = 0.7
 WEIGHT_POPULARITY = 0.3
-MAX_ARTICLES_PER_SOURCE = 10  # Example value, adjust as needed
+# MAX_ARTICLES_PER_SOURCE = 10  # Example value, adjust as needed
 
