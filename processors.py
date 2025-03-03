@@ -21,6 +21,8 @@ class ModelManager:
     def get_instance(cls):
         if cls._instance is None:
             cls._instance = cls()
+            logger.info("Preloading sentiment analysis model at startup...")
+            cls._instance._sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=-1)  # CPU, preloaded
         return cls._instance
 
     def get_summarizer(self):
@@ -30,15 +32,12 @@ class ModelManager:
         return self._summarizer
 
     def get_sentiment_analyzer(self):
-        if self._sentiment_analyzer is None:
-            logger.info("Loading sentiment analysis model...")
-            self._sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
-        return self._sentiment_analyzer
+        return self._sentiment_analyzer  # Return preloaded model
 
     def clear_models(self):
         logger.info("Clearing models from memory...")
         self._summarizer = None
-        self._sentiment_analyzer = None
+        # Keep _sentiment_analyzer loaded to avoid reload overhead
         torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
 def get_share_count(url, sharecount_api_key):
@@ -208,13 +207,20 @@ def process_articles(articles, source):
     else:  # NewsAPI.org or Guardian
         standardized = standardize_articles(articles, source)
     
-    # Add sentiment analysis to each article
-    for article in standardized:
-        # Analyze sentiment of both title and content
-        title_sentiment = analyze_sentiment(article['title'])
-        content_sentiment = analyze_sentiment(article['content'])
-        # Weighted average: title (30%) and content (70%)
-        article['sentiment_score'] = (0.3 * title_sentiment + 0.7 * content_sentiment)
+    if standardized:
+        model_manager = ModelManager.get_instance()
+        sentiment_analyzer = model_manager.get_sentiment_analyzer()
+        titles = [article['title'][:200] for article in standardized]
+        contents = [article['content'][:200] for article in standardized]
+        
+        # Batch process titles and contents
+        title_results = sentiment_analyzer(titles)
+        content_results = sentiment_analyzer(contents)
+        
+        for article, title_result, content_result in zip(standardized, title_results, content_results):
+            title_score = title_result['score'] if title_result['label'] == 'POSITIVE' else -title_result['score']
+            content_score = content_result['score'] if content_result['label'] == 'POSITIVE' else -content_result['score']
+            article['sentiment_score'] = 0.3 * title_score + 0.7 * content_score
     
     return standardized
 
@@ -223,8 +229,7 @@ def analyze_sentiment(text):
     try:
         model_manager = ModelManager.get_instance()
         sentiment_analyzer = model_manager.get_sentiment_analyzer()
-        result = sentiment_analyzer(text[:512])  # Limit text length for efficiency
-        # Convert POSITIVE/NEGATIVE to numerical score
+        result = sentiment_analyzer(text[:512])  # Kept as fallback, though batching is primary
         score = result[0]['score']
         if result[0]['label'] == 'NEGATIVE':
             score = -score
@@ -286,7 +291,7 @@ if SUMMARIZER_BY_GPT:
             prompt += f"Article {i+1}:\n{content}\n\n"
         prompt += "Please generate a summary that is approximately 150 words long, focusing on the main points and maintaining neutrality. The summary needs to be straight to the point and easy to read. Use simple language (B1 english).\n"
         
-        logger.info(f"Prompt length: {len(prompt)} characters")  # Added here
+        logger.info(f"Prompt length: {len(prompt)} characters")
         
         try:
             client = openai.OpenAI(
