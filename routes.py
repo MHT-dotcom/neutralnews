@@ -44,7 +44,7 @@ def fetch_and_process_data(event):
         mediastack_articles = fetch_mediastack_articles(event)
         newsapi_ai_articles = fetch_newsapi_ai_articles(event)
         fetch_time = time.time() - fetch_start
-        logger.info(f"Fetching articles took {fetch_time:.2f} seconds for event '{event}', end time: {time.time()}")
+        logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
 
         # Log the number of articles retrieved per API
         logger.info(f"Articles retrieved for event '{event}': "
@@ -64,7 +64,7 @@ def fetch_and_process_data(event):
         logger.info(f"Total articles fetched for event '{event}': {total_fetched}")
         if total_fetched == 0:
             total_time = time.time() - start_time
-            logger.info(f"Total time for failed fetch: {total_time:.2f} seconds, ending at {time.time()}")
+            logger.info(f"Total request time (no articles): {total_time:.2f} seconds, ending at {time.time()}")
             return None, None, f"No articles found for '{event}' in the past 7 days. Try a broader topic."
 
         # Standardize articles based on source
@@ -78,7 +78,7 @@ def fetch_and_process_data(event):
         std_mediastack = process_articles(mediastack_articles, "Mediastack")
         std_newsapi_ai = process_articles(newsapi_ai_articles, "NewsAPI.ai")
         standardize_time = time.time() - standardize_start
-        logger.info(f"Standardizing articles took {standardize_time:.2f} seconds for event '{event}', end time: {time.time()}")
+        logger.info(f"Standardization took {standardize_time:.2f} seconds for event '{event}'")
 
         # Combine all standardized articles
         all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
@@ -101,9 +101,8 @@ def fetch_and_process_data(event):
             logger.debug(f"Before capping, source '{source}' has {len(articles_list)} articles for event '{event}'")
             capped_articles.extend(articles_list[:MAX_ARTICLES_PER_SOURCE])
             logger.debug(f"After capping, source '{source}' has {min(len(articles_list), MAX_ARTICLES_PER_SOURCE)} articles for event '{event}'")
-
         group_and_cap_time = time.time() - group_and_cap_start
-        logger.info(f"Grouping and capping articles took {group_and_cap_time:.2f} seconds for event '{event}', end time: {time.time()}")
+        logger.info(f"Grouping and capping took {group_and_cap_time:.2f} seconds for event '{event}'")
 
         articles = capped_articles
         logger.info(f"Capped articles count for event '{event}': {len(articles)}")
@@ -129,28 +128,33 @@ def fetch_and_process_data(event):
             error_message = "Showing results from available sources"
             logger.warning(f"Partial API failure for event '{event}': {failed_sources}")
             total_time = time.time() - start_time
-            logger.info(f"Total time for partial failure: {total_time:.2f} seconds, ending at {time.time()}")
-            
+
             # Process articles even with partial failure
-            process_start = time.time()
-            logger.info(f"Starting processing with partial results for event '{event}' at {process_start}")
+            duplicate_start = time.time()
+            logger.info(f"Starting duplicate removal for event '{event}' at {duplicate_start}")
             unique_articles = remove_duplicates(articles)
+            duplicate_time = time.time() - duplicate_start
+            logger.info(f"Duplicate removal took {duplicate_time:.2f} seconds for event '{event}'")
+
+            filter_start = time.time()
+            logger.info(f"Starting filtering for event '{event}' at {filter_start}")
             relevant_articles = filter_relevant_articles(unique_articles, event)
-            process_time = time.time() - process_start
-            logger.info(f"Processing articles took {process_time:.2f} seconds for event '{event}', end time: {time.time()}")
+            filter_time = time.time() - filter_start
+            logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
 
             if not relevant_articles:
+                total_time = time.time() - start_time
+                logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
                 return None, None, f"No relevant articles found for '{event}' after filtering. Try a broader topic."
 
-            # Generate summary from available articles
             summarize_start = time.time()
-            logger.info(f"Starting summarization with partial results for event '{event}' at {summarize_start}")
+            logger.info(f"Starting summarization for event '{event}' at {summarize_start}")
             summary = summarize_articles(relevant_articles, event)
             summarize_time = time.time() - summarize_start
-            logger.info(f"Summarizing articles took {summarize_time:.2f} seconds for event '{event}', completed at {time.time()}")
+            logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
             
             total_time = time.time() - start_time
-            logger.info(f"Total request time after summarization: {total_time:.2f} seconds")
+            logger.info(f"Total request time (partial failure): {total_time:.2f} seconds, ending at {time.time()}")
             return summary, relevant_articles, error_message
 
         # Log source distribution after capping
@@ -161,31 +165,33 @@ def fetch_and_process_data(event):
         logger.info(f"Source distribution for event '{event}' after capping: {source_counts}")
 
         # Process articles: remove duplicates, filter, and summarize
-        process_start = time.time()
-        logger.info(f"Starting processing (remove duplicates and filter) for event '{event}' at {process_start}")
+        duplicate_start = time.time()
+        logger.info(f"Starting duplicate removal for event '{event}' at {duplicate_start}")
         unique_articles = remove_duplicates(articles)
+        duplicate_time = time.time() - duplicate_start
+        logger.info(f"Duplicate removal took {duplicate_time:.2f} seconds for event '{event}'")
+
+        filter_start = time.time()
+        logger.info(f"Starting filtering for event '{event}' at {filter_start}")
         relevant_articles = filter_relevant_articles(unique_articles, event)
-        process_time = time.time() - process_start
-        logger.info(f"Processing articles (remove duplicates and filter) took {process_time:.2f} seconds for event '{event}', end time: {time.time()}")
+        filter_time = time.time() - filter_start
+        logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
 
         if not relevant_articles:
             total_time = time.time() - start_time
-            logger.info(f"Total time for no relevant articles: {total_time:.2f} seconds, ending at {time.time()}")
+            logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
             return None, None, f"No relevant articles found for '{event}' after filtering. Try a broader topic."
 
         # Summarize articles
         summarize_start = time.time()
-        logger.info(f"Starting summarization with partial results for event '{event}' at {summarize_start}")
+        logger.info(f"Starting summarization for event '{event}' at {summarize_start}")
         summary = summarize_articles(relevant_articles, event)
         summarize_time = time.time() - summarize_start
-        logger.info(f"Summarizing articles took {summarize_time:.2f} seconds for event '{event}', completed at {time.time()}")
-        
-        total_time = time.time() - start_time
-        logger.info(f"Total request time after summarization: {total_time:.2f} seconds")
+        logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
 
         if summary.startswith("Error"):
             total_time = time.time() - start_time
-            logger.info(f"Total time for summarization error: {total_time:.2f} seconds, ending at {time.time()}")
+            logger.info(f"Total request time (summarization error): {total_time:.2f} seconds, ending at {time.time()}")
             return None, None, f"Failed to generate a summary for '{event}' due to processing issues."
 
         # Log the final number of articles
@@ -219,7 +225,7 @@ def fetch_and_process_data(event):
         }
 
         total_time = time.time() - start_time
-        logger.info(f"Total time for fetch_and_process_data: {total_time:.2f} seconds, ending at {time.time()}")
+        logger.info(f"Total request time: {total_time:.2f} seconds, ending at {time.time()}")
 
         # Ensure models are cleared after processing
         try:
