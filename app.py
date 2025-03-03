@@ -1,69 +1,56 @@
-# # todo: 
-# # - add newyorktimes api
 import flask
 from flask import Flask
-from routes import routes
-import logging
-from config_prod import cache, MAX_ARTICLES_PER_SOURCE  # Ensure cache is imported from config
-import sys
-from flask_cors import CORS  # Add CORS support
-import argparse  # Add argument parser
-import os
 from dotenv import load_dotenv
 import os
 import logging
-from processors import ModelManager  # Add this
+import sys
+from flask_cors import CORS
+from config_prod import cache, MAX_ARTICLES_PER_SOURCE, DEBUG
+from processors import ModelManager
 
+# Load environment variables
 load_dotenv()
+
+# Initialize Flask app
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-logger.info("Starting Neutral News application")
 CORS(app)  # Enable CORS
 
-# Preload sentiment model at startup
-ModelManager.get_instance()  # Trigger preloading here
-
-
-from routes import routes
-app.register_blueprint(routes)
-logger.info("Application fully initialized")
-
-
-# Configure cache
-cache.init_app(app)
-
-# Configure logging
+# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     stream=sys.stdout
 )
 logger = logging.getLogger(__name__)
-
-# Log initial startup
 logger.info("Starting Neutral News application")
+
+# Preload sentiment model at startup
+logger.info("Preloading sentiment analysis model...")
+ModelManager.get_instance()  # Trigger preloading here
+logger.info("Sentiment analysis model preloaded")
+
+# Configure cache
+cache.init_app(app)
+
+# Log initial startup details
 logger.info(f"Python version: {sys.version}")
 logger.info(f"Flask version: {flask.__version__}")
-
-# Check if cache is initialized before accessing its config
 if cache:
     logger.info(f"Cache type: {cache.config.get('CACHE_TYPE', 'Not configured')}")
 else:
     logger.warning("Cache is not initialized.")
 
-# Register the routes blueprint
+# Register the routes blueprint with a unique name
 logger.info("About to register routes blueprint")
 logger.info(f"Available routes before registration: {app.url_map}")
-app.register_blueprint(routes)
+from routes import routes
+app.register_blueprint(routes, name='news_routes')  # Unique name to avoid conflict
 logger.info("Routes blueprint registered")
 logger.info(f"Available routes after registration: {app.url_map}")
 logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
 
-# try:
-#     from config import DEBUG
-# except ImportError:
-from config_prod import DEBUG
+# Application fully initialized
+logger.info("Application fully initialized")
 
 if __name__ == "__main__":
     # Get port from environment variable or default to 10000
