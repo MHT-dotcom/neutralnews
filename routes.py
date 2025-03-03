@@ -93,10 +93,14 @@ def fetch_and_process_data(event):
         if all_articles:
             model_manager = ModelManager.get_instance()
             sentiment_analyzer = model_manager.get_sentiment_analyzer()
+            logger.info(f"Batching sentiment for {len(all_articles)} articles")
+            sentiment_start = time.time()
             titles = [article['title'][:200] for article in all_articles]
             contents = [article['content'][:200] for article in all_articles]
             title_results = sentiment_analyzer(titles)  # Single batch for all titles
             content_results = sentiment_analyzer(contents)  # Single batch for all contents
+            sentiment_time = time.time() - sentiment_start
+            logger.info(f"Sentiment batching took {sentiment_time:.2f} seconds")
             for article, title_result, content_result in zip(all_articles, title_results, content_results):
                 title_score = title_result['score'] if title_result['label'] == 'POSITIVE' else -title_result['score']
                 content_score = content_result['score'] if content_result['label'] == 'POSITIVE' else -content_result['score']
@@ -264,8 +268,7 @@ def fetch_and_process_data(event):
         except Exception as clear_error:
             logger.warning(f"Failed to clear models after error: {clear_error}")
             
-        return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
-        
+        return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."       
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for fetching and summarizing articles."""

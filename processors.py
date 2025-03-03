@@ -290,8 +290,8 @@ if SUMMARIZER_BY_GPT:
         prompt = "You are an expert in summarizing news articles neutrally. Your task is to generate a balanced summary from the following articles, ensuring that you present a fair and unbiased view.\n\n"
         for i, content in enumerate(articles_content):
             prompt += f"Article {i+1}:\n{content}\n\n"
+        # TODO: update deze 150 naar de var uit de config 
         prompt += "Please generate a summary that is approximately 150 words long, focusing on the main points and maintaining neutrality. The summary needs to be straight to the point and easy to read. Use simple language (B1 english).\n"
-        
         logger.info(f"Prompt length: {len(prompt)} characters")
         
         try:
@@ -301,7 +301,7 @@ if SUMMARIZER_BY_GPT:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",  # Faster model
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=300,
+                max_tokens=200,
                 temperature=0.2
             )
             end_time = time.time()

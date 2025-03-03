@@ -1,3 +1,4 @@
+# This file contains functions to fetch news articles from multiple APIs (NewsAPI.org, Guardian, Aylien, GNews, NYT, Mediastack, NewsAPI.ai) for a given event, using API keys from config_prod. Each function retrieves articles from a specific source over a specified time window (default 7 days), handles timeouts and errors with logging, and returns standardized article lists. The fetch_articles function combines results from all sources.
 import requests
 from datetime import datetime, timedelta
 import logging
