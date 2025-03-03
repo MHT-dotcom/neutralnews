@@ -279,12 +279,11 @@ def filter_relevant_articles(articles, query, top_n=DEFAULT_TOP_N, relevance_thr
 
 if SUMMARIZER_BY_GPT:
     def summarize_articles(articles, query):
-        """Summarize the combined content of articles using the OpenAI API."""
         logger.info(f"Summarizing {len(articles)} articles for query '{query}'")
         total_chars = sum(len(article.get('content', '')) for article in articles)
         logger.info(f"Total input character length: {total_chars}")
         
-        articles_content = [article.get('content', '') or article.get('title', '') for article in articles]
+        articles_content = [article.get('content', '')[:150] or article.get('title', '')[:150] for article in articles]
         
         prompt = "You are an expert in summarizing news articles neutrally. Your task is to generate a balanced summary from the following articles, ensuring that you present a fair and unbiased view.\n\n"
         for i, content in enumerate(articles_content):
@@ -294,13 +293,11 @@ if SUMMARIZER_BY_GPT:
         logger.info(f"Prompt length: {len(prompt)} characters")
         
         try:
-            client = openai.OpenAI(
-                api_key=OPENAI_API_KEY
-            )
+            client = openai.OpenAI(api_key=OPENAI_API_KEY)
             start_time = time.time()
             logger.info(f"Starting OpenAI API call at {start_time}")
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",  # Faster model
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=300,
                 temperature=0.2

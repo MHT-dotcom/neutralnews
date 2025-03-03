@@ -1,5 +1,6 @@
 from flask import render_template, request, Blueprint, jsonify
 import logging
+from concurrent.futures import ThreadPoolExecutor
 import time
 from fetchers import (
     fetch_newsapi_org,
@@ -30,19 +31,32 @@ logger.info("Routes Blueprint initialized")
 @cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
 def fetch_and_process_data(event):
     start_time = time.time()
-    cache_key = f"summary_{event}"  # Log the effective cache key
+    cache_key = f"summary_{event}"
     logger.info(f"Starting fetch_and_process_data for event '{event}', total start time: {start_time}, cache key: {cache_key}")
     try:
-        # Fetch articles from multiple APIs
         fetch_start = time.time()
         logger.info(f"Beginning API fetch for event '{event}' at {fetch_start}")
-        newsapi_org_articles = fetch_newsapi_org(event)
-        guardian_articles = fetch_guardian(event)
-        aylien_articles = fetch_aylien_articles(event)
-        gnews_articles = fetch_gnews_articles(event)
-        nyt_articles = fetch_nyt_articles(event)
-        mediastack_articles = fetch_mediastack_articles(event)
-        newsapi_ai_articles = fetch_newsapi_ai_articles(event)
+        with ThreadPoolExecutor(max_workers=7) as executor:
+            futures = [
+                executor.submit(fetch_newsapi_org, event),
+                executor.submit(fetch_guardian, event),
+                executor.submit(fetch_aylien_articles, event),
+                executor.submit(fetch_gnews_articles, event),
+                executor.submit(fetch_nyt_articles, event),
+                executor.submit(fetch_mediastack_articles, event),
+                executor.submit(fetch_newsapi_ai_articles, event)
+            ]
+            results = [future.result() for future in futures]
+        newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles = results
+        # fetch_time = time.time() - fetch_start
+        # logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
+        # newsapi_org_articles = fetch_newsapi_org(event)
+        # guardian_articles = fetch_guardian(event)
+        # aylien_articles = fetch_aylien_articles(event)
+        # gnews_articles = fetch_gnews_articles(event)
+        # nyt_articles = fetch_nyt_articles(event)
+        # mediastack_articles = fetch_mediastack_articles(event)
+        # newsapi_ai_articles = fetch_newsapi_ai_articles(event)
         fetch_time = time.time() - fetch_start
         logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
 
