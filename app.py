@@ -9,10 +9,26 @@ import sys
 from flask_cors import CORS  # Add CORS support
 import argparse  # Add argument parser
 import os
+from dotenv import load_dotenv
+import os
+import logging
+from processors import ModelManager  # Add this
 
-# Initialize Flask app
+load_dotenv()
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info("Starting Neutral News application")
 CORS(app)  # Enable CORS
+
+# Preload sentiment model at startup
+ModelManager.get_instance()  # Trigger preloading here
+
+
+from routes import routes
+app.register_blueprint(routes)
+logger.info("Application fully initialized")
+
 
 # Configure cache
 cache.init_app(app)
