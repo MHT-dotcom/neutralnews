@@ -1,3 +1,5 @@
+# This file initializes the Flask application, sets up logging, loads environment variables, preloads the sentiment analysis model, and registers the routes blueprint. It serves as the entry point for the web server, configuring core settings like CORS and cache, and starts the app on a specified port (default 10000) for local testing or Render deployment.
+ 
 import flask
 from flask import Flask
 from dotenv import load_dotenv

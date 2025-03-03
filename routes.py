@@ -1,3 +1,6 @@
+# This file defines the web routes for the application using a Flask Blueprint named 'news_routes'. It handles HTTP requests: '/' for the main page (GET/POST), '/data' for AJAX news fetching (POST), and '/test' for a simple status check (GET). The core function 'fetch_and_process_data' fetches articles from multiple APIs in parallel, processes them, and generates summaries, with detailed timing logs for performance tracking.
+
+
 from flask import render_template, request, Blueprint, jsonify
 import logging
 from concurrent.futures import ThreadPoolExecutor

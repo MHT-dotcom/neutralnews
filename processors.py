@@ -1,3 +1,5 @@
+# This file contains functions to process and standardize articles from various news APIs (e.g., NewsAPI.org, Guardian, NYT) into a uniform format, analyze sentiment using a preloaded DistilBERT model with batch processing, remove duplicates, filter relevant articles by TF-IDF, and summarize them using OpenAI's GPT-3.5-turbo. It also manages model loading and clearing via the ModelManager class.
+ 
 import openai
 import logging
 import requests
@@ -207,20 +209,20 @@ def process_articles(articles, source):
     else:  # NewsAPI.org or Guardian
         standardized = standardize_articles(articles, source)
     
-    if standardized:
-        model_manager = ModelManager.get_instance()
-        sentiment_analyzer = model_manager.get_sentiment_analyzer()
-        titles = [article['title'][:200] for article in standardized]
-        contents = [article['content'][:200] for article in standardized]
+    # if standardized:
+    #     model_manager = ModelManager.get_instance()
+    #     sentiment_analyzer = model_manager.get_sentiment_analyzer()
+    #     titles = [article['title'][:200] for article in standardized]
+    #     contents = [article['content'][:200] for article in standardized]
         
-        # Batch process titles and contents
-        title_results = sentiment_analyzer(titles)
-        content_results = sentiment_analyzer(contents)
+    #     # Batch process titles and contents
+    #     title_results = sentiment_analyzer(titles)
+    #     content_results = sentiment_analyzer(contents)
         
-        for article, title_result, content_result in zip(standardized, title_results, content_results):
-            title_score = title_result['score'] if title_result['label'] == 'POSITIVE' else -title_result['score']
-            content_score = content_result['score'] if content_result['label'] == 'POSITIVE' else -content_result['score']
-            article['sentiment_score'] = 0.3 * title_score + 0.7 * content_score
+    #     for article, title_result, content_result in zip(standardized, title_results, content_results):
+    #         title_score = title_result['score'] if title_result['label'] == 'POSITIVE' else -title_result['score']
+    #         content_score = content_result['score'] if content_result['label'] == 'POSITIVE' else -content_result['score']
+    #         article['sentiment_score'] = 0.3 * title_score + 0.7 * content_score
     
     return standardized
 
