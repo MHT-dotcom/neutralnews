@@ -76,7 +76,7 @@ def fetch_and_process_data(event):
             logger.info(f"Total request time (no articles): {total_time:.2f} seconds, ending at {time.time()}")
             return None, None, f"No articles found for '{event}' in the past 7 days. Try a broader topic."
 
-        # Standardize articles based on source
+        # Standardize articles and batch sentiment analysis once
         standardize_start = time.time()
         logger.info(f"Starting standardization for event '{event}' at {standardize_start}")
         std_newsapi = process_articles(newsapi_org_articles, "NewsAPI")
@@ -86,13 +86,24 @@ def fetch_and_process_data(event):
         std_nyt = process_articles(nyt_articles, "NYT")
         std_mediastack = process_articles(mediastack_articles, "Mediastack")
         std_newsapi_ai = process_articles(newsapi_ai_articles, "NewsAPI.ai")
+        
+        # Combine all articles and apply sentiment analysis in one batch
+        all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
+                        std_nyt + std_mediastack + std_newsapi_ai)
+        if all_articles:
+            model_manager = ModelManager.get_instance()
+            sentiment_analyzer = model_manager.get_sentiment_analyzer()
+            titles = [article['title'][:200] for article in all_articles]
+            contents = [article['content'][:200] for article in all_articles]
+            title_results = sentiment_analyzer(titles)  # Single batch for all titles
+            content_results = sentiment_analyzer(contents)  # Single batch for all contents
+            for article, title_result, content_result in zip(all_articles, title_results, content_results):
+                title_score = title_result['score'] if title_result['label'] == 'POSITIVE' else -title_result['score']
+                content_score = content_result['score'] if content_result['label'] == 'POSITIVE' else -content_result['score']
+                article['sentiment_score'] = 0.3 * title_score + 0.7 * content_score
+        
         standardize_time = time.time() - standardize_start
         logger.info(f"Standardization took {standardize_time:.2f} seconds for event '{event}'")
-
-        # Combine all standardized articles
-        all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
-                       std_nyt + std_mediastack + std_newsapi_ai)
-        logger.info(f"Combined articles count for event '{event}': {len(all_articles)}")
 
         # Group by true source and cap at MAX_ARTICLES_PER_SOURCE
         group_and_cap_start = time.time()
@@ -254,7 +265,7 @@ def fetch_and_process_data(event):
             logger.warning(f"Failed to clear models after error: {clear_error}")
             
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
-
+        
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for fetching and summarizing articles."""
