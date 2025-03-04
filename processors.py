@@ -61,13 +61,14 @@ def standardize_aylien_articles(articles):
     
     for i, article in enumerate(articles):
         try:
+            # The articles are already standardized in the fetcher
             standardized_article = {
-                'title': article.title,
-                'url': article.links.permalink,
-                'content': article.body,
-                'source': 'Aylien'
+                'title': article['title'],
+                'url': article['url'],
+                'content': article['content'],
+                'source': article['source']['name'] if isinstance(article['source'], dict) and 'name' in article['source'] else 'Aylien'
             }
-            logger.debug(f"Standardized Aylien article {i+1}: {standardized_article['title']} (Source: Aylien)")
+            logger.debug(f"Standardized Aylien article {i+1}: {standardized_article['title']} (Source: {standardized_article['source']})")
             standardized_articles.append(standardized_article)
         except Exception as e:
             logger.error(f"Error standardizing Aylien article {i+1}: {e}")

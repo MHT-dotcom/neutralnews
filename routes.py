@@ -145,7 +145,13 @@ def _fetch_and_process_data(event):
         logger.info(f"Starting grouping and capping for event '{event}' at {group_and_cap_start}")
         source_groups = {}
         for article in all_articles:
-            source = article.get('source', 'Unknown')
+            # Get the source and normalize it if it's a dictionary
+            source_raw = article.get('source', 'Unknown')
+            if isinstance(source_raw, dict) and 'name' in source_raw:
+                source = source_raw['name']
+            else:
+                source = source_raw if source_raw else 'Unknown'
+                
             logger.debug(f"Processing article with source '{source}' for event '{event}'")
             if source not in source_groups:
                 source_groups[source] = []
@@ -214,7 +220,13 @@ def _fetch_and_process_data(event):
         # Log source distribution after capping
         source_counts = {}
         for article in articles:
-            source = article.get('source', 'Unknown')
+            # Normalize source for metadata as well
+            source_raw = article.get('source', 'Unknown')
+            if isinstance(source_raw, dict) and 'name' in source_raw:
+                source = source_raw['name']
+            else:
+                source = source_raw if source_raw else 'Unknown'
+            
             source_counts[source] = source_counts.get(source, 0) + 1
         logger.info(f"Source distribution for event '{event}' after capping: {source_counts}")
 
@@ -258,11 +270,19 @@ def _fetch_and_process_data(event):
         for article in relevant_articles:
             sentiment_score = article.get('sentiment_score', 0)
             total_sentiment += sentiment_score
+            
+            # Normalize source if it's a dictionary
+            source_raw = article.get('source', 'Unknown')
+            if isinstance(source_raw, dict) and 'name' in source_raw:
+                source = source_raw['name']
+            else:
+                source = source_raw if source_raw else 'Unknown'
+                
             article_data.append({
                 'title': article.get('title', ''),
                 'url': article.get('url', ''),
                 'content': article.get('content', ''),
-                'source': article.get('source', 'Unknown'),
+                'source': source,
                 'sentiment_score': sentiment_score
             })
         
@@ -420,7 +440,13 @@ def get_news_data():
                 avg_sentiment = total_sentiment / len(articles) if articles else 0
                 source_counts = {}
                 for article in articles:
-                    source = article.get('source', 'Unknown')
+                    # Normalize source for metadata as well
+                    source_raw = article.get('source', 'Unknown')
+                    if isinstance(source_raw, dict) and 'name' in source_raw:
+                        source = source_raw['name']
+                    else:
+                        source = source_raw if source_raw else 'Unknown'
+                    
                     source_counts[source] = source_counts.get(source, 0) + 1
                 metadata = {
                     'total_articles': len(articles),
@@ -444,6 +470,14 @@ def get_news_data():
             error = None
             logger.info(f"cached_fetch_and_process_data returned dict - summary: {summary is not None}, "
                         f"articles: {len(articles)}, metadata: {metadata}, error: {error}")
+            
+            # Normalize source fields in articles
+            for article in articles:
+                source_raw = article.get('source', 'Unknown')
+                if isinstance(source_raw, dict) and 'name' in source_raw:
+                    article['source'] = source_raw['name']
+                elif not source_raw:
+                    article['source'] = 'Unknown'
 
         # Prepare and log the response
         if articles:

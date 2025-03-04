@@ -1,20 +1,18 @@
 # This file contains functions to fetch news articles from multiple APIs (NewsAPI.org, Guardian, Aylien, GNews, NYT, Mediastack, NewsAPI.ai) for a given event, using API keys from config_prod. Each function retrieves articles from a specific source over a specified time window (default 7 days), handles timeouts and errors with logging, and returns standardized article lists. The fetch_articles function combines results from all sources.
 import requests
+import json
+import time
 from datetime import datetime, timedelta
 import logging
 from concurrent.futures import ThreadPoolExecutor
-try:
-    from config_prod import (
-        NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
-        MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
-        USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
-        USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
-        DEFAULT_DAYS_BACK, NEWSAPI_AI_KEY, MAX_ARTICLES_PER_SOURCE
-    )
-except ImportError:
-    raise Exception("Could not load production config")
-from aylienapiclient import textapi
-from aylienapiclient.errors import Error as AylienError
+from config_prod import (
+    NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
+    MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
+    NEWSAPI_AI_KEY, USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
+    USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
+    USE_NEWSAPI_AI, MAX_ARTICLES_PER_SOURCE, DEFAULT_DAYS_BACK
+)
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +59,17 @@ def fetch_guardian(event, days_back=DEFAULT_DAYS_BACK):
 def fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, days_back=DEFAULT_DAYS_BACK):
     from_date = (datetime.now() - timedelta(days=days_back)).isoformat() + 'Z'
     try:
-        client = textapi.Client(app_id, api_key)
+        # Use the newer aylien-news-api client instead of the deprecated aylien-apiclient
+        import aylien_news_api
+        from aylien_news_api.rest import ApiException
+        
+        # Configure API key authorization
+        configuration = aylien_news_api.Configuration()
+        configuration.api_key['X-AYLIEN-NewsAPI-Application-ID'] = app_id
+        configuration.api_key['X-AYLIEN-NewsAPI-Application-Key'] = api_key
+        
+        # Create an instance of the API class
+        api_instance = aylien_news_api.DefaultApi(aylien_news_api.ApiClient(configuration))
         
         # Set timeout for the API call
         import requests
@@ -69,20 +77,41 @@ def fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, d
         adapter = requests.adapters.HTTPAdapter(max_retries=3)
         old_session.mount('http://', adapter)
         old_session.mount('https://', adapter)
+        
+        # Set up parameters for the stories endpoint
+        opts = {
+            'title': event,
+            'language': ['en'],
+            'published_at_start': from_date,
+            'per_page': MAX_ARTICLES_PER_SOURCE,
+            'sort_by': 'relevance'
+        }
+        
+        # Make the API call with timeout
         with requests.Session() as session:
             session.request = lambda method, url, **kwargs: old_session.request(method, url, **kwargs, timeout=5)
-            response = client.Stories(
-                text=event,
-                language=['en'],
-                per_page=MAX_ARTICLES_PER_SOURCE,
-                published_at_start=from_date,
-                _request_timeout=5
-            )
+            api_response = api_instance.list_stories(**opts)
         
-        articles_count = len(response['stories'])
+        stories = api_response.stories
+        articles_count = len(stories)
         logger.info(f"Aylien: Fetched {articles_count} articles for event '{event}' from {from_date}")
-        return response['stories']
-    except AylienError as e:
+        
+        # Convert the response to the expected format
+        articles = []
+        for story in stories:
+            article = {
+                'title': story.title,
+                'description': story.summary.sentences[0] if story.summary and story.summary.sentences else "",
+                'url': story.links.permalink,
+                'urlToImage': story.media[0].url if story.media and len(story.media) > 0 else None,
+                'publishedAt': story.published_at.isoformat() if story.published_at else None,
+                'source': {'name': story.source.name if story.source and story.source.name else 'Aylien'},
+                'content': story.body
+            }
+            articles.append(article)
+        
+        return articles
+    except ApiException as e:
         logger.error(f"Aylien API exception: {e}")
         return []
     except requests.exceptions.Timeout:
@@ -96,14 +125,23 @@ def fetch_gnews_articles(event, api_key=GNEWS_API_KEY, days_back=DEFAULT_DAYS_BA
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
     url = f"https://gnews.io/api/v4/search?q={event}&from={from_date}&token={api_key}&max={MAX_ARTICLES_PER_SOURCE}"
     try:
+        logger.info(f"GNews: Making request to API for event '{event}'")
         response = requests.get(url, timeout=5)  # 5 seconds timeout
         if response.status_code == 200:
             data = response.json()
             articles_count = len(data.get('articles', []))
             logger.info(f"GNews: Fetched {articles_count} articles for event '{event}' from {from_date}")
             return data.get('articles', [])
+        elif response.status_code == 403:
+            logger.error(f"GNews authorization error (403): Invalid API key or subscription expired")
+            return []
         else:
-            logger.error(f"GNews error: {response.status_code}")
+            try:
+                data = response.json()
+                error_msg = data.get('errors', {})
+                logger.error(f"GNews error: {response.status_code}, Error details: {error_msg}")
+            except:
+                logger.error(f"GNews error: {response.status_code}, Response: {response.text}")
             return []
     except requests.exceptions.Timeout:
         logger.error("Timeout occurred while fetching from GNews")
@@ -145,6 +183,11 @@ def fetch_mediastack_articles(event, api_key=MEDIASTACK_API_KEY, days_back=DEFAU
         response = requests.get(url, timeout=5)  # 5 seconds timeout
         if response.status_code == 200:
             data = response.json()
+            # Check for rate limit error in the response
+            if data.get('error') and 'usage limit' in data.get('error', {}).get('message', '').lower():
+                logger.error(f"Mediastack rate limit exceeded: {data['error']['message']}")
+                return []
+            
             articles = data.get('data', [])
             articles_count = len(articles)
             logger.info(f"Mediastack: Fetched {articles_count} articles for event '{event}' from {from_date}")
@@ -153,7 +196,15 @@ def fetch_mediastack_articles(event, api_key=MEDIASTACK_API_KEY, days_back=DEFAU
                 logger.warning(f"Mediastack: No articles found in response: {data}")
             return articles
         else:
-            logger.error(f"Mediastack error: {response.status_code}, Response: {response.text}")
+            # Check for rate limit in error response
+            try:
+                data = response.json()
+                if data.get('error') and 'usage limit' in data.get('error', {}).get('message', '').lower():
+                    logger.error(f"Mediastack rate limit exceeded: {data['error']['message']}")
+                else:
+                    logger.error(f"Mediastack error: {response.status_code}, Response: {response.text}")
+            except:
+                logger.error(f"Mediastack error: {response.status_code}, Response: {response.text}")
             return []
     except requests.exceptions.Timeout:
         logger.error("Timeout occurred while fetching from Mediastack")
@@ -190,6 +241,12 @@ def fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_D
             return []
     except requests.exceptions.Timeout:
         logger.error("Timeout occurred while fetching from NewsAPI.ai")
+        return []
+    except requests.exceptions.ConnectionError as e:
+        if "Failed to resolve" in str(e) or "Name or service not known" in str(e):
+            logger.error(f"DNS resolution error for NewsAPI.ai: {e}")
+        else:
+            logger.error(f"Connection error for NewsAPI.ai: {e}")
         return []
     except Exception as e:
         logger.error(f"Error fetching from NewsAPI.ai: {e}")
