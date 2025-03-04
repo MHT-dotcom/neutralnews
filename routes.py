@@ -34,6 +34,19 @@ def record_params(setup_state):
 
 _is_first_request = True
 
+# Create a function to safely access the cache
+def get_cache():
+    if cache is None:
+        logger.warning("Cache not initialized yet, using dummy cache")
+        # Return a dummy cache object that does nothing
+        class DummyCache:
+            def cached(self, *args, **kwargs):
+                def decorator(f):
+                    return f
+                return decorator
+        return DummyCache()
+    return cache
+
 @routes.before_app_request
 def before_first_request():
     global _is_first_request
@@ -41,8 +54,17 @@ def before_first_request():
         # Your initialization code here (unchanged from original)
         _is_first_request = False
 
-@cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
-def fetch_and_process_data(event):
+# Use a function to create the decorator
+def cached_fetch_and_process_data(event):
+    """Wrapper function to apply caching when cache is available"""
+    cache_obj = get_cache()
+    if hasattr(cache_obj, 'cached'):
+        return cache_obj.cached(timeout=3600, key_prefix=lambda: f"summary_{event}")(lambda: _fetch_and_process_data(event))()
+    else:
+        return _fetch_and_process_data(event)
+
+# Rename the original function
+def _fetch_and_process_data(event):
     start_time = time.time()
     cache_key = f"summary_{event}"
     logger.info(f"Starting fetch_and_process_data for event '{event}', total start time: {start_time}, cache key: {cache_key}")
@@ -279,8 +301,15 @@ def fetch_and_process_data(event):
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
 # Cache trending topics and summaries with dynamic hot topics
-@cache.cached(timeout=3600, key_prefix="trending_summaries")  # 1-hour cache
-def get_trending_summaries():
+def cached_get_trending_summaries():
+    """Wrapper function to apply caching when cache is available"""
+    cache_obj = get_cache()
+    if hasattr(cache_obj, 'cached'):
+        return cache_obj.cached(timeout=3600, key_prefix="trending_summaries")(_get_trending_summaries)()
+    else:
+        return _get_trending_summaries()
+
+def _get_trending_summaries():
     """
     Fetch and process summaries for trending topics (4 topics, 3 articles each).
     Uses dynamic topics from trends.py instead of hardcoded ones.
@@ -290,7 +319,7 @@ def get_trending_summaries():
     logger.info(f"Fetching trending summaries for topics: {topics}")
     
     with ThreadPoolExecutor(max_workers=4) as executor:
-        future_to_topic = {executor.submit(fetch_and_process_data, topic): topic for topic in topics}
+        future_to_topic = {executor.submit(cached_fetch_and_process_data, topic): topic for topic in topics}
         for future in future_to_topic:
             topic = future_to_topic[future]
             try:
@@ -318,56 +347,56 @@ def get_trending_summaries():
 # Precompute trending summaries at startup
 @routes.before_app_request
 def preload_trending_summaries():
-    """Precompute trending summaries at startup."""
+    """Preload trending summaries at startup"""
     logger.info("Preloading trending summaries at startup")
-    get_trending_summaries()
+    cached_get_trending_summaries()
 
 @routes.route('/', methods=['GET', 'POST'])
 def index():
-    """Handle the main route for displaying trending topics and fetching custom summaries."""
+    """Main route for the application."""
     logger.info("Route / accessed")
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request form data: {request.form}")
-    summary = None
-    articles = []
-    event = None
-    error = None
-    trending_summaries = get_trending_summaries()  # Fetch dynamic trending summaries
-
+    
+    # Get trending summaries
+    trending_summaries = cached_get_trending_summaries()  # Fetch dynamic trending summaries
+    
+    # Handle POST request (search form submission)
     if request.method == 'POST':
         event = request.form.get('event')
-        logger.info(f"Received POST request with event: {event}")
-        if not event:
-            error = "Please enter a news event to search for."
-            logger.warning("No event provided in POST request")
-        else:
-            logger.info(f"Calling fetch_and_process_data for event: {event}")
-            result = fetch_and_process_data(event)
-            if isinstance(result, tuple):
+        if event:
+            logger.info(f"Calling cached_fetch_and_process_data for event: {event}")
+            result = cached_fetch_and_process_data(event)
+            if isinstance(result, tuple) and len(result) == 3:
                 summary, articles, error = result
-            else:
-                summary = result.get('summary')
-                articles = result.get('articles', [])
-                error = None
-            logger.info(f"After fetch_and_process_data, summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
-            if error:
-                logger.error(f"Error in processing event '{event}': {error}")
-
-    logger.info(f"Rendering template with summary: {summary is not None}, articles: {len(articles) if articles else 0}, event: {event}, error: {error}")
-    return render_template('index.html', summary=summary, articles=articles, event=event, error=error, trending_summaries=trending_summaries)
+                logger.info(f"After cached_fetch_and_process_data, summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
+                return render_template('index.html', 
+                                      summary=summary, 
+                                      articles=articles, 
+                                      event=event, 
+                                      error=error,
+                                      trending_summaries=trending_summaries)
+    
+    # Handle GET request (initial page load)
+    return render_template('index.html', 
+                          summary=False, 
+                          articles=[], 
+                          event=None, 
+                          error=None,
+                          trending_summaries=trending_summaries)
 
 @routes.route('/data', methods=['POST'])
 def get_news_data():
-    """Handle the AJAX request for fetching news data with detailed error logging."""
-    logger.info("Route /data accessed")
-    logger.info(f"Request method: {request.method}")
-    logger.info(f"Request headers: {dict(request.headers)}")  # Log headers for more context
-    logger.info(f"Request form data: {request.form}")
-    logger.info(f"Request JSON data: {request.get_json(silent=True)}")
-    logger.info(f"Request args: {request.args}")
-    logger.info(f"Raw data: {request.data}")
-
+    """API endpoint to fetch news data."""
     try:
+        logger.info("Route /data accessed")
+        logger.info(f"Request method: {request.method}")
+        logger.info(f"Request headers: {dict(request.headers)}")  # Log headers for more context
+        logger.info(f"Request form data: {request.form}")
+        logger.info(f"Request JSON data: {request.get_json(silent=True)}")
+        logger.info(f"Request args: {request.args}")
+        logger.info(f"Raw data: {request.data}")
+        
         # Try to get the event from various sources
         event = (request.form.get('event') or 
                  (request.get_json(silent=True) or {}).get('event') or 
@@ -378,13 +407,13 @@ def get_news_data():
             return jsonify({'error': "Please enter a news event to search for."}), 400
         
         logger.info(f"Processing event: {event}")
-        result = fetch_and_process_data(event)
+        result = cached_fetch_and_process_data(event)
         
         # Log detailed result info
-        if isinstance(result, tuple):
+        if isinstance(result, tuple) and len(result) == 3:
             summary, articles, error = result
-            logger.info(f"fetch_and_process_data returned tuple - summary: {summary is not None}, "
-                        f"articles: {len(articles) if articles else 0}, error: {error}")
+            logger.info(f"cached_fetch_and_process_data returned tuple - summary: {summary is not None}, "
+                       f"articles: {len(articles) if articles else 0}, error: {error}")
             # Create metadata if it's not available
             if articles:
                 total_sentiment = sum(article.get('sentiment_score', 0) for article in articles)
@@ -413,7 +442,7 @@ def get_news_data():
                 'source_distribution': {}
             })
             error = None
-            logger.info(f"fetch_and_process_data returned dict - summary: {summary is not None}, "
+            logger.info(f"cached_fetch_and_process_data returned dict - summary: {summary is not None}, "
                         f"articles: {len(articles)}, metadata: {metadata}, error: {error}")
 
         # Prepare and log the response
