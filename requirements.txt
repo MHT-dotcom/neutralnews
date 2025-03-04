@@ -15,6 +15,7 @@ filelock==3.17.0
 Flask==3.1.0
 Flask-Caching==2.3.1
 flask-cors==5.0.1
+
 fsspec==2025.2.0
 gunicorn==23.0.0
 h11==0.14.0
@@ -39,6 +40,7 @@ pydantic==2.10.6
 pydantic_core==2.27.2
 pyparsing==3.2.1
 python-dateutil==2.9.0.post0
+pytrends>=4.9.2
 PyYAML==6.0.2
 regex==2024.11.6
 requests==2.32.3

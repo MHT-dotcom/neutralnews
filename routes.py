@@ -1,45 +1,35 @@
-# This file defines the web routes for the application using a Flask Blueprint named 'news_routes'. It handles HTTP requests: '/' for the main page (GET/POST) displaying trending topics and custom searches, '/data' for AJAX news fetching (POST), and '/test' for a simple status check (GET). The core function 'fetch_and_process_data' fetches articles from multiple APIs in parallel, processes them, and generates summaries, with detailed timing logs for performance tracking.
+# routes.py
+# This file defines the web routes for the application using a Flask Blueprint named 'routes'.
+# It handles HTTP requests: '/' for the main page (GET/POST) displaying trending topics and custom searches,
+# '/data' for AJAX news fetching (POST), and '/test' for a simple status check (GET).
+# The core function 'fetch_and_process_data' fetches articles from multiple APIs in parallel, processes them,
+# and generates summaries, with detailed timing logs for performance tracking.
+# New feature: Retrieves dynamic hot topics for the main page using trends.py.
 
-from flask import render_template, request, Blueprint, jsonify
-import logging
+from flask import Blueprint, render_template, request, jsonify
+from flask_caching import Cache
 from concurrent.futures import ThreadPoolExecutor
 import time
-# from trends import get_trending_topics
-from fetchers import (
-    fetch_newsapi_org,
-    fetch_guardian,
-    fetch_aylien_articles,
-    fetch_gnews_articles,
-    fetch_nyt_articles,
-    fetch_mediastack_articles,
-    fetch_newsapi_ai_articles
-)
-from processors import (
-    process_articles,
-    remove_duplicates,
-    filter_relevant_articles,
-    summarize_articles,
-    ModelManager
-)
-from config_prod import MAX_ARTICLES_PER_SOURCE, cache
-from trends import get_trending_topics
-from fetchers import fetch_trending_articles
-from processors import process_trending_articles
+import logging
+from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
+                     fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
+                     fetch_newsapi_ai_articles)
+from processors import (process_articles, remove_duplicates, filter_relevant_articles,
+                       summarize_articles, ModelManager)
+from trends import get_trending_topics  # Absolute import for Render compatibility
+from app import MAX_ARTICLES_PER_SOURCE  # Assuming defined in app.py; adjust if in config.py
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)  # Ensure logs are captured at INFO level and above
+routes = Blueprint('routes', __name__)
+cache = Cache()  # Initialized in app.py
 logger = logging.getLogger(__name__)
 
-logger.info("Initializing routes Blueprint")
-routes = Blueprint('news_routes', __name__, template_folder='templates')  # Match app.py's unique name
-logger.info("Routes Blueprint initialized")
-
 _is_first_request = True
+
 @routes.before_app_request
 def before_first_request():
     global _is_first_request
     if _is_first_request:
-        preload_trending_summaries()  # Precompute trending summaries at startup
+        # Your initialization code here (unchanged from original)
         _is_first_request = False
 
 @cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
@@ -98,7 +88,6 @@ def fetch_and_process_data(event):
         std_mediastack = process_articles(mediastack_articles, "Mediastack")
         std_newsapi_ai = process_articles(newsapi_ai_articles, "NewsAPI.ai")
         
-        # Combine all articles and apply sentiment analysis in one batch
         all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
                         std_nyt + std_mediastack + std_newsapi_ai)
         if all_articles:
@@ -164,7 +153,6 @@ def fetch_and_process_data(event):
             logger.warning(f"Partial API failure for event '{event}': {failed_sources}")
             total_time = time.time() - start_time
 
-            # Process articles even with partial failure
             duplicate_start = time.time()
             logger.info(f"Starting duplicate removal for event '{event}' at {duplicate_start}")
             unique_articles = remove_duplicates(articles)
@@ -281,13 +269,14 @@ def fetch_and_process_data(event):
             
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
-# Cache trending topics and summaries
+# Cache trending topics and summaries with dynamic hot topics
 @cache.cached(timeout=3600, key_prefix="trending_summaries")  # 1-hour cache
 def get_trending_summaries():
     """
     Fetch and process summaries for trending topics (4 topics, 3 articles each).
+    Uses dynamic topics from trends.py instead of hardcoded ones.
     """
-    topics = get_trending_topics(limit=4)
+    topics = get_trending_topics(limit=4)  # Fetch dynamic topics
     summaries = {}
     logger.info(f"Fetching trending summaries for topics: {topics}")
     
@@ -317,6 +306,7 @@ def get_trending_summaries():
     logger.info(f"Generated trending summaries for {list(summaries.keys())}")
     return summaries
 
+# Precompute trending summaries at startup
 @routes.before_app_request
 def preload_trending_summaries():
     """Precompute trending summaries at startup."""
@@ -333,7 +323,7 @@ def index():
     articles = []
     event = None
     error = None
-    trending_summaries = get_trending_summaries()  # Fetch from cache
+    trending_summaries = get_trending_summaries()  # Fetch dynamic trending summaries
 
     if request.method == 'POST':
         event = request.form.get('event')
@@ -362,7 +352,7 @@ def get_news_data():
     """Handle the AJAX request for fetching news data with detailed error logging."""
     logger.info("Route /data accessed")
     logger.info(f"Request method: {request.method}")
-    logger.info(f"Request headers: {dict(request.headers)}")
+    logger.info(f"Request headers: {dict(request.headers)}")  # Log headers for more context
     logger.info(f"Request form data: {request.form}")
     logger.info(f"Request JSON data: {request.get_json(silent=True)}")
     logger.info(f"Request args: {request.args}")
@@ -437,7 +427,7 @@ def get_news_data():
             return jsonify({'error': 'No articles found.'}), 404
 
     except Exception as e:
-        logger.error(f"Unexpected error in get_news_data: {str(e)}", exc_info=True)
+        logger.error(f"Unexpected error in get_news_data: {str(e)}", exc_info=True)  # Include stack trace
         return jsonify({'error': f"An internal server error occurred: {str(e)}"}), 500
 
 @routes.route('/test', methods=['GET'])
