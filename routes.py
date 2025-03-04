@@ -16,11 +16,21 @@ from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
                        summarize_articles, ModelManager)
 from trends import get_trending_topics  # Absolute import for Render compatibility
-from app import MAX_ARTICLES_PER_SOURCE, cache  # Import cache from app.py
+from config_prod import MAX_ARTICLES_PER_SOURCE  # Get from config_prod instead of app
 
 routes = Blueprint('routes', __name__)
 logger = logging.getLogger(__name__)
-logger.info(f"Cache in routes: {cache}")
+logger.info(f"Routes module initialized")
+
+# We'll get the cache instance when the blueprint is registered
+cache = None
+
+@routes.record
+def record_params(setup_state):
+    global cache
+    app = setup_state.app
+    cache = app.extensions['cache'].get(app)
+    logger.info(f"Cache set in routes: {cache}")
 
 _is_first_request = True
 

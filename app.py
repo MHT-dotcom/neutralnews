@@ -50,8 +50,11 @@ logger.info(f"Max articles per source: {MAX_ARTICLES_PER_SOURCE}")
 # Register the routes blueprint with a unique name
 logger.info("About to register routes blueprint")
 logger.info(f"Available routes before registration: {app.url_map}")
+
+# Import routes after app initialization to avoid circular imports
 from routes import routes
-app.register_blueprint(routes, name='news_routes')  # Unique name to avoid conflict
+app.register_blueprint(routes)
+
 logger.info("Routes blueprint registered")
 logger.info(f"Available routes after registration: {app.url_map}")
 logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
