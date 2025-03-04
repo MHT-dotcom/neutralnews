@@ -9,12 +9,14 @@ import sys
 from flask_cors import CORS
 from config_prod import cache, MAX_ARTICLES_PER_SOURCE, DEBUG
 from processors import ModelManager
+from flask import Flask, url_for
 
 # Load environment variables
 load_dotenv()
 
 # Initialize Flask app
-app = Flask(__name__)
+# app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)  # Enable CORS
 
 # Set up logging

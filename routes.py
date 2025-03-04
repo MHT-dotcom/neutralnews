@@ -1,10 +1,10 @@
-# This file defines the web routes for the application using a Flask Blueprint named 'news_routes'. It handles HTTP requests: '/' for the main page (GET/POST), '/data' for AJAX news fetching (POST), and '/test' for a simple status check (GET). The core function 'fetch_and_process_data' fetches articles from multiple APIs in parallel, processes them, and generates summaries, with detailed timing logs for performance tracking.
-
+# This file defines the web routes for the application using a Flask Blueprint named 'news_routes'. It handles HTTP requests: '/' for the main page (GET/POST) displaying trending topics and custom searches, '/data' for AJAX news fetching (POST), and '/test' for a simple status check (GET). The core function 'fetch_and_process_data' fetches articles from multiple APIs in parallel, processes them, and generates summaries, with detailed timing logs for performance tracking.
 
 from flask import render_template, request, Blueprint, jsonify
 import logging
 from concurrent.futures import ThreadPoolExecutor
 import time
+from trends import get_trending_topics
 from fetchers import (
     fetch_newsapi_org,
     fetch_guardian,
@@ -30,6 +30,15 @@ logger = logging.getLogger(__name__)
 logger.info("Initializing routes Blueprint")
 routes = Blueprint('news_routes', __name__, template_folder='templates')  # Match app.py's unique name
 logger.info("Routes Blueprint initialized")
+
+_is_first_request = True
+
+@routes.before_app_request
+def before_first_request():
+    global _is_first_request
+    if _is_first_request:
+        # Your initialization code here
+        _is_first_request = False
 
 @cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
 def fetch_and_process_data(event):
@@ -268,10 +277,30 @@ def fetch_and_process_data(event):
         except Exception as clear_error:
             logger.warning(f"Failed to clear models after error: {clear_error}")
             
-        return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."       
+        return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
+
+# Cache trending topics and summaries
+@cache.cached(timeout=3600, key_prefix="trending_summaries")  # 1-hour cache
+def get_trending_summaries():
+    topics = get_trending_topics()
+    summaries = {}
+    for topic in topics:
+        result = fetch_and_process_data(topic)
+        if isinstance(result, tuple) and result[0]:
+            summaries[topic] = {'summary': result[0], 'articles': result[1][:3]}  # Limit to 3 articles per topic
+        else:
+            summaries[topic] = {'summary': "No summary available", 'articles': []}
+    logger.info(f"Generated trending summaries for {topics}")
+    return summaries
+
+# Precompute trending summaries at startup
+@routes.before_app_request
+def preload_trending_summaries():
+    get_trending_summaries()
+
 @routes.route('/', methods=['GET', 'POST'])
 def index():
-    """Handle the main route for fetching and summarizing articles."""
+    """Handle the main route for displaying trending topics and fetching custom summaries."""
     logger.info("Route / accessed")
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request form data: {request.form}")
@@ -279,6 +308,7 @@ def index():
     articles = []
     event = None
     error = None
+    trending_summaries = get_trending_summaries()  # Fetch from cache
 
     if request.method == 'POST':
         event = request.form.get('event')
@@ -298,10 +328,9 @@ def index():
             logger.info(f"After fetch_and_process_data, summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
             if error:
                 logger.error(f"Error in processing event '{event}': {error}")
-                error = error
 
     logger.info(f"Rendering template with summary: {summary is not None}, articles: {len(articles) if articles else 0}, event: {event}, error: {error}")
-    return render_template('index.html', summary=summary, articles=articles, event=event, error=error)
+    return render_template('index.html', summary=summary, articles=articles, event=event, error=error, trending_summaries=trending_summaries)
 
 @routes.route('/data', methods=['POST'])
 def get_news_data():
