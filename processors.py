@@ -336,3 +336,40 @@ else:
         else:
             logger.warning("No content available for summarization")
             return "No content available for summarization."
+        
+
+
+def process_trending_articles(trending_data):
+    """
+    Process articles for trending topics: standardize, analyze sentiment, and summarize.
+    
+    Args:
+        trending_data (dict): Dictionary of topics mapped to article lists.
+    
+    Returns:
+        dict: Processed trending data with summaries and sentiment.
+    """
+    model_manager = ModelManager()
+    processed_data = {}
+
+    for topic, articles in trending_data.items():
+        logger.info(f"Processing articles for topic: {topic}")
+        if not articles:
+            processed_data[topic] = {"articles": [], "summary": "No articles found."}
+            continue
+        
+        # Standardize articles (assuming standardize_articles exists)
+        standardized_articles = standardize_articles(articles)
+        
+        # Analyze sentiment (assuming analyze_sentiment exists)
+        articles_with_sentiment = analyze_sentiment(standardized_articles, model_manager)
+        
+        # Generate a summary for the topic (assuming summarize_articles exists)
+        summary = summarize_articles(articles_with_sentiment, model_manager, prompt=f"Summarize news about {topic}")
+        
+        processed_data[topic] = {
+            "articles": articles_with_sentiment[:3],  # Limit to 3 articles
+            "summary": summary
+        }
+    
+    return processed_data

@@ -4,7 +4,7 @@ from flask import render_template, request, Blueprint, jsonify
 import logging
 from concurrent.futures import ThreadPoolExecutor
 import time
-from trends import get_trending_topics
+# from trends import get_trending_topics
 from fetchers import (
     fetch_newsapi_org,
     fetch_guardian,
@@ -22,6 +22,9 @@ from processors import (
     ModelManager
 )
 from config_prod import MAX_ARTICLES_PER_SOURCE, cache
+from .trends import get_trending_topics
+from .fetchers import fetch_trending_articles
+from .processors import process_trending_articles
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)  # Ensure logs are captured at INFO level and above
@@ -32,12 +35,11 @@ routes = Blueprint('news_routes', __name__, template_folder='templates')  # Matc
 logger.info("Routes Blueprint initialized")
 
 _is_first_request = True
-
 @routes.before_app_request
 def before_first_request():
     global _is_first_request
     if _is_first_request:
-        # Your initialization code here
+        preload_trending_summaries()  # Precompute trending summaries at startup
         _is_first_request = False
 
 @cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
@@ -282,20 +284,43 @@ def fetch_and_process_data(event):
 # Cache trending topics and summaries
 @cache.cached(timeout=3600, key_prefix="trending_summaries")  # 1-hour cache
 def get_trending_summaries():
-    topics = get_trending_topics()
+    """
+    Fetch and process summaries for trending topics (4 topics, 3 articles each).
+    """
+    topics = get_trending_topics(limit=4)
     summaries = {}
-    for topic in topics:
-        result = fetch_and_process_data(topic)
-        if isinstance(result, tuple) and result[0]:
-            summaries[topic] = {'summary': result[0], 'articles': result[1][:3]}  # Limit to 3 articles per topic
-        else:
-            summaries[topic] = {'summary': "No summary available", 'articles': []}
-    logger.info(f"Generated trending summaries for {topics}")
+    logger.info(f"Fetching trending summaries for topics: {topics}")
+    
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        future_to_topic = {executor.submit(fetch_and_process_data, topic): topic for topic in topics}
+        for future in future_to_topic:
+            topic = future_to_topic[future]
+            try:
+                result = future.result()
+                if isinstance(result, tuple) and result[0]:
+                    summaries[topic] = {
+                        'summary': result[0],
+                        'articles': result[1][:3]  # Limit to 3 articles per topic
+                    }
+                else:
+                    summaries[topic] = {
+                        'summary': "No summary available",
+                        'articles': []
+                    }
+            except Exception as e:
+                logger.error(f"Error processing trending topic '{topic}': {e}")
+                summaries[topic] = {
+                    'summary': "Error generating summary",
+                    'articles': []
+                }
+    
+    logger.info(f"Generated trending summaries for {list(summaries.keys())}")
     return summaries
 
-# Precompute trending summaries at startup
 @routes.before_app_request
 def preload_trending_summaries():
+    """Precompute trending summaries at startup."""
+    logger.info("Preloading trending summaries at startup")
     get_trending_summaries()
 
 @routes.route('/', methods=['GET', 'POST'])
@@ -337,7 +362,7 @@ def get_news_data():
     """Handle the AJAX request for fetching news data with detailed error logging."""
     logger.info("Route /data accessed")
     logger.info(f"Request method: {request.method}")
-    logger.info(f"Request headers: {dict(request.headers)}")  # Log headers for more context
+    logger.info(f"Request headers: {dict(request.headers)}")
     logger.info(f"Request form data: {request.form}")
     logger.info(f"Request JSON data: {request.get_json(silent=True)}")
     logger.info(f"Request args: {request.args}")
@@ -412,7 +437,7 @@ def get_news_data():
             return jsonify({'error': 'No articles found.'}), 404
 
     except Exception as e:
-        logger.error(f"Unexpected error in get_news_data: {str(e)}", exc_info=True)  # Include stack trace
+        logger.error(f"Unexpected error in get_news_data: {str(e)}", exc_info=True)
         return jsonify({'error': f"An internal server error occurred: {str(e)}"}), 500
 
 @routes.route('/test', methods=['GET'])

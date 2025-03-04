@@ -2,6 +2,7 @@
 import requests
 from datetime import datetime, timedelta
 import logging
+from concurrent.futures import ThreadPoolExecutor
 try:
     from config_prod import (
         NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
@@ -15,7 +16,6 @@ except ImportError:
 from aylienapiclient import textapi
 from aylienapiclient.errors import Error as AylienError
 
-# Set up logging
 logger = logging.getLogger(__name__)
 
 def fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
@@ -194,6 +194,72 @@ def fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_D
     except Exception as e:
         logger.error(f"Error fetching from NewsAPI.ai: {e}")
         return []
+
+def fetch_articles_for_topic(topic, max_articles=3, days_back=7):
+    """
+    Fetch articles related to a specific trending topic from all configured APIs.
+    
+    Args:
+        topic (str): The trending topic to search for.
+        max_articles (int): Maximum number of articles to return (default: 3).
+        days_back (int): Time window in days to search articles (default: 7).
+    
+    Returns:
+        list: List of standardized article dictionaries.
+    """
+    logger.info(f"Fetching articles for topic: {topic}")
+    
+    # Use existing fetch functions (assume they are defined as fetch_newsapi_articles, fetch_guardian_articles, etc.)
+    fetch_functions = [
+        fetch_newsapi_ai_articles,
+        fetch_guardian,
+        fetch_nyt_articles,
+        fetch_mediastack_articles,
+        fetch_aylien_articles,
+        fetch_newsapi_org,
+        fetch_gnews_articles
+        # Add other API fetchers as needed
+    ]
+    
+    articles = []
+    with ThreadPoolExecutor() as executor:
+        # Fetch articles in parallel from all APIs
+        future_to_api = {executor.submit(fn, topic, days_back): fn.__name__ for fn in fetch_functions}
+        for future in future_to_api:
+            try:
+                api_articles = future.result()
+                articles.extend(api_articles)
+            except Exception as e:
+                logger.error(f"Error in {future_to_api[future]} for topic '{topic}': {e}")
+    
+    # Sort by relevance (assuming articles have a 'published_at' or similar field) and limit
+    articles = sorted(articles, key=lambda x: x.get('published_at', ''), reverse=True)[:max_articles]
+    logger.info(f"Fetched {len(articles)} articles for topic: {topic}")
+    return articles
+
+def fetch_trending_articles(topics, max_articles_per_topic=3):
+    """
+    Fetch articles for a list of trending topics.
+    
+    Args:
+        topics (list): List of trending topic strings.
+        max_articles_per_topic (int): Number of articles per topic (default: 3).
+    
+    Returns:
+        dict: Dictionary mapping topics to their articles.
+    """
+    trending_data = {}
+    with ThreadPoolExecutor() as executor:
+        future_to_topic = {executor.submit(fetch_articles_for_topic, topic, max_articles_per_topic): topic for topic in topics}
+        for future in future_to_topic:
+            topic = future_to_topic[future]
+            try:
+                trending_data[topic] = future.result()
+            except Exception as e:
+                logger.error(f"Error fetching articles for topic '{topic}': {e}")
+                trending_data[topic] = []
+    return trending_data
+
 
 def fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     try:
