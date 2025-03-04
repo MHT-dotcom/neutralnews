@@ -1,8 +1,14 @@
 # Production configuration using environment variables
 import os
-from flask_caching import Cache
-cache = Cache(config={'CACHE_TYPE': 'simple'})  # Basic in-memory cache
+# Remove the cache initialization
+# from flask_caching import Cache
+# cache = Cache(config={'CACHE_TYPE': 'simple'})  # Basic in-memory cache
 
+# Cache configuration
+CACHE_CONFIG = {
+    'CACHE_TYPE': 'SimpleCache',  # Use SimpleCache instead of 'simple'
+    'CACHE_DEFAULT_TIMEOUT': 1800  # 30 minutes
+}
 
 # News API keys
 NEWSAPI_ORG_KEY = os.environ.get("NEWSAPI_ORG_KEY", "")

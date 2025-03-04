@@ -7,7 +7,6 @@
 # New feature: Retrieves dynamic hot topics for the main page using trends.py.
 
 from flask import Blueprint, render_template, request, jsonify
-from flask_caching import Cache
 from concurrent.futures import ThreadPoolExecutor
 import time
 import logging
@@ -17,11 +16,11 @@ from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
                        summarize_articles, ModelManager)
 from trends import get_trending_topics  # Absolute import for Render compatibility
-from app import MAX_ARTICLES_PER_SOURCE  # Assuming defined in app.py; adjust if in config.py
+from app import MAX_ARTICLES_PER_SOURCE, cache  # Import cache from app.py
 
 routes = Blueprint('routes', __name__)
-cache = Cache()  # Initialized in app.py
 logger = logging.getLogger(__name__)
+logger.info(f"Cache in routes: {cache}")
 
 _is_first_request = True
 

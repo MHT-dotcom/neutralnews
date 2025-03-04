@@ -7,7 +7,8 @@ import os
 import logging
 import sys
 from flask_cors import CORS
-from config_prod import cache, MAX_ARTICLES_PER_SOURCE, DEBUG
+from flask_caching import Cache
+from config_prod import MAX_ARTICLES_PER_SOURCE, DEBUG, CACHE_CONFIG
 from processors import ModelManager
 from flask import Flask, url_for
 
@@ -15,7 +16,6 @@ from flask import Flask, url_for
 load_dotenv()
 
 # Initialize Flask app
-# app = Flask(__name__)
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)  # Enable CORS
 
@@ -28,13 +28,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.info("Starting Neutral News application")
 
+# Configure cache properly
+app.config.from_mapping(CACHE_CONFIG)
+logger.info(f"Cache config set: {CACHE_CONFIG}")
+cache = Cache(app)  # Initialize cache with app
+logger.info(f"Cache initialized: {cache}")
+logger.info(f"App extensions after cache init: {app.extensions}")
+
 # Preload sentiment model at startup
 logger.info("Preloading sentiment analysis model...")
 ModelManager.get_instance()  # Trigger preloading here
 logger.info("Sentiment analysis model preloaded")
-
-# Configure cache
-cache.init_app(app)
 
 # Log initial startup details
 logger.info(f"Python version: {sys.version}")
