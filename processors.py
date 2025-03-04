@@ -301,7 +301,7 @@ if SUMMARIZER_BY_GPT:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",  # Faster model
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=200,
+                max_tokens=150,
                 temperature=0.2
             )
             end_time = time.time()
