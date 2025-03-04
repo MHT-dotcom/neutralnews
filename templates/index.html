@@ -23,10 +23,28 @@
                 <p>an AI based summary from multiple perspectives</p>
             </div>
             
+            <!-- Trending Topics Section -->
+            <div class="trending-container">
+                <h2 class="trending-title">Trending News Topics</h2>
+                <div class="trending-topics">
+                    {% for topic, data in trending_summaries.items() %}
+                        <div class="trending-card">
+                            <h3>{{ topic }}</h3>
+                            <p class="trending-summary">{{ data.summary }}</p>
+                            <div class="trending-articles">
+                                {% for article in data.articles %}
+                                    <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="trending-article-link">{{ article.title }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
             <div class="search-container">
                 <div class="search-prompt">Type a news topic to research</div>
                 <form id="search-form" class="search-form">
-                    <input type="text" name="event" class="search-input" placeholder="Enter news event (e.g., Election 2025)"/>
+                    <input type="text" name="event" class="search-input" placeholder="Enter news event (e.g., Election 2025)" value="{{ event if event else '' }}"/>
                     <button type="submit" class="search-button">
                         <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -34,7 +52,7 @@
                     </button>
                 </form>
                 
-                <div class="current-topic" style="display: none;"></div>
+                <div class="current-topic" style="display: {% if event %}block{% else %}none{% endif %};">Current topic: {{ event if event else '' }}</div>
             </div>
             
             <div class="pull-indicator">Pull down to refresh</div>
@@ -44,13 +62,13 @@
                 <div>Loading your news...</div>
             </div>
             
-            <div id="results" style="display: none;">
-                <div class="error-message" style="display: none;"></div>
-                <div class="sentiment-summary">
+            <div id="results" style="display: {% if summary or error %}block{% else %}none{% endif %};">
+                <div class="error-message" style="display: {% if error %}block{% else %}none{% endif %};">{{ error }}</div>
+                <div class="sentiment-summary" style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="sentiment-stats">
                         <div class="sentiment-stat">
                             <div class="stat-label">Articles Analyzed</div>
-                            <div class="stat-value" id="articles-analyzed"></div>
+                            <div class="stat-value" id="articles-analyzed">{{ articles|length if articles else 0 }}</div>
                         </div>
                         <div class="sentiment-stat">
                             <div class="stat-label">Average Sentiment</div>
@@ -64,15 +82,15 @@
                     </div>
                 </div>
                 
-                <div class="content-card summary-card" style="display: none;">
+                <div class="content-card summary-card" style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
                         <span class="card-title-dot"></span> Summary
                     </div>
-                    <div class="summary-content"></div>
+                    <div class="summary-content">{{ summary if summary else '' }}</div>
                 </div>
                 
                 <!-- Source Transparency Dashboard -->
-                <div class="content-card source-dashboard" style="display: none;">
+                <div class="content-card source-dashboard" style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
                         <span class="card-title-dot"></span> Source Distribution
                     </div>
@@ -94,13 +112,41 @@
                     <div class="source-legend" id="source-legend"></div>
                 </div>
                 
-                <div class="content-card articles-card" style="display: none;">
+                <div class="content-card articles-card" style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
                         <span class="card-title-dot"></span> Articles
                     </div>
-                    <div class="article-list"></div>
+                    <div class="article-list">
+                        {% if articles %}
+                            {% for article in articles %}
+                                <div class="article-card">
+                                    <h3 class="article-title">
+                                        <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="article-link">{{ article.title }}</a>
+                                    </h3>
+                                    <div class="article-meta">
+                                        <span class="source">{{ article.source }}</span>
+                                    </div>
+                                    <p class="article-content">{{ article.content }}</p>
+                                    <div class="sentiment-bar">
+                                        <div class="sentiment-indicator" style="
+                                            width: {{ (20 + (article.sentiment_score|abs * 80)) }}%;
+                                            background-color: {{ '#e53e3e' if article.sentiment_score < 0 else '#3b82f6' if article.sentiment_score > 0 else '#e2e8f0' }};
+                                        "></div>
+                                    </div>
+                                    <div class="sentiment-label">
+                                        {% if article.sentiment_score|abs < 0.2 %}Neutral
+                                        {% elif article.sentiment_score < -0.6 %}Very Negative
+                                        {% elif article.sentiment_score < -0.2 %}Somewhat Negative
+                                        {% elif article.sentiment_score > 0.6 %}Very Positive
+                                        {% elif article.sentiment_score > 0.2 %}Somewhat Positive
+                                        {% else %}Neutral{% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                 </div>
-                <button class="clear-button" style="display: none;">Clear Results</button>
+                <button class="clear-button" style="display: {% if summary %}block{% else %}none{% endif %};">Clear Results</button>
             </div>
         </div>
 
