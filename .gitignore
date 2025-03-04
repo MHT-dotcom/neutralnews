@@ -27,3 +27,9 @@ var/
 .vscode/
 *.log
 config.py
+
+# Test-specific files
+.env.test
+__pycache__/
+.pytest_cache/
+tests/fixtures/

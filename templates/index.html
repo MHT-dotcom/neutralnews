@@ -8,6 +8,15 @@
         <title>Neutral News</title>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+        <script>
+            // Function to apply styles from data attributes after page load
+            document.addEventListener('DOMContentLoaded', function() {
+                // Apply styles from data attributes
+                document.querySelectorAll('[data-style]').forEach(function(element) {
+                    element.setAttribute('style', element.getAttribute('data-style'));
+                });
+            });
+        </script>
     </head>
     <body>
         <div class="app-container">
@@ -52,7 +61,7 @@
                     </button>
                 </form>
                 
-                <div class="current-topic" style="display: {% if event %}block{% else %}none{% endif %};">Current topic: {{ event if event else '' }}</div>
+                <div class="current-topic" data-style="display: {% if event %}block{% else %}none{% endif %};">Current topic: {{ event if event else '' }}</div>
             </div>
             
             <div class="pull-indicator">Pull down to refresh</div>
@@ -62,9 +71,9 @@
                 <div>Loading your news...</div>
             </div>
             
-            <div id="results" style="display: {% if summary or error %}block{% else %}none{% endif %};">
-                <div class="error-message" style="display: {% if error %}block{% else %}none{% endif %};">{{ error }}</div>
-                <div class="sentiment-summary" style="display: {% if summary %}block{% else %}none{% endif %};">
+            <div id="results" data-style="display: {% if summary or error %}block{% else %}none{% endif %};">
+                <div class="error-message" data-style="display: {% if error %}block{% else %}none{% endif %};">{{ error }}</div>
+                <div class="sentiment-summary" data-style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="sentiment-stats">
                         <div class="sentiment-stat">
                             <div class="stat-label">Articles Analyzed</div>
@@ -82,7 +91,7 @@
                     </div>
                 </div>
                 
-                <div class="content-card summary-card" style="display: {% if summary %}block{% else %}none{% endif %};">
+                <div class="content-card summary-card" data-style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
                         <span class="card-title-dot"></span> Summary
                     </div>
@@ -90,7 +99,7 @@
                 </div>
                 
                 <!-- Source Transparency Dashboard -->
-                <div class="content-card source-dashboard" style="display: {% if summary %}block{% else %}none{% endif %};">
+                <div class="content-card source-dashboard" data-style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
                         <span class="card-title-dot"></span> Source Distribution
                     </div>
@@ -112,7 +121,7 @@
                     <div class="source-legend" id="source-legend"></div>
                 </div>
                 
-                <div class="content-card articles-card" style="display: {% if summary %}block{% else %}none{% endif %};">
+                <div class="content-card articles-card" data-style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
                         <span class="card-title-dot"></span> Articles
                     </div>
@@ -128,10 +137,7 @@
                                     </div>
                                     <p class="article-content">{{ article.content }}</p>
                                     <div class="sentiment-bar">
-                                        <div class="sentiment-indicator" style="
-                                            width: {{ (20 + (article.sentiment_score|abs * 80)) }}%;
-                                            background-color: {{ '#e53e3e' if article.sentiment_score < 0 else '#3b82f6' if article.sentiment_score > 0 else '#e2e8f0' }};
-                                        "></div>
+                                        <div class="sentiment-indicator" data-style="width: {{ (20 + (article.sentiment_score|abs * 80)) }}%; background-color: {{ '#e53e3e' if article.sentiment_score < 0 else '#3b82f6' if article.sentiment_score > 0 else '#e2e8f0' }};"></div>
                                     </div>
                                     <div class="sentiment-label">
                                         {% if article.sentiment_score|abs < 0.2 %}Neutral
@@ -146,7 +152,7 @@
                         {% endif %}
                     </div>
                 </div>
-                <button class="clear-button" style="display: {% if summary %}block{% else %}none{% endif %};">Clear Results</button>
+                <button class="clear-button" data-style="display: {% if summary %}block{% else %}none{% endif %};">Clear Results</button>
             </div>
         </div>
 
