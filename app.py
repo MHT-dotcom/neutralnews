@@ -43,10 +43,9 @@ logger.info("Sentiment analysis model preloaded")
 # Log initial startup details
 logger.info(f"Python version: {sys.version}")
 logger.info(f"Flask version: {flask.__version__}")
-if cache:
-    logger.info(f"Cache type: {cache.config.get('CACHE_TYPE', 'Not configured')}")
-else:
-    logger.warning("Cache is not initialized.")
+logger.info(f"Cache type: {CACHE_CONFIG.get('CACHE_TYPE', 'Not configured')}")
+logger.info(f"Debug mode: {DEBUG}")
+logger.info(f"Max articles per source: {MAX_ARTICLES_PER_SOURCE}")
 
 # Register the routes blueprint with a unique name
 logger.info("About to register routes blueprint")
