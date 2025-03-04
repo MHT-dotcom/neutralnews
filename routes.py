@@ -22,9 +22,9 @@ from processors import (
     ModelManager
 )
 from config_prod import MAX_ARTICLES_PER_SOURCE, cache
-from .trends import get_trending_topics
-from .fetchers import fetch_trending_articles
-from .processors import process_trending_articles
+from trends import get_trending_topics
+from fetchers import fetch_trending_articles
+from processors import process_trending_articles
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)  # Ensure logs are captured at INFO level and above
