@@ -31,11 +31,15 @@ def fetch_newsapi_org(event, days_back=None):
     api_key = get_config('NEWSAPI_ORG_KEY', '')
 
     if not api_key or not get_config('USE_NEWSAPI_ORG', False):
-        logger.info("NewsAPI.org is disabled or missing API key")
+        logger.info(f"NewsAPI.org is disabled or missing API key (key length: {len(api_key)})")
+        use_flag = get_config('USE_NEWSAPI_ORG', False)
+        logger.info(f"USE_NEWSAPI_ORG flag value: {use_flag}")
         return []
 
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
     url = f"https://newsapi.org/v2/everything?q={event}&from={from_date}&pageSize={max_articles}&apiKey={api_key}"
+    
+    logger.info(f"NewsAPI.org: Requesting articles for '{event}' from {from_date}")
     
     try:
         response = requests.get(url, timeout=5)
@@ -45,10 +49,10 @@ def fetch_newsapi_org(event, days_back=None):
             logger.info(f"NewsAPI.org: Fetched {len(articles)} articles for event '{event}' from {from_date}")
             return articles
         else:
-            logger.error(f"NewsAPI.org error: {response.status_code}")
+            logger.error(f"NewsAPI.org error: {response.status_code} - {response.text}")
             return []
     except Exception as e:
-        logger.error(f"Error fetching from NewsAPI.org: {e}")
+        logger.error(f"NewsAPI.org exception: {str(e)}")
         return []
 
 def fetch_guardian(event, days_back=None):

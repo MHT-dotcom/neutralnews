@@ -10,6 +10,7 @@ import sys
 import logging
 import pkg_resources
 from logging.config import dictConfig
+from dotenv import load_dotenv
 
 # Setup basic logging before any imports
 logging.basicConfig(level=logging.INFO)
@@ -78,11 +79,46 @@ def create_app():
     """
     # Configure logging first
     configure_logging()
-    logger = logging.getLogger(__name__)
-    logger.info("Creating application with factory pattern")
     
-    # Create Flask app instance
+    # Basic diagnostic logging
+    import sys
+    import os
+    import logging
+    import pkg_resources
+    
+    logger = logging.getLogger(__name__)
+    logger.info("Starting application initialization")
+    
+    # Log Python and package versions to identify compatibility issues
+    logger.info(f"Python version: {sys.version}")
+    logger.info(f"Flask version: {pkg_resources.get_distribution('flask').version}")
+    
+    try:
+        pytrends_version = pkg_resources.get_distribution('pytrends').version
+        logger.info(f"pytrends version: {pytrends_version}")
+        
+        # Log requests and urllib3 versions (often cause compatibility issues)
+        requests_version = pkg_resources.get_distribution('requests').version
+        urllib3_version = pkg_resources.get_distribution('urllib3').version
+        logger.info(f"requests version: {requests_version}")
+        logger.info(f"urllib3 version: {urllib3_version}")
+    except Exception as e:
+        logger.error(f"Error getting package versions: {e}")
+    
+    # Create Flask application
     app = Flask(__name__)
+    
+    # Enable CORS
+    CORS(app)
+    
+    # Register the environment variables from .env file
+    load_dotenv()
+    
+    # Log environment API keys (existence only, not values)
+    logger.info("API Key Status:")
+    logger.info(f"  NEWSAPI_ORG_KEY exists: {bool(os.environ.get('NEWSAPI_ORG_KEY'))}")
+    logger.info(f"  GUARDIAN_API_KEY exists: {bool(os.environ.get('GUARDIAN_API_KEY'))}")
+    logger.info(f"  OPENAI_API_KEY exists: {bool(os.environ.get('OPENAI_API_KEY'))}")
     
     # Configure from environment variables
     app.config.update(
@@ -123,9 +159,6 @@ def create_app():
         MAX_ARTICLES_PER_API=4,
         DEFAULT_TOP_N=3
     )
-    
-    # Enable CORS
-    CORS(app)
     
     # Initialize extensions
     # cache.init_app(app)  # Temporarily disabled for faster builds
