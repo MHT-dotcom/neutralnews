@@ -107,7 +107,6 @@ def standardize_aylien_articles(articles):
     
     for i, article in enumerate(articles):
         try:
-            # The articles are already standardized in the fetcher
             standardized_article = {
                 'title': article['title'],
                 'url': article['url'],
@@ -256,21 +255,6 @@ def process_articles(articles, source):
     else:  # NewsAPI.org or Guardian
         standardized = standardize_articles(articles, source)
     
-    # if standardized:
-    #     model_manager = ModelManager.get_instance()
-    #     sentiment_analyzer = model_manager.get_sentiment_analyzer()
-    #     titles = [article['title'][:200] for article in standardized]
-    #     contents = [article['content'][:200] for article in standardized]
-        
-    #     # Batch process titles and contents
-    #     title_results = sentiment_analyzer(titles)
-    #     content_results = sentiment_analyzer(contents)
-        
-    #     for article, title_result, content_result in zip(standardized, title_results, content_results):
-    #         title_score = title_result['score'] if title_result['label'] == 'POSITIVE' else -title_result['score']
-    #         content_score = content_result['score'] if content_result['label'] == 'POSITIVE' else -content_result['score']
-    #         article['sentiment_score'] = 0.3 * title_score + 0.7 * content_score
-    
     return standardized
 
 def analyze_sentiment(text):
@@ -331,19 +315,23 @@ def filter_relevant_articles(articles, query, top_n=None, relevance_threshold=No
     
     return relevant_articles
 
-if get_config('SUMMARIZER_BY_GPT', True):
-    def summarize_articles(articles, query):
-        logger.info(f"Summarizing {len(articles)} articles for query '{query}'")
-        total_chars = sum(len(article.get('content', '')) for article in articles)
-        logger.info(f"Total input character length: {total_chars}")
-        
-        articles_content = [article.get('content', '')[:150] or article.get('title', '')[:150] for article in articles]
-        
+def summarize_articles(articles, query):
+    """Summarize articles using either GPT-3.5-turbo or BART based on config, determined at runtime."""
+    logger.info(f"Summarizing {len(articles)} articles for query '{query}'")
+    total_chars = sum(len(article.get('content', '')) for article in articles)
+    logger.info(f"Total input character length: {total_chars}")
+    
+    articles_content = [article.get('content', '')[:150] or article.get('title', '')[:150] for article in articles]
+    
+    # Check config at runtime within context
+    use_gpt = get_config('SUMMARIZER_BY_GPT', True)
+    
+    if use_gpt:
+        # GPT-3.5-turbo summarization
         prompt = "You are an expert in summarizing news articles neutrally. Your task is to generate a balanced summary from the following articles, ensuring that you present a fair and unbiased view.\n\n"
         for i, content in enumerate(articles_content):
             prompt += f"Article {i+1}:\n{content}\n\n"
-        # TODO: update deze 150 naar de var uit de config 
-        prompt += "Please generate a summary that is approximately 150 words long, focusing on the main points and maintaining neutrality. The summary needs to be straight to the point and easy to read. Use simple language (B1 english).\n"
+        prompt += "Please generate a summary that is approximately 150 words long, focusing on the main points and maintaining neutrality. The summary needs to be straight to the point and easy to read. Use simple language (B1 English).\n"
         logger.info(f"Prompt length: {len(prompt)} characters")
         
         try:
@@ -351,7 +339,7 @@ if get_config('SUMMARIZER_BY_GPT', True):
             start_time = time.time()
             logger.info(f"Starting OpenAI API call at {start_time}")
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",  # Faster model
+                model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=150,
                 temperature=0.2
@@ -362,12 +350,8 @@ if get_config('SUMMARIZER_BY_GPT', True):
         except Exception as e:
             logger.error(f"OpenAI API call failed: {str(e)}", exc_info=True)
             summary = f"Error generating summary: {str(e)}"
-        
-        return summary
-else:
-    def summarize_articles(articles, query):
-        """Summarize the combined content of articles and split into sentences."""
-        logger.info(f"Summarizing {len(articles)} articles for query '{query}'")
+    else:
+        # BART summarization
         combined_content = " ".join([article.get('content', '') or article.get('title', '') for article in articles])
         if combined_content.strip():
             try:
@@ -375,21 +359,19 @@ else:
                 summarizer = model_manager.get_summarizer()
                 summary = summarizer(combined_content, max_length=300, min_length=100, do_sample=False)
                 summary_text = summary[0]['summary_text']
-                # Split into sentences and join with <br> tags
                 sentences = re.split(r'(?<=[.!?])\s+', summary_text.strip())
                 formatted_summary = '<br>'.join(sentences)
                 logger.info("Summary generated successfully with sentence splitting")
-                # Clear models after use
                 model_manager.clear_models()
-                return formatted_summary
+                summary = formatted_summary
             except Exception as e:
                 logger.error(f"Error generating summary: {e}")
-                return "Error generating summary."
+                summary = "Error generating summary."
         else:
             logger.warning("No content available for summarization")
-            return "No content available for summarization."
-        
-
+            summary = "No content available for summarization."
+    
+    return summary
 
 def process_trending_articles(trending_data):
     """
@@ -401,7 +383,7 @@ def process_trending_articles(trending_data):
     Returns:
         dict: Processed trending data with summaries and sentiment.
     """
-    model_manager = ModelManager()
+    model_manager = ModelManager.get_instance()
     processed_data = {}
 
     for topic, articles in trending_data.items():
@@ -410,17 +392,16 @@ def process_trending_articles(trending_data):
             processed_data[topic] = {"articles": [], "summary": "No articles found."}
             continue
         
-        # Standardize articles (assuming standardize_articles exists)
-        standardized_articles = standardize_articles(articles)
+        standardized_articles = process_articles(articles, source='Unknown')  # Adjust source as needed
         
-        # Analyze sentiment (assuming analyze_sentiment exists)
-        articles_with_sentiment = analyze_sentiment(standardized_articles, model_manager)
+        # Note: process_trending_articles seems to reference undefined functions; fixing here
+        for article in standardized_articles:
+            article['sentiment_score'] = analyze_sentiment(article['content'])
         
-        # Generate a summary for the topic (assuming summarize_articles exists)
-        summary = summarize_articles(articles_with_sentiment, model_manager, prompt=f"Summarize news about {topic}")
+        summary = summarize_articles(standardized_articles, topic)
         
         processed_data[topic] = {
-            "articles": articles_with_sentiment[:3],  # Limit to 3 articles
+            "articles": standardized_articles[:3],  # Limit to 3 articles
             "summary": summary
         }
     
