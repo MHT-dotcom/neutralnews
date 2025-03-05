@@ -247,38 +247,17 @@ def test():
 api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/')
-async def index():
-    """Homepage route that displays trending topics and their summaries"""
-    try:
-        # Get trending topics
-        topics = await get_trending_topics(limit=4)
-        summaries = []
-        
-        # Get articles and generate summaries for each topic
-        for topic in topics:
-            articles = await fetch_articles(topic)
-            if articles:
-                summary = await generate_summary(articles[:3])  # Use top 3 articles
-                summaries.append({
-                    'topic': topic,
-                    'summary': summary,
-                    'articles': articles[:3]
-                })
-        
-        logger.info(f"Generated trending summaries for {[s['topic'] for s in summaries]}")
-        return await render_template('index.html', summaries=summaries)
-        
-    except Exception as e:
-        logger.error(f"Error generating homepage: {str(e)}")
-        return await render_template('error.html', error=str(e))
+def index():
+    """Main API endpoint"""
+    return jsonify({"status": "ok"})
 
 @api_bp.route('/health')
-async def health_check():
+def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "message": "API is operational"}
+    return jsonify({"status": "healthy", "message": "API is operational"})
 
 @api_bp.route('/api/news')
-async def get_news():
+def get_news():
     """
     Fetch news articles from configured sources
     Query parameters:
@@ -288,24 +267,24 @@ async def get_news():
     try:
         query = request.args.get('q', '')
         if not query:
-            return {"error": "Query parameter 'q' is required"}, 400
+            return jsonify({"error": "Query parameter 'q' is required"}), 400
             
-        articles = await fetch_articles(query)
+        articles = fetch_articles(query)
         if not articles:
-            return {"error": "No articles found"}, 404
+            return jsonify({"error": "No articles found"}), 404
             
-        return {
+        return jsonify({
             "status": "success",
             "count": len(articles),
             "articles": articles
-        }
+        })
             
     except Exception as e:
         logger.error(f"Error fetching news: {str(e)}")
-        return {"error": "Internal server error", "details": str(e)}, 500
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 @api_bp.route('/api/summary')
-async def get_summary():
+def get_summary():
     """
     Generate a summary for a given topic using recent articles
     Query parameters:
@@ -314,29 +293,29 @@ async def get_summary():
     try:
         topic = request.args.get('topic', '')
         if not topic:
-            return {"error": "Query parameter 'topic' is required"}, 400
+            return jsonify({"error": "Query parameter 'topic' is required"}), 400
             
-        articles = await fetch_articles(topic)
+        articles = fetch_articles(topic)
         if not articles:
-            return {"error": "No articles found for topic"}, 404
+            return jsonify({"error": "No articles found for topic"}), 404
             
-        summary = await generate_summary(articles[:3])
-        return {
+        summary = generate_summary(articles[:3])
+        return jsonify({
             "status": "success",
             "topic": topic,
             "summary": summary,
             "articles": articles[:3]
-        }
+        })
             
     except Exception as e:
         logger.error(f"Error generating summary: {str(e)}")
-        return {"error": "Internal server error", "details": str(e)}, 500
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
-async def fetch_articles(query):
+def fetch_articles(query):
     """Helper function to fetch articles from all configured sources"""
     fetcher = BaseFetcher()
     try:
-        articles = await fetcher.fetch_all(query)
-        return await process_articles(articles)
+        articles = fetcher.fetch_all(query)
+        return process_articles(articles)
     finally:
-        await fetcher.close()
+        fetcher.close()

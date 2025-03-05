@@ -1,8 +1,7 @@
 """
 Neutral News MVP Application
 
-This module implements the main application using Quart.
-It provides a Flask-like async web framework for serving news articles
+This module implements the main Flask application for serving news articles
 with sentiment analysis and summarization.
 """
 
@@ -20,8 +19,8 @@ logger.info(f"Current working directory: {os.getcwd()}")
 logger.info(f"Directory contents: {os.listdir('.')}")
 logger.info(f"Python path: {sys.path}")
 
-from quart import Quart
-from quart_cors import cors
+from flask import Flask
+from flask_cors import CORS
 from flask_caching import Cache
 
 __version__ = '0.1.0'
@@ -58,18 +57,18 @@ def configure_logging():
 
 def create_app():
     """
-    Application factory function that creates and configures the Quart application.
+    Application factory function that creates and configures the Flask application.
     
     Returns:
-        Quart application instance
+        Flask application instance
     """
     # Configure logging first
     configure_logging()
     logger = logging.getLogger(__name__)
     logger.info("Creating application with factory pattern")
     
-    # Create Quart app instance
-    app = Quart(__name__)
+    # Create Flask app instance
+    app = Flask(__name__)
     
     # Configure from environment variables
     app.config.update(
@@ -110,7 +109,7 @@ def create_app():
     )
     
     # Enable CORS
-    app = cors(app)
+    CORS(app)
     
     # Initialize extensions
     cache.init_app(app)
@@ -127,11 +126,11 @@ def create_app():
     
     # Register error handlers
     @app.errorhandler(404)
-    async def not_found_error(error):
+    def not_found_error(error):
         return {"error": "Not found"}, 404
 
     @app.errorhandler(500)
-    async def internal_error(error):
+    def internal_error(error):
         return {"error": "Internal server error"}, 500
     
     # Register routes
