@@ -28,18 +28,12 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up configuration:
+4. Run the application:
 ```bash
-cp config.template.py config.py
-# Edit config.py with your API keys
-```
+# Local Development (uses config.py with your API keys)
+python run_local.py
 
-5. Run the application:
-```bash
-# Development
-python app.py
-
-# Production
+# Production (uses config_prod.py and environment variables)
 gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
 ```
 
@@ -52,6 +46,20 @@ gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
 - Mediastack
 - NewsAPI.ai
 - Aylien News
+
+## Local Development vs Production
+- **Local Development**: Uses `config.py` which contains your API keys (this file is gitignored)
+- **Production**: Uses `config_prod.py` and loads API keys from environment variables set in Render
+
+## Testing
+To run tests:
+```bash
+# Run all tests
+pytest
+
+# Run a specific test file
+pytest tests/test_comprehensive.py
+```
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
