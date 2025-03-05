@@ -22,14 +22,16 @@ services:
     name: neutral-news-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn 'app:create_app()' --bind 0.0.0.0:$PORT --workers 1 --timeout 60
+    startCommand: gunicorn 'app:create_app()' --bind 0.0.0.0:$PORT --workers 4 --timeout 60
     workingDir: /opt/render/project/src
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: RENDER_DISABLE_BUILD_CACHE
         value: "true"
-      - key: NEWSAPI_ORG_KEY
-        value: "your-newsapi-org-key"  # Add all API keys from config.py
+      - key: RENDER
+        value: "true"
+      - key: FLASK_ENV
+        value: "production"
     autoDeploy: true
     healthCheckPath: /test
