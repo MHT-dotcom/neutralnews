@@ -1,6 +1,5 @@
 """
 Neutral News MVP Application
-
 This module implements the main Flask application for serving news articles
 with sentiment analysis and summarization.
 """
@@ -9,6 +8,7 @@ import os
 import sys
 import logging
 import pkg_resources
+import time
 from logging.config import dictConfig
 from dotenv import load_dotenv
 
@@ -21,8 +21,30 @@ logger.info(f"Current working directory: {os.getcwd()}")
 logger.info(f"Directory contents: {os.listdir('.')}")
 logger.info(f"Python path: {sys.path}")
 
+# Add detailed timestamps for import sequence tracking
+logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Starting app.py before any module imports")
+
+# Log loaded environment variables (safely, without values)
+def log_environment_variables():
+    """Log available environment variables (safely, without exposing values)"""
+    env_vars = os.environ.keys()
+    logger.info(f"[ENV_VARS] Total environment variables: {len(env_vars)}")
+    
+    # Count potential API keys (variables with KEY, API, TOKEN in the name)
+    api_key_vars = [v for v in env_vars if any(x in v.upper() for x in ['KEY', 'API', 'TOKEN'])]
+    logger.info(f"[ENV_VARS] Potential API key variables: {len(api_key_vars)}")
+    
+    # Log specifically the existence of our known API keys
+    known_keys = ['NEWSAPI_ORG_KEY', 'GUARDIAN_API_KEY', 'AYLIEN_APP_ID', 'AYLIEN_API_KEY', 
+                  'GNEWS_API_KEY', 'NEWSAPI_AI_KEY', 'MEDIASTACK_API_KEY', 'OPENAI_API_KEY', 'NYT_API_KEY']
+    
+    for key in known_keys:
+        exists = key in os.environ
+        value_length = len(os.environ.get(key, '')) if exists else 0
+        logger.info(f"[ENV_VARS] {key}: {'✓' if exists else '✗'} (length: {value_length})")
+
 # Log installed packages
-logger.info("Installed packages:")
+logger.info("[PACKAGES] Installed packages:")
 installed_packages = [f"{dist.key} {dist.version}" for dist in pkg_resources.working_set]
 logger.info("\n".join(installed_packages))
 
@@ -30,13 +52,19 @@ logger.info("\n".join(installed_packages))
 try:
     with open('requirements.txt', 'r') as f:
         requirements = f.read()
-        logger.info(f"requirements.txt contents:\n{requirements}")
+        logger.info(f"[REQUIREMENTS] requirements.txt contents:\n{requirements}")
 except Exception as e:
-    logger.error(f"Error reading requirements.txt: {e}")
+    logger.error(f"[REQUIREMENTS] Error reading requirements.txt: {e}")
 
-from flask import Flask
+# Log before importing Flask modules
+logger.info(f"[IMPORT_SEQUENCE] {time.time()} - About to import Flask modules")
+
+from flask import Flask, g, request_started
 from flask_cors import CORS
 from flask_caching import Cache
+
+# Log after importing Flask modules
+logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Finished importing Flask modules")
 
 __version__ = '0.1.0'
 
@@ -70,6 +98,29 @@ def configure_logging():
         }
     })
 
+# Track when the application context is created and destroyed
+def monitor_app_context(app):
+    """Add listeners to monitor application context lifecycle"""
+    
+    @app.before_request
+    def log_request_context():
+        logger.info(f"[APP_CONTEXT] {time.time()} - Request context created for: {request.path}")
+    
+    def log_app_context_pushed(sender, **extra):
+        logger.info(f"[APP_CONTEXT] {time.time()} - Application context pushed")
+        
+    def log_app_context_popped(sender, **extra):
+        logger.info(f"[APP_CONTEXT] {time.time()} - Application context popped")
+        
+    def log_request_started(sender, **extra):
+        logger.info(f"[APP_CONTEXT] {time.time()} - Request started")
+    
+    # Register the signal handlers
+    from flask import appcontext_pushed, appcontext_popped
+    appcontext_pushed.connect(log_app_context_pushed, app)
+    appcontext_popped.connect(log_app_context_popped, app)
+    request_started.connect(log_request_started, app)
+
 def create_app():
     """
     Application factory function that creates and configures the Flask application.
@@ -87,53 +138,62 @@ def create_app():
     import pkg_resources
     
     logger = logging.getLogger(__name__)
-    logger.info("Starting application initialization")
+    logger.info("[APP_INIT] Starting application initialization")
     
     # Log Python and package versions to identify compatibility issues
-    logger.info(f"Python version: {sys.version}")
-    logger.info(f"Flask version: {pkg_resources.get_distribution('flask').version}")
+    logger.info(f"[APP_INIT] Python version: {sys.version}")
+    logger.info(f"[APP_INIT] Flask version: {pkg_resources.get_distribution('flask').version}")
     
     try:
         pytrends_version = pkg_resources.get_distribution('pytrends').version
-        logger.info(f"pytrends version: {pytrends_version}")
+        logger.info(f"[APP_INIT] pytrends version: {pytrends_version}")
         
         # Log requests and urllib3 versions (often cause compatibility issues)
         requests_version = pkg_resources.get_distribution('requests').version
         urllib3_version = pkg_resources.get_distribution('urllib3').version
-        logger.info(f"requests version: {requests_version}")
-        logger.info(f"urllib3 version: {urllib3_version}")
+        logger.info(f"[APP_INIT] requests version: {requests_version}")
+        logger.info(f"[APP_INIT] urllib3 version: {urllib3_version}")
     except Exception as e:
-        logger.error(f"Error getting package versions: {e}")
+        logger.error(f"[APP_INIT] Error getting package versions: {e}")
     
     # Create Flask application
     app = Flask(__name__)
+    
+    # Set up context monitoring
+    monitor_app_context(app)
+    
+    # Log when the app is created
+    logger.info(f"[APP_CONTEXT] {time.time()} - Flask application instance created")
     
     # Enable CORS
     CORS(app)
     
     # Detect environment (development or production)
     is_production = os.environ.get('RENDER', False) or os.environ.get('PRODUCTION', False)
-    logger.info(f"Running in {'production' if is_production else 'development'} mode")
+    logger.info(f"[APP_ENV] Running in {'production' if is_production else 'development'} mode")
     
     # First try environment variables directly (for Render/production)
     # Then fall back to .env file (for local development)
     if not is_production:
-        logger.info("Loading environment from .env file (development mode)")
+        logger.info("[ENV_LOADING] Loading environment from .env file (development mode)")
         from dotenv import load_dotenv
         load_dotenv()
     else:
-        logger.info("Using environment variables directly (production mode)")
+        logger.info("[ENV_LOADING] Using environment variables directly (production mode)")
     
     # Log all environment variables (safely)
     log_environment_variables()
     
     # Log environment API keys (existence only, not values)
-    logger.info("API Key Status:")
-    logger.info(f"  NEWSAPI_ORG_KEY exists: {bool(os.environ.get('NEWSAPI_ORG_KEY'))}")
-    logger.info(f"  GUARDIAN_API_KEY exists: {bool(os.environ.get('GUARDIAN_API_KEY'))}")
-    logger.info(f"  OPENAI_API_KEY exists: {bool(os.environ.get('OPENAI_API_KEY'))}")
+    logger.info("[API_KEYS] API Key Status:")
+    for key_name in ['NEWSAPI_ORG_KEY', 'GUARDIAN_API_KEY', 'OPENAI_API_KEY', 'GNEWS_API_KEY', 
+                    'NYT_API_KEY', 'AYLIEN_API_KEY', 'AYLIEN_APP_ID', 'MEDIASTACK_API_KEY', 'NEWSAPI_AI_KEY']:
+        key_exists = bool(os.environ.get(key_name))
+        key_length = len(os.environ.get(key_name, '')) if key_exists else 0
+        logger.info(f"[API_KEYS] {key_name}: {'Available' if key_exists else 'Missing'} (length: {key_length})")
     
     # Configure from environment variables
+    logger.info(f"[APP_CONFIG] {time.time()} - Setting up Flask configuration")
     app.config.update(
         # Cache settings
         # CACHE_TYPE='simple',  # Temporarily disabled for faster builds
@@ -170,21 +230,30 @@ def create_app():
         
         # Default settings
         MAX_ARTICLES_PER_API=4,
-        DEFAULT_TOP_N=3
+        DEFAULT_TOP_N=3,
+        DEFAULT_DAYS_BACK=7,
+        SUMMARIZER_BY_GPT=1
     )
+    logger.info(f"[APP_CONFIG] {time.time()} - Finished setting up Flask configuration")
+    
+    # Log if specific configuration keys were set
+    for key in ['NEWSAPI_ORG_KEY', 'GUARDIAN_API_KEY', 'OPENAI_API_KEY', 'MAX_ARTICLES_PER_API', 'DEFAULT_DAYS_BACK']:
+        logger.info(f"[APP_CONFIG] Config key '{key}' is {'set' if key in app.config else 'NOT set'}")
+        if key in app.config and key.endswith('_KEY'):
+            logger.info(f"[APP_CONFIG] Config key '{key}' length: {len(app.config.get(key, ''))}")
     
     # Initialize extensions
     # cache.init_app(app)  # Temporarily disabled for faster builds
     
     # Log API availability
-    logger.info("API availability:")
-    logger.info(f"  NewsAPI.org: {'Enabled' if app.config['USE_NEWSAPI_ORG'] else 'Disabled'}")
-    logger.info(f"  Guardian: {'Enabled' if app.config['USE_GUARDIAN'] else 'Disabled'}")
-    logger.info(f"  GNews: {'Enabled' if app.config['USE_GNEWS'] else 'Disabled'}")
-    logger.info(f"  NYT: {'Enabled' if app.config['USE_NYT'] else 'Disabled'}")
-    logger.info(f"  Mediastack: {'Enabled' if app.config['USE_MEDIASTACK'] else 'Disabled'}")
-    logger.info(f"  NewsAPI.ai: {'Enabled' if app.config['USE_NEWSAPI_AI'] else 'Disabled'}")
-    logger.info(f"  Aylien: {'Enabled' if app.config['USE_AYLIEN'] else 'Disabled'}")
+    logger.info("[API_AVAILABILITY] API availability:")
+    logger.info(f"[API_AVAILABILITY] NewsAPI.org: {'Enabled' if app.config['USE_NEWSAPI_ORG'] else 'Disabled'}")
+    logger.info(f"[API_AVAILABILITY] Guardian: {'Enabled' if app.config['USE_GUARDIAN'] else 'Disabled'}")
+    logger.info(f"[API_AVAILABILITY] GNews: {'Enabled' if app.config['USE_GNEWS'] else 'Disabled'}")
+    logger.info(f"[API_AVAILABILITY] NYT: {'Enabled' if app.config['USE_NYT'] else 'Disabled'}")
+    logger.info(f"[API_AVAILABILITY] Mediastack: {'Enabled' if app.config['USE_MEDIASTACK'] else 'Disabled'}")
+    logger.info(f"[API_AVAILABILITY] NewsAPI.ai: {'Enabled' if app.config['USE_NEWSAPI_AI'] else 'Disabled'}")
+    logger.info(f"[API_AVAILABILITY] Aylien: {'Enabled' if app.config['USE_AYLIEN'] else 'Disabled'}")
     
     # Register error handlers
     @app.errorhandler(404)
@@ -195,73 +264,42 @@ def create_app():
     def internal_error(error):
         return {"error": "Internal server error"}, 500
     
+    # Log before registering routes
+    logger.info(f"[IMPORT_SEQUENCE] {time.time()} - About to import routes module")
+    
     # Register routes
     from routes import routes
+    
+    logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Finished importing routes module")
+    logger.info(f"[APP_INIT] {time.time()} - About to register routes blueprint")
+    
     app.register_blueprint(routes)
     
-    logger.info("Application factory initialization complete")
+    logger.info(f"[APP_INIT] {time.time()} - Finished registering routes blueprint")
+    logger.info("[APP_INIT] Application initialization complete")
+    
     return app
 
-def log_environment_variables():
-    """Log all environment variables (presence only, not values) to help with debugging."""
-    logger = logging.getLogger(__name__)
-    import os
-    
-    # Get all environment variables
-    env_vars = os.environ
-    
-    # List of sensitive keys (partial matches) to mask
-    sensitive_keys = ['key', 'password', 'secret', 'token', 'auth']
-    
-    # Count how many are potentially API keys or credentials
-    api_keys_count = 0
-    other_vars_count = 0
-    
-    logger.info("Environment Variables (masked for security):")
-    
-    # Log existence of each variable (but not its value)
-    for key in sorted(env_vars.keys()):
-        # Check if this might be a sensitive value
-        is_sensitive = any(sensitive_word in key.lower() for sensitive_word in sensitive_keys)
-        
-        # For sensitive keys, just log that they exist
-        if is_sensitive:
-            api_keys_count += 1
-        else:
-            other_vars_count += 1
-    
-    # Log the counts
-    logger.info(f"Found {api_keys_count} potential API keys/credentials and {other_vars_count} other environment variables")
-    
-    # Check specifically for known required API keys
-    api_keys = [
-        'NEWSAPI_ORG_KEY',
-        'GUARDIAN_API_KEY', 
-        'OPENAI_API_KEY',
-        'GNEWS_API_KEY',
-        'NYT_API_KEY',
-        'AYLIEN_APP_ID',
-        'AYLIEN_API_KEY',
-        'MEDIASTACK_API_KEY',
-        'NEWSAPI_AI_KEY'
-    ]
-    
-    missing_keys = [key for key in api_keys if not os.environ.get(key)]
-    if missing_keys:
-        logger.warning(f"Missing API keys: {', '.join(missing_keys)}")
-    else:
-        logger.info("All known API keys are present in environment variables")
+# This will be executed when this module is imported or the file is run directly
+logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Reached end of app.py module definition")
 
-# Create the application instance
-app = create_app()
-
+# Only execute this code when the file is run directly, not when imported
 if __name__ == '__main__':
-    import os
+    # Log when the app is directly run
+    logger.info(f"[APP_RUN] {time.time()} - Running app directly through __main__")
     
-    # Get port from environment variable or use default
-    # Render sets PORT environment variable
+    # Load environment variables from .env file
+    load_dotenv()
+    
+    # Create and configure the application
+    app = create_app()
+    
+    # Get port from environment or use default
     port = int(os.environ.get('PORT', 10000))
     
-    # Make sure to bind to 0.0.0.0 for proper Render connectivity
-    app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_DEBUG', '0') == '1')
-    logger.info(f"Application starting on port {port}")
+    # Run the application with debug mode
+    logger.info(f"[APP_RUN] Starting Flask application on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=(os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'))
+else:
+    # This branch executes when the file is imported, not directly run
+    logger.info(f"[IMPORT_SEQUENCE] {time.time()} - app.py imported, not run directly")

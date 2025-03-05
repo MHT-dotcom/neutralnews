@@ -3,6 +3,13 @@ import logging
 import os
 from app.fetchers.base import BaseFetcher
 from flask import current_app
+import requests
+import json
+from datetime import datetime, timedelta
+import sys
+
+# Add parent directory to path for imports
+sys.path.append('..')
 
 # Configure logging
 logging.basicConfig(
@@ -14,11 +21,23 @@ logger = logging.getLogger(__name__)
 def get_config(key, default=None):
     """Helper function to safely get config values"""
     try:
+        # Try to access the config within application context
         return current_app.config.get(key, default)
     except RuntimeError:
         # If we're outside of application context (e.g., during testing)
-        logger.warning(f"Accessing {key} outside application context")
-        return os.getenv(key, default)
+        print(f"Accessing {key} outside application context")
+        
+        # Check environment variables directly as a fallback
+        env_key = key.upper()  # Convert to uppercase for environment variable convention
+        if env_key in os.environ:
+            env_value = os.environ.get(env_key)
+            if any(x in key.upper() for x in ['KEY', 'SECRET', 'PASSWORD', 'TOKEN']):
+                print(f"Found {key} in environment variables (length: {len(env_value)})")
+            else:
+                print(f"Found {key} in environment variables: {env_value}")
+            return env_value
+            
+        return default
 
 async def test_guardian_api():
     """Test fetching from The Guardian API with authentication"""

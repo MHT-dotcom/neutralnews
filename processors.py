@@ -1,18 +1,42 @@
-# This file contains functions to process and standardize articles from various news APIs (e.g., NewsAPI.org, Guardian, NYT) into a uniform format, analyze sentiment using a preloaded DistilBERT model with batch processing, remove duplicates, filter relevant articles by TF-IDF, and summarize them using OpenAI's GPT-3.5-turbo. It also manages model loading and clearing via the ModelManager class.
- 
+"""process and standardize articles from news APIs into a uniform format, 
+analyze sentiment with preloaded DistilBERT model with batch processing, remove duplicates, 
+filter relevant articles by TF-IDF, and summarize them with GPT-3.5-turbo. 
+also does model loading and clearing via the ModelManager class.
+"""
+
 import openai
 import logging
 import requests
+import inspect
+import time
+import os
 from transformers import pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from flask import current_app
 import torch
 import re
-import time
 
 # Set up logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Log when this module is imported
+logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Processors module is being imported")
+
+# Log the call stack to see who's importing this module
+current_frame = inspect.currentframe()
+try:
+    call_stack = inspect.getouterframes(current_frame)
+    caller_info = ", ".join([f"{frame.filename}:{frame.lineno}" for frame in call_stack[1:4]])
+    logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Processors module imported by: {caller_info}")
+except Exception as e:
+    logger.error(f"[IMPORT_SEQUENCE] Error getting call stack: {e}")
+finally:
+    del current_frame  # Prevent reference cycles
+
+# Track configuration access attempts
+config_access_attempts = {}
 
 class ModelManager:
     _instance = None
@@ -45,10 +69,23 @@ class ModelManager:
 def get_config(key, default=None):
     """Helper function to safely get config values"""
     try:
+        # Try to access the config within application context
         return current_app.config.get(key, default)
     except RuntimeError:
         # If we're outside of application context (e.g., during testing)
         logger.warning(f"Accessing {key} outside application context")
+        
+        # Check environment variables directly as a fallback
+        env_key = key.upper()  # Convert to uppercase for environment variable convention
+        if env_key in os.environ:
+            env_value = os.environ.get(env_key)
+            # Log the fact that we found the value in environment variables
+            if any(x in key.upper() for x in ['KEY', 'SECRET', 'PASSWORD', 'TOKEN']):
+                logger.info(f"Found {key} in environment variables (length: {len(env_value)})")
+            else:
+                logger.info(f"Found {key} in environment variables: {env_value}")
+            return env_value
+            
         return default
 
 def get_share_count(url, sharecount_api_key):

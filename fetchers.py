@@ -6,6 +6,8 @@ handles timeouts and errors with logging, and returns standardized article lists
 import requests
 import json
 import time
+import inspect
+import os
 from datetime import datetime, timedelta
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -13,19 +15,52 @@ from urllib.parse import quote
 from flask import current_app
 
 # Setup logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Log when this module is imported
+logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Fetchers module is being imported")
+
+# Log the call stack to see who's importing this module
+current_frame = inspect.currentframe()
+try:
+    call_stack = inspect.getouterframes(current_frame)
+    caller_info = ", ".join([f"{frame.filename}:{frame.lineno}" for frame in call_stack[1:4]])
+    logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Fetchers module imported by: {caller_info}")
+except Exception as e:
+    logger.error(f"[IMPORT_SEQUENCE] Error getting call stack: {e}")
+finally:
+    del current_frame  # Prevent reference cycles
+
+# Track configuration access attempts
+config_access_attempts = {}
 
 def get_config(key, default=None):
     """Helper function to safely get config values"""
     try:
+        # Try to access the config within application context
         return current_app.config.get(key, default)
     except RuntimeError:
         # If we're outside of application context (e.g., during testing)
         logger.warning(f"Accessing {key} outside application context")
+        
+        # Check environment variables directly as a fallback
+        env_key = key.upper()  # Convert to uppercase for environment variable convention
+        if env_key in os.environ:
+            env_value = os.environ.get(env_key)
+            # Log the fact that we found the value in environment variables
+            if any(x in key.upper() for x in ['KEY', 'SECRET', 'PASSWORD', 'TOKEN']):
+                logger.info(f"Found {key} in environment variables (length: {len(env_value)})")
+            else:
+                logger.info(f"Found {key} in environment variables: {env_value}")
+            return env_value
+            
         return default
 
 def fetch_newsapi_org(event, days_back=None):
     """Fetch articles from NewsAPI.org"""
+    logger.info(f"[FETCHER_CALL] {time.time()} - fetch_newsapi_org called for event: {event}")
+    
     days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
     max_articles = get_config('MAX_ARTICLES_PER_API', 4)
     api_key = get_config('NEWSAPI_ORG_KEY', '')

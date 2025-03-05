@@ -6,6 +6,8 @@ It handles HTTP requests for the main page, news fetching, and API endpoints.
 from flask import Blueprint, render_template, request, jsonify
 from concurrent.futures import ThreadPoolExecutor
 import logging
+import time
+import inspect
 from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
                      fetch_newsapi_ai_articles)
@@ -13,8 +15,27 @@ from processors import (process_articles, remove_duplicates, filter_relevant_art
                        summarize_articles, ModelManager)
 from trends import get_trending_topics
 
-routes = Blueprint('routes', __name__)
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Log when this module is imported
+logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Routes module is being imported")
+
+# Log the call stack to see who's importing this module
+current_frame = inspect.currentframe()
+try:
+    call_stack = inspect.getouterframes(current_frame)
+    caller_info = ", ".join([f"{frame.filename}:{frame.lineno}" for frame in call_stack[1:4]])
+    logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Routes module imported by: {caller_info}")
+except Exception as e:
+    logger.error(f"[IMPORT_SEQUENCE] Error getting call stack: {e}")
+finally:
+    del current_frame  # Prevent reference cycles
+
+# Create the Blueprint
+routes = Blueprint('routes', __name__)
+logger.info(f"[BLUEPRINT] {time.time()} - Routes blueprint created")
 
 def fetch_and_process_data(event):
     """Main function to fetch and process news data"""
