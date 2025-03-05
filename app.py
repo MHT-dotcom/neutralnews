@@ -1,5 +1,6 @@
-# This file initializes the Flask application, sets up logging, loads environment variables, preloads the sentiment analysis model, and registers the routes blueprint. It serves as the entry point for the web server, configuring core settings like CORS and cache, and starts the app on a specified port (default 10000) for local testing or Render deployment.
- 
+# This file initializes the Flask application, sets up logging, loads environment variables, 
+# preloads the sentiment analysis model, and registers the routes blueprint.
+
 import flask
 from flask import Flask
 from dotenv import load_dotenv
@@ -10,7 +11,6 @@ from flask_cors import CORS
 from flask_caching import Cache
 from config_prod import MAX_ARTICLES_PER_SOURCE, DEBUG, CACHE_CONFIG
 from processors import ModelManager
-from flask import Flask, url_for
 
 # Load environment variables
 load_dotenv()
@@ -28,16 +28,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.info("Starting Neutral News application")
 
-# Configure cache properly
+# Configure cache
 app.config.from_mapping(CACHE_CONFIG)
 logger.info(f"Cache config set: {CACHE_CONFIG}")
-cache = Cache(app)  # Initialize cache with app
+cache = Cache(app)
 logger.info(f"Cache initialized: {cache}")
-logger.info(f"App extensions after cache init: {app.extensions}")
 
 # Preload sentiment model at startup
 logger.info("Preloading sentiment analysis model...")
-ModelManager.get_instance()  # Trigger preloading here
+ModelManager.get_instance()
 logger.info("Sentiment analysis model preloaded")
 
 # Log initial startup details
@@ -47,26 +46,12 @@ logger.info(f"Cache type: {CACHE_CONFIG.get('CACHE_TYPE', 'Not configured')}")
 logger.info(f"Debug mode: {DEBUG}")
 logger.info(f"Max articles per source: {MAX_ARTICLES_PER_SOURCE}")
 
-# Register the routes blueprint with a unique name
-logger.info("About to register routes blueprint")
-logger.info(f"Available routes before registration: {app.url_map}")
-
-# Import routes after app initialization to avoid circular imports
+# Register routes blueprint
 from routes import routes
 app.register_blueprint(routes)
-
 logger.info("Routes blueprint registered")
-logger.info(f"Available routes after registration: {app.url_map}")
-logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
-
-# Application fully initialized
-logger.info("Application fully initialized")
 
 if __name__ == "__main__":
-    # Get port from environment variable or default to 10000
     port = int(os.environ.get("PORT", 10000))
-    logger.info(f"Application configuration complete, starting server on port {port}")
-    try:
-        app.run(host="0.0.0.0", port=port, debug=DEBUG)
-    except Exception as e:
-        logger.error(f"Failed to start server: {str(e)}")
+    logger.info(f"Starting server on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=DEBUG)
