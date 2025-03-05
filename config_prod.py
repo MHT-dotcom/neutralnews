@@ -38,6 +38,7 @@ USE_OPENAI = bool(OPENAI_API_KEY)
 USE_MEDIASTACK = bool(MEDIASTACK_API_KEY)
 USE_NEWSDATA = bool(NEWSDATA_API_KEY)
 USE_AYLIEN = bool(AYLIEN_APP_ID and AYLIEN_API_KEY)
+USE_NEWSAPI_AI = bool(NEWSAPI_AI_KEY)
 
 # Cache configuration
 CACHE_TYPE = "FileSystemCache"
@@ -46,7 +47,6 @@ CACHE_DEFAULT_TIMEOUT = 1800  # 30 minutes
 
 # App configuration
 DEBUG = False
-
 
 NEWSAPI_URL = "https://newsapi.org/v2/everything"
 GUARDIAN_URL = "https://content.guardianapis.com/search"
