@@ -134,8 +134,8 @@ def create_app():
         return {"error": "Internal server error"}, 500
     
     # Register routes
-    from routes import api_bp
-    app.register_blueprint(api_bp)
+    from routes import routes
+    app.register_blueprint(routes)
     
     logger.info("Application factory initialization complete")
     return app
