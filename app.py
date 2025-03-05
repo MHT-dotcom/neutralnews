@@ -256,13 +256,12 @@ def log_environment_variables():
 app = create_app()
 
 if __name__ == '__main__':
-    # Get port from environment variable or use default
-    port = int(os.environ.get('PORT', 10000))
-    debug = os.environ.get('FLASK_ENV') == 'development'
+    import os
     
-    # Run the app
-    app.run(
-        host='0.0.0.0',
-        port=port,
-        debug=debug
-    )
+    # Get port from environment variable or use default
+    # Render sets PORT environment variable
+    port = int(os.environ.get('PORT', 10000))
+    
+    # Make sure to bind to 0.0.0.0 for proper Render connectivity
+    app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_DEBUG', '0') == '1')
+    logger.info(f"Application starting on port {port}")

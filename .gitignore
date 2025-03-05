@@ -26,7 +26,6 @@ var/
 .idea/
 .vscode/
 *.log
-config.py
 
 # Test-specific files
 .env.test
