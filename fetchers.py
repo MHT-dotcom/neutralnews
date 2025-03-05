@@ -1,62 +1,93 @@
-# This file contains functions to fetch news articles from multiple APIs (NewsAPI.org, Guardian, Aylien, GNews, NYT, Mediastack, NewsAPI.ai) for a given event, using API keys from config_prod. Each function retrieves articles from a specific source over a specified time window (default 7 days), handles timeouts and errors with logging, and returns standardized article lists. The fetch_articles function combines results from all sources.
+"""
+This file contains functions to fetch news articles from multiple APIs.
+Each function retrieves articles from a specific source over a specified time window,
+handles timeouts and errors with logging, and returns standardized article lists.
+"""
 import requests
 import json
 import time
 from datetime import datetime, timedelta
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from config_prod import (
-    NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
-    MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
-    NEWSAPI_AI_KEY, USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
-    USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
-    USE_NEWSAPI_AI, MAX_ARTICLES_PER_SOURCE, DEFAULT_DAYS_BACK
-)
 from urllib.parse import quote
+from flask import current_app
 
+# Setup logging
 logger = logging.getLogger(__name__)
 
-def fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
-    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"https://newsapi.org/v2/everything?q={event}&from={from_date}&pageSize={MAX_ARTICLES_PER_SOURCE}&apiKey={NEWSAPI_ORG_KEY}"
+def get_config(key, default=None):
+    """Helper function to safely get config values"""
     try:
-        response = requests.get(url, timeout=5)  # 5 seconds timeout
+        return current_app.config.get(key, default)
+    except RuntimeError:
+        # If we're outside of application context (e.g., during testing)
+        logger.warning(f"Accessing {key} outside application context")
+        return default
+
+def fetch_newsapi_org(event, days_back=None):
+    """Fetch articles from NewsAPI.org"""
+    days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
+    max_articles = get_config('MAX_ARTICLES_PER_API', 4)
+    api_key = get_config('NEWSAPI_ORG_KEY', '')
+
+    if not api_key or not get_config('USE_NEWSAPI_ORG', False):
+        logger.info("NewsAPI.org is disabled or missing API key")
+        return []
+
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    url = f"https://newsapi.org/v2/everything?q={event}&from={from_date}&pageSize={max_articles}&apiKey={api_key}"
+    
+    try:
+        response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = response.json()
-            articles_count = len(data.get('articles', []))
-            logger.info(f"NewsAPI.org: Fetched {articles_count} articles for event '{event}' from {from_date}")
-            return data.get('articles', [])
+            articles = data.get('articles', [])
+            logger.info(f"NewsAPI.org: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+            return articles
         else:
             logger.error(f"NewsAPI.org error: {response.status_code}")
             return []
-    except requests.exceptions.Timeout:
-        logger.error("Timeout occurred while fetching from NewsAPI.org")
-        return []
     except Exception as e:
         logger.error(f"Error fetching from NewsAPI.org: {e}")
         return []
 
-def fetch_guardian(event, days_back=DEFAULT_DAYS_BACK):
+def fetch_guardian(event, days_back=None):
+    """Fetch articles from The Guardian"""
+    days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
+    max_articles = get_config('MAX_ARTICLES_PER_API', 4)
+    api_key = get_config('GUARDIAN_API_KEY', '')
+
+    if not api_key or not get_config('USE_GUARDIAN', False):
+        logger.info("The Guardian is disabled or missing API key")
+        return []
+
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"https://content.guardianapis.com/search?q={event}&from-date={from_date}&page-size={MAX_ARTICLES_PER_SOURCE}&api-key={GUARDIAN_API_KEY}"
+    url = f"https://content.guardianapis.com/search?q={event}&from-date={from_date}&page-size={max_articles}&api-key={api_key}"
+    
     try:
-        response = requests.get(url, timeout=5)  # 5 seconds timeout
+        response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = response.json()
-            articles_count = len(data.get('response', {}).get('results', []))
-            logger.info(f"The Guardian: Fetched {articles_count} articles for event '{event}' from {from_date}")
-            return data.get('response', {}).get('results', [])
+            articles = data.get('response', {}).get('results', [])
+            logger.info(f"The Guardian: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+            return articles
         else:
             logger.error(f"The Guardian error: {response.status_code}")
             return []
-    except requests.exceptions.Timeout:
-        logger.error("Timeout occurred while fetching from The Guardian")
-        return []
     except Exception as e:
         logger.error(f"Error fetching from The Guardian: {e}")
         return []
 
-def fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, days_back=DEFAULT_DAYS_BACK):
+def fetch_aylien_articles(event, app_id=None, api_key=None, days_back=None):
+    """Fetch articles from Aylien"""
+    days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
+    app_id = app_id or get_config('AYLIEN_APP_ID', '')
+    api_key = api_key or get_config('AYLIEN_API_KEY', '')
+
+    if not app_id or not api_key or not get_config('USE_AYLIEN', False):
+        logger.info("Aylien is disabled or missing API key")
+        return []
+
     from_date = (datetime.now() - timedelta(days=days_back)).isoformat() + 'Z'
     try:
         # Use the newer aylien-news-api client instead of the deprecated aylien-apiclient
@@ -83,7 +114,7 @@ def fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, d
             'title': event,
             'language': ['en'],
             'published_at_start': from_date,
-            'per_page': MAX_ARTICLES_PER_SOURCE,
+            'per_page': get_config('MAX_ARTICLES_PER_API', 4),
             'sort_by': 'relevance'
         }
         
@@ -121,9 +152,17 @@ def fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, d
         logger.error(f"Error fetching from Aylien: {e}")
         return []
 
-def fetch_gnews_articles(event, api_key=GNEWS_API_KEY, days_back=DEFAULT_DAYS_BACK):
+def fetch_gnews_articles(event, api_key=None, days_back=None):
+    """Fetch articles from GNews"""
+    days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
+    api_key = api_key or get_config('GNEWS_API_KEY', '')
+
+    if not api_key or not get_config('USE_GNEWS', False):
+        logger.info("GNews is disabled or missing API key")
+        return []
+
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"https://gnews.io/api/v4/search?q={event}&from={from_date}&token={api_key}&max={MAX_ARTICLES_PER_SOURCE}"
+    url = f"https://gnews.io/api/v4/search?q={event}&from={from_date}&token={api_key}&max={get_config('MAX_ARTICLES_PER_API', 4)}"
     try:
         logger.info(f"GNews: Making request to API for event '{event}'")
         response = requests.get(url, timeout=5)  # 5 seconds timeout
@@ -150,10 +189,17 @@ def fetch_gnews_articles(event, api_key=GNEWS_API_KEY, days_back=DEFAULT_DAYS_BA
         logger.error(f"Error fetching from GNews: {e}")
         return []
 
-def fetch_nyt_articles(event, api_key=NYT_API_KEY, days_back=DEFAULT_DAYS_BACK):
+def fetch_nyt_articles(event, api_key=None, days_back=None):
     """Fetch articles from the New York Times API."""
+    days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
+    api_key = api_key or get_config('NYT_API_KEY', '')
+
+    if not api_key or not get_config('USE_NYT', False):
+        logger.info("The New York Times is disabled or missing API key")
+        return []
+
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"https://api.nytimes.com/svc/search/v2/articlesearch.json?q={event}&api-key={api_key}&begin_date={from_date}&page-size={MAX_ARTICLES_PER_SOURCE}"
+    url = f"https://api.nytimes.com/svc/search/v2/articlesearch.json?q={event}&api-key={api_key}&begin_date={from_date}&page-size={get_config('MAX_ARTICLES_PER_API', 4)}"
     try:
         logger.info(f"NYT: Making request to {url} for event '{event}'")
         response = requests.get(url, timeout=5)  # 5 seconds timeout
@@ -174,10 +220,17 @@ def fetch_nyt_articles(event, api_key=NYT_API_KEY, days_back=DEFAULT_DAYS_BACK):
         logger.error(f"Error fetching from NYT: {e}")
         return []
 
-def fetch_mediastack_articles(event, api_key=MEDIASTACK_API_KEY, days_back=DEFAULT_DAYS_BACK):
+def fetch_mediastack_articles(event, api_key=None, days_back=None):
     """Fetch articles from the Mediastack API."""
+    days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
+    api_key = api_key or get_config('MEDIASTACK_API_KEY', '')
+
+    if not api_key or not get_config('USE_MEDIASTACK', False):
+        logger.info("Mediastack is disabled or missing API key")
+        return []
+
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = f"http://api.mediastack.com/v1/news?access_key={api_key}&keywords={event}&date={from_date}&languages=en&limit={MAX_ARTICLES_PER_SOURCE}"
+    url = f"http://api.mediastack.com/v1/news?access_key={api_key}&keywords={event}&date={from_date}&languages=en&limit={get_config('MAX_ARTICLES_PER_API', 4)}"
     try:
         logger.info(f"Mediastack: Making request to API for event '{event}'")
         response = requests.get(url, timeout=5)  # 5 seconds timeout
@@ -213,8 +266,15 @@ def fetch_mediastack_articles(event, api_key=MEDIASTACK_API_KEY, days_back=DEFAU
         logger.error(f"Error fetching from Mediastack: {e}")
         return []
 
-def fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_DAYS_BACK):
+def fetch_newsapi_ai_articles(event, api_key=None, days_back=None):
     """Fetch articles from the NewsAPI.ai API."""
+    days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
+    api_key = api_key or get_config('NEWSAPI_AI_KEY', '')
+
+    if not api_key or not get_config('USE_NEWSAPI_AI', False):
+        logger.info("NewsAPI.ai is disabled or missing API key")
+        return []
+
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
     url = "https://api.newsapi.ai/api/v1/article/getArticles"
     params = {
@@ -222,7 +282,7 @@ def fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_D
         "keyword": event,
         "dateStart": from_date,
         "language": "eng",
-        "articlesCount": MAX_ARTICLES_PER_SOURCE
+        "articlesCount": get_config('MAX_ARTICLES_PER_API', 4)
     }
     try:
         logger.info(f"NewsAPI.ai: Making request to API for event '{event}' with params: {params}")
@@ -317,40 +377,38 @@ def fetch_trending_articles(topics, max_articles_per_topic=3):
                 trending_data[topic] = []
     return trending_data
 
-
-def fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
+def fetch_articles(event, days_back=None):
+    """Fetch articles from all configured sources"""
+    days_back = days_back or get_config('DEFAULT_DAYS_BACK', 7)
+    
     try:
-        # Fetch from all sources with the same time window
-        newsapi_org_articles = fetch_newsapi_org(event, days_back)
-        aylien_articles = fetch_aylien_articles(event, days_back=days_back)
-        gnews_articles = fetch_gnews_articles(event, days_back)
-        guardian_articles = fetch_guardian(event, days_back)
-        nyt_articles = fetch_nyt_articles(event, days_back=days_back)
-        mediastack_articles = fetch_mediastack_articles(event, days_back=days_back)
-        newsapi_ai_articles = fetch_newsapi_ai_articles(event, days_back=days_back)
+        # Only fetch from enabled sources
+        articles = []
         
-        # Log counts from each source
-        logger.info(f"Article counts for event '{event}' (past {days_back} days) - "
-                   f"NewsAPI: {len(newsapi_org_articles)}, "
-                   f"Aylien: {len(aylien_articles)}, "
-                   f"GNews: {len(gnews_articles)}, "
-                   f"Guardian: {len(guardian_articles)}, "
-                   f"NYT: {len(nyt_articles)}, "
-                   f"Mediastack: {len(mediastack_articles)}, "
-                   f"NewsAPI.ai: {len(newsapi_ai_articles)}")
+        if get_config('USE_NEWSAPI_ORG'):
+            articles.extend(fetch_newsapi_org(event, days_back))
         
-        # Combine all articles
-        articles = (
-            newsapi_org_articles +
-            aylien_articles +
-            gnews_articles +
-            guardian_articles +
-            nyt_articles +
-            mediastack_articles +
-            newsapi_ai_articles
-        )
+        if get_config('USE_GUARDIAN'):
+            articles.extend(fetch_guardian(event, days_back))
+            
+        if get_config('USE_AYLIEN'):
+            articles.extend(fetch_aylien_articles(event, days_back=days_back))
+            
+        if get_config('USE_GNEWS'):
+            articles.extend(fetch_gnews_articles(event, days_back))
+            
+        if get_config('USE_NYT'):
+            articles.extend(fetch_nyt_articles(event, days_back=days_back))
+            
+        if get_config('USE_MEDIASTACK'):
+            articles.extend(fetch_mediastack_articles(event, days_back=days_back))
+            
+        if get_config('USE_NEWSAPI_AI'):
+            articles.extend(fetch_newsapi_ai_articles(event, days_back=days_back))
+        
         logger.info(f"Total articles fetched for event '{event}' from past {days_back} days: {len(articles)}")
         return articles
+        
     except Exception as e:
         logger.exception(f"Error in fetch_articles for event '{event}': {e}")
         return []

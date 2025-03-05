@@ -33,7 +33,7 @@ pip install -r requirements.txt
 # Local Development (uses config.py with your API keys)
 python run_local.py
 
-# Production (uses config_prod.py and environment variables)
+# Production (uses environment variables)
 gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
 ```
 
@@ -49,7 +49,7 @@ gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
 
 ## Local Development vs Production
 - **Local Development**: Uses `config.py` which contains your API keys (this file is gitignored)
-- **Production**: Uses `config_prod.py` and loads API keys from environment variables set in Render
+- **Production**: Uses environment variables for configuration
 
 ## Testing
 To run tests:

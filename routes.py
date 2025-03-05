@@ -1,72 +1,23 @@
-# routes.py
-# This file defines the web routes for the application using a Flask Blueprint named 'routes'.
-# It handles HTTP requests: '/' for the main page (GET/POST) displaying trending topics and custom searches,
-# '/data' for AJAX news fetching (POST), and '/test' for a simple status check (GET).
-# The core function 'fetch_and_process_data' fetches articles from multiple APIs in parallel, processes them,
-# and generates summaries, with detailed timing logs for performance tracking.
-# New feature: Retrieves dynamic hot topics for the main page using trends.py.
+"""
+This file defines the web routes for the Neutral News application.
+It handles HTTP requests for the main page, news fetching, and API endpoints.
+"""
 
 from flask import Blueprint, render_template, request, jsonify
 from concurrent.futures import ThreadPoolExecutor
-import time
 import logging
 from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
-                     fetch_newsapi_ai_articles, BaseFetcher)
+                     fetch_newsapi_ai_articles)
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
-                       summarize_articles, ModelManager, generate_summary)
+                       summarize_articles, ModelManager)
 from trends import get_trending_topics
-from config_prod import MAX_ARTICLES_PER_SOURCE
 
 routes = Blueprint('routes', __name__)
 logger = logging.getLogger(__name__)
-logger.info(f"Routes module initialized")
 
-# Cache configuration
-cache = None
-
-@routes.record
-def record_params(setup_state):
-    global cache
-    app = setup_state.app
-    cache = app.extensions['cache'].get(app)
-    logger.info(f"Cache set in routes: {cache}")
-
-_is_first_request = True
-
-# Create a function to safely access the cache
-def get_cache():
-    if cache is None:
-        logger.warning("Cache not initialized yet, using dummy cache")
-        # Return a dummy cache object that does nothing
-        class DummyCache:
-            def cached(self, *args, **kwargs):
-                def decorator(f):
-                    return f
-                return decorator
-        return DummyCache()
-    return cache
-
-@routes.before_app_request
-def before_first_request():
-    global _is_first_request
-    if _is_first_request:
-        # Your initialization code here (unchanged from original)
-        _is_first_request = False
-
-# Use a function to create the decorator
-def cached_fetch_and_process_data(event):
-    """Wrapper function to apply caching when cache is available"""
-    cache_obj = get_cache()
-    if hasattr(cache_obj, 'cached'):
-        return cache_obj.cached(timeout=3600, key_prefix=lambda: f"summary_{event}")(lambda: _fetch_and_process_data(event))()
-    else:
-        return _fetch_and_process_data(event)
-
-# Rename the original function
-def _fetch_and_process_data(event):
+def fetch_and_process_data(event):
     """Main function to fetch and process news data"""
-    start_time = time.time()
     logger.info(f"Starting fetch_and_process_data for event '{event}'")
     
     try:
@@ -100,7 +51,7 @@ def _fetch_and_process_data(event):
             return None, None, f"No articles found for '{event}'"
             
         # Process sentiment
-        if all_articles:
+        if all_articles:  # Safety check before processing
             model_manager = ModelManager.get_instance()
             sentiment_analyzer = model_manager.get_sentiment_analyzer()
             titles = [article['title'][:200] for article in all_articles]
@@ -127,29 +78,17 @@ def _fetch_and_process_data(event):
         return summary, relevant_articles, None
         
     except Exception as e:
-        logger.error(f"Error in _fetch_and_process_data: {str(e)}")
+        logger.error(f"Error in fetch_and_process_data: {str(e)}")
         return None, None, f"Error processing request: {str(e)}"
 
-# Cache trending topics and summaries with dynamic hot topics
-def cached_get_trending_summaries():
-    """Wrapper function to apply caching when cache is available"""
-    cache_obj = get_cache()
-    if hasattr(cache_obj, 'cached'):
-        return cache_obj.cached(timeout=3600, key_prefix="trending_summaries")(_get_trending_summaries)()
-    else:
-        return _get_trending_summaries()
-
-def _get_trending_summaries():
-    """
-    Fetch and process summaries for trending topics (4 topics, 3 articles each).
-    Uses dynamic topics from trends.py instead of hardcoded ones.
-    """
-    topics = get_trending_topics(limit=4)  # Fetch dynamic topics
+def get_trending_summaries():
+    """Fetch and process summaries for trending topics"""
+    topics = get_trending_topics(limit=4)
     summaries = {}
     logger.info(f"Fetching trending summaries for topics: {topics}")
     
     with ThreadPoolExecutor(max_workers=4) as executor:
-        future_to_topic = {executor.submit(cached_fetch_and_process_data, topic): topic for topic in topics}
+        future_to_topic = {executor.submit(fetch_and_process_data, topic): topic for topic in topics}
         for future in future_to_topic:
             topic = future_to_topic[future]
             try:
@@ -174,25 +113,18 @@ def _get_trending_summaries():
     logger.info(f"Generated trending summaries for {list(summaries.keys())}")
     return summaries
 
-# Precompute trending summaries at startup
-@routes.before_app_request
-def preload_trending_summaries():
-    """Preload trending summaries at startup"""
-    logger.info("Preloading trending summaries at startup")
-    cached_get_trending_summaries()
-
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Main route that displays trending topics and handles search"""
     try:
         # Get trending summaries
-        trending_summaries = cached_get_trending_summaries()
+        trending_summaries = get_trending_summaries()
         
         # Handle POST request (search form submission)
         if request.method == 'POST':
             event = request.form.get('event')
             if event:
-                summary, articles, error = cached_fetch_and_process_data(event)
+                summary, articles, error = fetch_and_process_data(event)
                 return render_template('index.html', 
                                     summary=summary,
                                     articles=articles,
@@ -216,19 +148,24 @@ def index():
                             error=str(e),
                             trending_summaries={})
 
-@routes.route('/data', methods=['POST'])
-def get_data():
-    """AJAX endpoint for fetching news data"""
-    event = request.form.get('event')
+@routes.route('/api/news', methods=['GET', 'POST'])
+def get_news():
+    """
+    API endpoint for fetching news data
+    Supports both GET (query params) and POST (form data)
+    """
+    # Get query from either POST form data or GET query params
+    event = request.form.get('event') if request.method == 'POST' else request.args.get('q')
     if not event:
-        return jsonify({"error": "No event provided"}), 400
+        return jsonify({"error": "No query provided"}), 400
 
     try:
-        summary, articles, error_message = cached_fetch_and_process_data(event)
+        summary, articles, error_message = fetch_and_process_data(event)
         if error_message and not articles:
             return jsonify({"error": error_message}), 404
         
         response_data = {
+            "status": "success",
             "summary": summary,
             "articles": articles,
             "error": error_message if error_message else None
@@ -238,84 +175,7 @@ def get_data():
         logger.error(f"Error processing request for event '{event}': {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
-@routes.route('/test', methods=['GET'])
-def test():
-    """Simple test endpoint"""
-    return jsonify({"status": "ok"})
-
-# Create blueprint
-api_bp = Blueprint('api', __name__)
-
-@api_bp.route('/')
-def index():
-    """Main API endpoint"""
-    return jsonify({"status": "ok"})
-
-@api_bp.route('/health')
+@routes.route('/health')
 def health_check():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "message": "API is operational"})
-
-@api_bp.route('/api/news')
-def get_news():
-    """
-    Fetch news articles from configured sources
-    Query parameters:
-    - q: search query
-    - sources: comma-separated list of sources (optional)
-    """
-    try:
-        query = request.args.get('q', '')
-        if not query:
-            return jsonify({"error": "Query parameter 'q' is required"}), 400
-            
-        articles = fetch_articles(query)
-        if not articles:
-            return jsonify({"error": "No articles found"}), 404
-            
-        return jsonify({
-            "status": "success",
-            "count": len(articles),
-            "articles": articles
-        })
-            
-    except Exception as e:
-        logger.error(f"Error fetching news: {str(e)}")
-        return jsonify({"error": "Internal server error", "details": str(e)}), 500
-
-@api_bp.route('/api/summary')
-def get_summary():
-    """
-    Generate a summary for a given topic using recent articles
-    Query parameters:
-    - topic: the topic to summarize
-    """
-    try:
-        topic = request.args.get('topic', '')
-        if not topic:
-            return jsonify({"error": "Query parameter 'topic' is required"}), 400
-            
-        articles = fetch_articles(topic)
-        if not articles:
-            return jsonify({"error": "No articles found for topic"}), 404
-            
-        summary = generate_summary(articles[:3])
-        return jsonify({
-            "status": "success",
-            "topic": topic,
-            "summary": summary,
-            "articles": articles[:3]
-        })
-            
-    except Exception as e:
-        logger.error(f"Error generating summary: {str(e)}")
-        return jsonify({"error": "Internal server error", "details": str(e)}), 500
-
-def fetch_articles(query):
-    """Helper function to fetch articles from all configured sources"""
-    fetcher = BaseFetcher()
-    try:
-        articles = fetcher.fetch_all(query)
-        return process_articles(articles)
-    finally:
-        fetcher.close()

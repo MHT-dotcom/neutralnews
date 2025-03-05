@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os
 from app.fetchers.base import BaseFetcher
-import config_prod
+from flask import current_app
 
 # Configure logging
 logging.basicConfig(
@@ -11,12 +11,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def get_config(key, default=None):
+    """Helper function to safely get config values"""
+    try:
+        return current_app.config.get(key, default)
+    except RuntimeError:
+        # If we're outside of application context (e.g., during testing)
+        logger.warning(f"Accessing {key} outside application context")
+        return os.getenv(key, default)
+
 async def test_guardian_api():
     """Test fetching from The Guardian API with authentication"""
     fetcher = BaseFetcher("guardian", verify_ssl=False)
     try:
         # Test search endpoint
-        url = f"{config_prod.GUARDIAN_URL}?q=technology&api-key={config_prod.GUARDIAN_API_KEY}&show-fields=all"
+        guardian_url = get_config('GUARDIAN_URL', 'https://content.guardianapis.com/search')
+        guardian_api_key = get_config('GUARDIAN_API_KEY', '')
+        url = f"{guardian_url}?q=technology&api-key={guardian_api_key}&show-fields=all"
         logger.info("Testing Guardian API search endpoint...")
         response = await fetcher.fetch_with_retry(url, max_retries=2)
         
@@ -44,13 +55,14 @@ async def test_rate_limit_handling():
     """Test rapid requests to demonstrate rate limiting"""
     fetcher = BaseFetcher("guardian", verify_ssl=False)
     try:
-        base_url = config_prod.GUARDIAN_URL
+        guardian_url = get_config('GUARDIAN_URL', 'https://content.guardianapis.com/search')
+        guardian_api_key = get_config('GUARDIAN_API_KEY', '')
         logger.info("Making multiple rapid requests to test rate limiting...")
         
         # Make several requests in quick succession
         tasks = []
         for i in range(3):  # Using 3 requests to stay within free tier limits
-            url = f"{base_url}?q=world&page={i+1}&api-key={config_prod.GUARDIAN_API_KEY}&show-fields=all"
+            url = f"{guardian_url}?q=world&page={i+1}&api-key={guardian_api_key}&show-fields=all"
             tasks.append(fetcher.fetch_with_retry(url, max_retries=2))
         
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -77,7 +89,8 @@ async def test_error_handling():
     fetcher = BaseFetcher("guardian", verify_ssl=False)
     try:
         # Test with invalid API key
-        url = f"{config_prod.GUARDIAN_URL}?q=technology&api-key=invalid_key"
+        guardian_url = get_config('GUARDIAN_URL', 'https://content.guardianapis.com/search')
+        url = f"{guardian_url}?q=technology&api-key=invalid_key"
         logger.info("Testing error handling with invalid API key...")
         response = await fetcher.fetch_with_retry(url, max_retries=1)
         
@@ -94,7 +107,8 @@ async def main():
     logger.info("Starting Guardian API tests...")
     
     # Verify API key is available
-    if not config_prod.GUARDIAN_API_KEY:
+    guardian_api_key = get_config('GUARDIAN_API_KEY', '')
+    if not guardian_api_key:
         logger.error("No Guardian API key found in environment variables!")
         return
     

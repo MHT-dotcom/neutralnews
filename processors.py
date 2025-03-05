@@ -6,7 +6,7 @@ import requests
 from transformers import pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from config_prod import DEFAULT_TOP_N, RELEVANCE_THRESHOLD, OPENAI_API_KEY, SUMMARIZER_BY_GPT, WEIGHT_RELEVANCE, WEIGHT_POPULARITY
+from flask import current_app
 import torch
 import re
 import time
@@ -41,6 +41,15 @@ class ModelManager:
         self._summarizer = None
         # Keep _sentiment_analyzer loaded to avoid reload overhead
         torch.cuda.empty_cache() if torch.cuda.is_available() else None
+
+def get_config(key, default=None):
+    """Helper function to safely get config values"""
+    try:
+        return current_app.config.get(key, default)
+    except RuntimeError:
+        # If we're outside of application context (e.g., during testing)
+        logger.warning(f"Accessing {key} outside application context")
+        return default
 
 def get_share_count(url, sharecount_api_key):
     url = f"https://api.sharedcount.com/?url={url}&key={sharecount_api_key}"
@@ -254,8 +263,13 @@ def remove_duplicates(articles):
     logger.info(f"Removed {len(articles) - len(unique_articles)} duplicates")
     return unique_articles
 
-def filter_relevant_articles(articles, query, top_n=DEFAULT_TOP_N, relevance_threshold=RELEVANCE_THRESHOLD):
-    """Filter and sort articles by combined relevance and popularity scores."""
+def filter_relevant_articles(articles, query, top_n=None, relevance_threshold=None):
+    """Filter articles by relevance to query using TF-IDF and cosine similarity."""
+    top_n = top_n or get_config('DEFAULT_TOP_N', 5)
+    relevance_threshold = relevance_threshold or get_config('RELEVANCE_THRESHOLD', 0.1)
+    weight_relevance = get_config('WEIGHT_RELEVANCE', 0.7)
+    weight_popularity = get_config('WEIGHT_POPULARITY', 0.3)
+    
     texts = [article.get('content', '') or article.get('title', '') for article in articles]
     if not any(texts):
         return articles[:top_n]
@@ -272,7 +286,7 @@ def filter_relevant_articles(articles, query, top_n=DEFAULT_TOP_N, relevance_thr
     for article, similarity, share_count in zip(articles, similarities, share_counts):
         if similarity >= relevance_threshold:
             normalized_share_count = share_count / max_share_count if max_share_count > 0 else 0
-            combined_score = similarity * WEIGHT_RELEVANCE + normalized_share_count * WEIGHT_POPULARITY
+            combined_score = similarity * weight_relevance + normalized_share_count * weight_popularity
             article_scores.append((article, combined_score))
     
     sorted_articles = sorted(article_scores, key=lambda x: x[1], reverse=True)
@@ -280,7 +294,7 @@ def filter_relevant_articles(articles, query, top_n=DEFAULT_TOP_N, relevance_thr
     
     return relevant_articles
 
-if SUMMARIZER_BY_GPT:
+if get_config('SUMMARIZER_BY_GPT', True):
     def summarize_articles(articles, query):
         logger.info(f"Summarizing {len(articles)} articles for query '{query}'")
         total_chars = sum(len(article.get('content', '')) for article in articles)
@@ -296,7 +310,7 @@ if SUMMARIZER_BY_GPT:
         logger.info(f"Prompt length: {len(prompt)} characters")
         
         try:
-            client = openai.OpenAI(api_key=OPENAI_API_KEY)
+            client = openai.OpenAI(api_key=get_config('OPENAI_API_KEY'))
             start_time = time.time()
             logger.info(f"Starting OpenAI API call at {start_time}")
             response = client.chat.completions.create(
