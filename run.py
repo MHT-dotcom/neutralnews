@@ -12,10 +12,10 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from app import app
-from app.config import DevelopmentConfig
+from app.config import ProductionConfig
 
-# Use development config when running locally
-app.config.from_object(DevelopmentConfig)
+# Use production config to get environment variables from Render
+app.config.from_object(ProductionConfig)
 
 async def main():
     """Main entry point for the application"""

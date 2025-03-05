@@ -1,57 +1,105 @@
-# This file initializes the Flask application, sets up logging, loads environment variables, 
-# preloads the sentiment analysis model, and registers the routes blueprint.
+"""
+Neutral News MVP Application
 
-import flask
-from flask import Flask
-from dotenv import load_dotenv
+This module implements the main application using Quart.
+It provides a Flask-like async web framework for serving news articles
+with sentiment analysis and summarization.
+"""
+
 import os
-import logging
-import sys
-from flask_cors import CORS
+from quart import Quart
+from quart_cors import cors
 from flask_caching import Cache
-from config_prod import MAX_ARTICLES_PER_SOURCE, DEBUG, CACHE_CONFIG
-from processors import ModelManager
+from logging.config import dictConfig
+import logging
+from config import Config, ProductionConfig
 
-# Load environment variables
-load_dotenv()
+__version__ = '0.1.0'
 
-# Initialize Flask app
-app = Flask(__name__, static_url_path='/static', static_folder='static')
-CORS(app)  # Enable CORS
+# Initialize cache with default config
+cache = Cache()
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stdout
-)
-logger = logging.getLogger(__name__)
-logger.info("Starting Neutral News application")
+def configure_logging():
+    """Configure logging for the application"""
+    dictConfig({
+        'version': 1,
+        'formatters': {
+            'default': {
+                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+            }
+        },
+        'handlers': {
+            'wsgi': {
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://sys.stdout',
+                'formatter': 'default'
+            },
+            'file': {
+                'class': 'logging.FileHandler',
+                'filename': 'app.log',
+                'formatter': 'default'
+            }
+        },
+        'root': {
+            'level': 'INFO',
+            'handlers': ['wsgi', 'file']
+        }
+    })
 
-# Configure cache
-app.config.from_mapping(CACHE_CONFIG)
-logger.info(f"Cache config set: {CACHE_CONFIG}")
-cache = Cache(app)
-logger.info(f"Cache initialized: {cache}")
+def create_app(config_object=None):
+    """
+    Application factory function that creates and configures the Quart application.
+    
+    Args:
+        config_object: The configuration object or module to use. If None,
+                      defaults to production config.
+    
+    Returns:
+        Quart application instance
+    """
+    # Configure logging first
+    configure_logging()
+    logger = logging.getLogger(__name__)
+    logger.info("Creating application with factory pattern")
+    
+    # Create Quart app instance with initial config
+    app = Quart(__name__)
+    app.config.from_object(Config)  # Load base config first
+    
+    # Configure the app with additional config if provided
+    if config_object is None:
+        # Default to production config if none specified
+        logger.info("No config specified, using production config")
+        app.config.from_object(ProductionConfig)
+    else:
+        logger.info(f"Loading config from: {config_object}")
+        app.config.from_object(config_object)
+    
+    # Enable CORS
+    app = cors(app)
+    
+    # Initialize extensions
+    cache.init_app(app)
+    
+    # Register error handlers
+    @app.errorhandler(404)
+    async def not_found_error(error):
+        return {"error": "Not found"}, 404
 
-# Preload sentiment model at startup
-logger.info("Preloading sentiment analysis model...")
-ModelManager.get_instance()
-logger.info("Sentiment analysis model preloaded")
+    @app.errorhandler(500)
+    async def internal_error(error):
+        return {"error": "Internal server error"}, 500
+    
+    # Register routes
+    from routes import api_bp
+    app.register_blueprint(api_bp)
+    
+    logger.info("Application factory initialization complete")
+    return app
 
-# Log initial startup details
-logger.info(f"Python version: {sys.version}")
-logger.info(f"Flask version: {flask.__version__}")
-logger.info(f"Cache type: {CACHE_CONFIG.get('CACHE_TYPE', 'Not configured')}")
-logger.info(f"Debug mode: {DEBUG}")
-logger.info(f"Max articles per source: {MAX_ARTICLES_PER_SOURCE}")
+# Create the application instance for ASGI servers
+app = create_app()
 
-# Register routes blueprint
-from routes import routes
-app.register_blueprint(routes)
-logger.info("Routes blueprint registered")
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    logger.info(f"Starting server on port {port}")
-    app.run(host="0.0.0.0", port=port, debug=DEBUG)
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)

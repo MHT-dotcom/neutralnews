@@ -12,9 +12,9 @@ import time
 import logging
 from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
-                     fetch_newsapi_ai_articles)
+                     fetch_newsapi_ai_articles, BaseFetcher)
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
-                       summarize_articles, ModelManager)
+                       summarize_articles, ModelManager, generate_summary)
 from trends import get_trending_topics
 from config_prod import MAX_ARTICLES_PER_SOURCE
 
@@ -242,3 +242,101 @@ def get_data():
 def test():
     """Simple test endpoint"""
     return jsonify({"status": "ok"})
+
+# Create blueprint
+api_bp = Blueprint('api', __name__)
+
+@api_bp.route('/')
+async def index():
+    """Homepage route that displays trending topics and their summaries"""
+    try:
+        # Get trending topics
+        topics = await get_trending_topics(limit=4)
+        summaries = []
+        
+        # Get articles and generate summaries for each topic
+        for topic in topics:
+            articles = await fetch_articles(topic)
+            if articles:
+                summary = await generate_summary(articles[:3])  # Use top 3 articles
+                summaries.append({
+                    'topic': topic,
+                    'summary': summary,
+                    'articles': articles[:3]
+                })
+        
+        logger.info(f"Generated trending summaries for {[s['topic'] for s in summaries]}")
+        return await render_template('index.html', summaries=summaries)
+        
+    except Exception as e:
+        logger.error(f"Error generating homepage: {str(e)}")
+        return await render_template('error.html', error=str(e))
+
+@api_bp.route('/health')
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "message": "API is operational"}
+
+@api_bp.route('/api/news')
+async def get_news():
+    """
+    Fetch news articles from configured sources
+    Query parameters:
+    - q: search query
+    - sources: comma-separated list of sources (optional)
+    """
+    try:
+        query = request.args.get('q', '')
+        if not query:
+            return {"error": "Query parameter 'q' is required"}, 400
+            
+        articles = await fetch_articles(query)
+        if not articles:
+            return {"error": "No articles found"}, 404
+            
+        return {
+            "status": "success",
+            "count": len(articles),
+            "articles": articles
+        }
+            
+    except Exception as e:
+        logger.error(f"Error fetching news: {str(e)}")
+        return {"error": "Internal server error", "details": str(e)}, 500
+
+@api_bp.route('/api/summary')
+async def get_summary():
+    """
+    Generate a summary for a given topic using recent articles
+    Query parameters:
+    - topic: the topic to summarize
+    """
+    try:
+        topic = request.args.get('topic', '')
+        if not topic:
+            return {"error": "Query parameter 'topic' is required"}, 400
+            
+        articles = await fetch_articles(topic)
+        if not articles:
+            return {"error": "No articles found for topic"}, 404
+            
+        summary = await generate_summary(articles[:3])
+        return {
+            "status": "success",
+            "topic": topic,
+            "summary": summary,
+            "articles": articles[:3]
+        }
+            
+    except Exception as e:
+        logger.error(f"Error generating summary: {str(e)}")
+        return {"error": "Internal server error", "details": str(e)}, 500
+
+async def fetch_articles(query):
+    """Helper function to fetch articles from all configured sources"""
+    fetcher = BaseFetcher()
+    try:
+        articles = await fetcher.fetch_all(query)
+        return await process_articles(articles)
+    finally:
+        await fetcher.close()
