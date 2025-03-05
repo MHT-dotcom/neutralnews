@@ -280,7 +280,10 @@ def create_app():
     
     return app
 
-# This will be executed when this module is imported or the file is run directly
+# Create the Flask app at module level for Gunicorn
+app = create_app()
+
+# Log that the app is defined at module level
 logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Reached end of app.py module definition")
 
 # Only execute this code when the file is run directly, not when imported
@@ -288,11 +291,8 @@ if __name__ == '__main__':
     # Log when the app is directly run
     logger.info(f"[APP_RUN] {time.time()} - Running app directly through __main__")
     
-    # Load environment variables from .env file
+    # Load environment variables from .env file (optional, since create_app() already handles this)
     load_dotenv()
-    
-    # Create and configure the application
-    app = create_app()
     
     # Get port from environment or use default
     port = int(os.environ.get('PORT', 10000))
@@ -301,5 +301,4 @@ if __name__ == '__main__':
     logger.info(f"[APP_RUN] Starting Flask application on port {port}")
     app.run(host='0.0.0.0', port=port, debug=(os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'))
 else:
-    # This branch executes when the file is imported, not directly run
     logger.info(f"[IMPORT_SEQUENCE] {time.time()} - app.py imported, not run directly")
