@@ -8,6 +8,7 @@ with sentiment analysis and summarization.
 import os
 import sys
 import logging
+import pkg_resources
 from logging.config import dictConfig
 
 # Setup basic logging before any imports
@@ -18,6 +19,19 @@ logger = logging.getLogger(__name__)
 logger.info(f"Current working directory: {os.getcwd()}")
 logger.info(f"Directory contents: {os.listdir('.')}")
 logger.info(f"Python path: {sys.path}")
+
+# Log installed packages
+logger.info("Installed packages:")
+installed_packages = [f"{dist.key} {dist.version}" for dist in pkg_resources.working_set]
+logger.info("\n".join(installed_packages))
+
+# Log requirements.txt content
+try:
+    with open('requirements.txt', 'r') as f:
+        requirements = f.read()
+        logger.info(f"requirements.txt contents:\n{requirements}")
+except Exception as e:
+    logger.error(f"Error reading requirements.txt: {e}")
 
 from flask import Flask
 from flask_cors import CORS
@@ -77,6 +91,7 @@ def create_app():
         CACHE_DEFAULT_TIMEOUT=300,
         
         # API Keys
+        OPENAI_API_KEY=os.environ.get('OPENAI_API_KEY', ''),
         NEWSAPI_ORG_KEY=os.environ.get('NEWSAPI_ORG_KEY', ''),
         GUARDIAN_API_KEY=os.environ.get('GUARDIAN_API_KEY', ''),
         AYLIEN_APP_ID=os.environ.get('AYLIEN_APP_ID', ''),
@@ -87,6 +102,7 @@ def create_app():
         NYT_API_KEY=os.environ.get('NYT_API_KEY', ''),
         
         # Feature flags based on API key availability
+        USE_OPENAI=bool(os.environ.get('OPENAI_API_KEY')),
         USE_NEWSAPI_ORG=bool(os.environ.get('NEWSAPI_ORG_KEY')),
         USE_GUARDIAN=bool(os.environ.get('GUARDIAN_API_KEY')),
         USE_GNEWS=bool(os.environ.get('GNEWS_API_KEY')),
