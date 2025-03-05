@@ -18,13 +18,42 @@ def get_trending_topics(limit=4):
         except Exception as pkg_err:
             logger.warning(f"Failed to get package versions: {pkg_err}")
         
-        logger.info("Creating TrendReq instance...")
-        pytrends = TrendReq(hl='en-US', tz=360, retries=3, backoff_factor=2)
-        
-        logger.info("Attempting to fetch trending searches from Google Trends")
-        trending = pytrends.trending_searches(pn='united_states')
-        topics = trending[0].tolist()[:limit]
-        logger.info(f"Raw trending topics fetched: {topics}")
+        # First, try the patched approach for newer urllib3 versions
+        try:
+            # Try to patch the urllib3.util.retry module to handle the parameter name change
+            import urllib3.util.retry
+            original_init = urllib3.util.retry.Retry.__init__
+            
+            def patched_init(self, *args, **kwargs):
+                # Convert method_whitelist to allowed_methods for newer urllib3 versions
+                if 'method_whitelist' in kwargs and not hasattr(urllib3.util.retry.Retry, 'method_whitelist'):
+                    logger.info("Patching urllib3.util.retry.Retry to handle method_whitelist parameter")
+                    kwargs['allowed_methods'] = kwargs.pop('method_whitelist')
+                original_init(self, *args, **kwargs)
+                
+            # Apply the patch
+            urllib3.util.retry.Retry.__init__ = patched_init
+            logger.info("Successfully patched urllib3.util.retry.Retry.__init__")
+            
+            logger.info("Creating TrendReq instance with patched urllib3...")
+            pytrends = TrendReq(hl='en-US', tz=360, retries=3, backoff_factor=2)
+            
+            logger.info("Attempting to fetch trending searches from Google Trends")
+            trending = pytrends.trending_searches(pn='united_states')
+            topics = trending[0].tolist()[:limit]
+            logger.info(f"Raw trending topics fetched: {topics}")
+        except Exception as patch_error:
+            # If patching fails, try directly with minimal parameters
+            logger.warning(f"Patched approach failed: {patch_error}. Trying direct approach...")
+            logger.info("Creating TrendReq instance with minimal parameters...")
+            pytrends = TrendReq(hl='en-US', tz=360)  # Skip retry parameters
+            
+            logger.info("Attempting to fetch trending searches without retries")
+            trending = pytrends.trending_searches(pn='united_states')
+            topics = trending[0].tolist()[:limit]
+            logger.info(f"Raw trending topics fetched with direct approach: {topics}")
+            
+        # Process the topics
         cleaned_topics = [topic.strip() for topic in topics if len(topic.strip()) > 3]
         if len(cleaned_topics) < limit:
             logger.warning(f"Fetched only {len(cleaned_topics)} valid topics, padding with fallbacks")

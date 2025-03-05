@@ -16,3 +16,4 @@ aylien-news-api==5.2.3
 python-dateutil==2.9.0.post0
 scikit-learn==1.6.1
 openai==1.64.0
+urllib3==1.26.15  # Pinned for compatibility with pytrends 4.9.2

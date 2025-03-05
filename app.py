@@ -111,8 +111,21 @@ def create_app():
     # Enable CORS
     CORS(app)
     
-    # Register the environment variables from .env file
-    load_dotenv()
+    # Detect environment (development or production)
+    is_production = os.environ.get('RENDER', False) or os.environ.get('PRODUCTION', False)
+    logger.info(f"Running in {'production' if is_production else 'development'} mode")
+    
+    # First try environment variables directly (for Render/production)
+    # Then fall back to .env file (for local development)
+    if not is_production:
+        logger.info("Loading environment from .env file (development mode)")
+        from dotenv import load_dotenv
+        load_dotenv()
+    else:
+        logger.info("Using environment variables directly (production mode)")
+    
+    # Log all environment variables (safely)
+    log_environment_variables()
     
     # Log environment API keys (existence only, not values)
     logger.info("API Key Status:")
@@ -188,6 +201,56 @@ def create_app():
     
     logger.info("Application factory initialization complete")
     return app
+
+def log_environment_variables():
+    """Log all environment variables (presence only, not values) to help with debugging."""
+    logger = logging.getLogger(__name__)
+    import os
+    
+    # Get all environment variables
+    env_vars = os.environ
+    
+    # List of sensitive keys (partial matches) to mask
+    sensitive_keys = ['key', 'password', 'secret', 'token', 'auth']
+    
+    # Count how many are potentially API keys or credentials
+    api_keys_count = 0
+    other_vars_count = 0
+    
+    logger.info("Environment Variables (masked for security):")
+    
+    # Log existence of each variable (but not its value)
+    for key in sorted(env_vars.keys()):
+        # Check if this might be a sensitive value
+        is_sensitive = any(sensitive_word in key.lower() for sensitive_word in sensitive_keys)
+        
+        # For sensitive keys, just log that they exist
+        if is_sensitive:
+            api_keys_count += 1
+        else:
+            other_vars_count += 1
+    
+    # Log the counts
+    logger.info(f"Found {api_keys_count} potential API keys/credentials and {other_vars_count} other environment variables")
+    
+    # Check specifically for known required API keys
+    api_keys = [
+        'NEWSAPI_ORG_KEY',
+        'GUARDIAN_API_KEY', 
+        'OPENAI_API_KEY',
+        'GNEWS_API_KEY',
+        'NYT_API_KEY',
+        'AYLIEN_APP_ID',
+        'AYLIEN_API_KEY',
+        'MEDIASTACK_API_KEY',
+        'NEWSAPI_AI_KEY'
+    ]
+    
+    missing_keys = [key for key in api_keys if not os.environ.get(key)]
+    if missing_keys:
+        logger.warning(f"Missing API keys: {', '.join(missing_keys)}")
+    else:
+        logger.info("All known API keys are present in environment variables")
 
 # Create the application instance
 app = create_app()
