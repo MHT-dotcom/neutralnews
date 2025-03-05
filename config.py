@@ -105,7 +105,7 @@ class ProductionConfig(Config):
         'CACHE_DEFAULT_TIMEOUT': 1800
     }
 
-cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})  # Use 'SimpleCache' for in-memory caching
+# cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})  # Temporarily disabled for faster builds
 
 
 # API Endpoints

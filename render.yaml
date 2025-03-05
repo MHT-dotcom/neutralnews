@@ -27,6 +27,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: RENDER_DISABLE_BUILD_CACHE
+        value: "true"
       - key: NEWSAPI_ORG_KEY
         value: "your-newsapi-org-key"  # Add all API keys from config.py
     autoDeploy: true
