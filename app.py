@@ -40,7 +40,7 @@ from flask_caching import Cache
 __version__ = '0.1.0'
 
 # Initialize cache with default config
-cache = Cache()
+# cache = Cache()  # Temporarily disabled for faster builds
 
 def configure_logging():
     """Configure logging for the application"""
@@ -87,8 +87,8 @@ def create_app():
     # Configure from environment variables
     app.config.update(
         # Cache settings
-        CACHE_TYPE='simple',
-        CACHE_DEFAULT_TIMEOUT=300,
+        # CACHE_TYPE='simple',  # Temporarily disabled for faster builds
+        # CACHE_DEFAULT_TIMEOUT=300,  # Temporarily disabled for faster builds
         
         # API Keys
         OPENAI_API_KEY=os.environ.get('OPENAI_API_KEY', ''),
@@ -128,7 +128,7 @@ def create_app():
     CORS(app)
     
     # Initialize extensions
-    cache.init_app(app)
+    # cache.init_app(app)  # Temporarily disabled for faster builds
     
     # Log API availability
     logger.info("API availability:")
