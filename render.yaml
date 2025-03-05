@@ -1,18 +1,33 @@
+# services:
+#   - type: web
+#     name: neutral-news-api
+#     env: python
+#     buildCommand: pip install -r requirements.txt
+#     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 60
+#     envVars:
+#       - key: PYTHON_VERSION
+#         value: 3.11.0
+#     autoDeploy: true
+#     healthCheckPath: /test
+#     scaling:
+#       minInstances: 1
+#       maxInstances: 1
+#     resources:
+#       cpu: 1x
+#       memory: 1024
+#       storage: 512 
+
 services:
   - type: web
     name: neutral-news-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 60
+    startCommand: gunicorn 'app:create_app()' --bind 0.0.0.0:$PORT --workers 1 --timeout 60
+    workingDir: /opt/render/project/src
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: NEWSAPI_ORG_KEY
+        value: "your-newsapi-org-key"  # Add all API keys from config.py
     autoDeploy: true
     healthCheckPath: /test
-    scaling:
-      minInstances: 1
-      maxInstances: 1
-    resources:
-      cpu: 1x
-      memory: 1024
-      storage: 512 
