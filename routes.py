@@ -7,6 +7,7 @@ from flask import Blueprint, render_template, request, jsonify
 from concurrent.futures import ThreadPoolExecutor
 import logging
 import time
+<<<<<<< HEAD
 import inspect
 from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
@@ -14,13 +15,41 @@ from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
                        summarize_articles, ModelManager)
 from trends import get_trending_topics
+=======
+from fetchers import (
+    fetch_newsapi_org,
+    fetch_guardian,
+    fetch_aylien_articles,
+    fetch_gnews_articles,
+    fetch_nyt_articles,
+    fetch_mediastack_articles,
+    fetch_newsapi_ai_articles
+)
+from processors import (
+    process_articles,
+    remove_duplicates,
+    filter_relevant_articles,
+    summarize_articles,
+    ModelManager
+)
+from config_prod import MAX_ARTICLES_PER_SOURCE, cache
+from .trends import get_trending_topics
+from .fetchers import fetch_trending_articles
+from .processors import process_trending_articles
+>>>>>>> dbcc478 (added logging)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 # Log when this module is imported
 logger.info(f"[IMPORT_SEQUENCE] {time.time()} - Routes module is being imported")
+=======
+logger.info("Initializing routes Blueprint")
+routes = Blueprint('news_routes', __name__, template_folder='templates')  # Match app.py's unique name
+logger.info("Routes Blueprint initialized with routes to be registered")
+>>>>>>> dbcc478 (added logging)
 
 # Log the call stack to see who's importing this module
 current_frame = inspect.currentframe()
@@ -150,6 +179,7 @@ def get_trending_summaries():
 
 @routes.route('/', methods=['GET', 'POST'])
 def index():
+<<<<<<< HEAD
     """Main route that displays trending topics and handles search"""
     try:
         # Get trending summaries
@@ -198,6 +228,49 @@ def get_news():
     if not event:
         logger.warning("[API] No query provided in request")
         return jsonify({"error": "No query provided"}), 400
+=======
+    """Handle the main route for displaying trending topics and fetching custom summaries."""
+    logger.info("[INDEX] Route / accessed")
+    logger.info(f"[INDEX] Request method: {request.method}")
+    logger.info(f"[INDEX] Request form data: {request.form}")
+    summary = None
+    articles = []
+    event = None
+    error = None
+    trending_summaries = get_trending_summaries()  # Fetch from cache
+
+    if request.method == 'POST':
+        event = request.form.get('event')
+        logger.info(f"[INDEX] Received POST request with event: {event}")
+        if not event:
+            error = "Please enter a news event to search for."
+            logger.warning("[INDEX] No event provided in POST request")
+        else:
+            logger.info(f"[INDEX] Calling fetch_and_process_data for event: {event}")
+            result = fetch_and_process_data(event)
+            if isinstance(result, tuple):
+                summary, articles, error = result
+            else:
+                summary = result.get('summary')
+                articles = result.get('articles', [])
+                error = None
+            logger.info(f"[INDEX] After fetch_and_process_data, summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
+            if error:
+                logger.error(f"[INDEX] Error in processing event '{event}': {error}")
+
+    logger.info(f"[INDEX] Rendering template with summary: {summary is not None}, articles: {len(articles) if articles else 0}, event: {event}, error: {error}")
+    return render_template('index.html', summary=summary, articles=articles, event=event, error=error, trending_summaries=trending_summaries)
+
+@routes.route('/data', methods=['POST'])
+def get_news_data():
+    """Handle the AJAX request for fetching news data with detailed error logging."""
+    logger.info("[DATA] Route /data accessed")
+    logger.info(f"[DATA] Received POST request with data: {request.get_json(silent=True)}")
+    logger.info(f"[DATA] Request headers: {dict(request.headers)}")
+    logger.info(f"[DATA] Request form data: {request.form}")
+    logger.info(f"[DATA] Request args: {request.args}")
+    logger.info(f"[DATA] Raw request data: {request.data}")
+>>>>>>> dbcc478 (added logging)
 
     try:
         logger.info(f"[API] Processing news request for event '{event}'")
@@ -206,6 +279,7 @@ def get_news():
             logger.warning(f"[API] No articles found for '{event}': {error_message}")
             return jsonify({"error": error_message}), 404
         
+<<<<<<< HEAD
         response_data = {
             "status": "success",
             "summary": summary,
@@ -222,3 +296,81 @@ def get_news():
 def health_check():
     logger.info("[HEALTH] Health check requested")
     return jsonify({"status": "healthy", "message": "API is operational"})
+=======
+        if not event:
+            logger.error("[DATA] No event provided in request")
+            return jsonify({'error': "Please enter a news event to search for."}), 400
+        
+        logger.info(f"[DATA] Processing event: {event}")
+        result = fetch_and_process_data(event)
+        
+        # Log detailed result info
+        if isinstance(result, tuple):
+            summary, articles, error = result
+            logger.info(f"[DATA] fetch_and_process_data returned tuple - summary: {summary is not None}, "
+                        f"articles: {len(articles) if articles else 0}, error: {error}")
+            # Create metadata if it's not available
+            if articles:
+                total_sentiment = sum(article.get('sentiment_score', 0) for article in articles)
+                avg_sentiment = total_sentiment / len(articles) if articles else 0
+                source_counts = {}
+                for article in articles:
+                    source = article.get('source', 'Unknown')
+                    source_counts[source] = source_counts.get(source, 0) + 1
+                metadata = {
+                    'total_articles': len(articles),
+                    'average_sentiment': avg_sentiment,
+                    'source_distribution': source_counts
+                }
+            else:
+                metadata = {
+                    'total_articles': 0,
+                    'average_sentiment': 0,
+                    'source_distribution': {}
+                }
+        else:
+            summary = result.get('summary')
+            articles = result.get('articles', [])
+            metadata = result.get('metadata', {
+                'total_articles': len(articles),
+                'average_sentiment': 0,
+                'source_distribution': {}
+            })
+            error = None
+            logger.info(f"[DATA] fetch_and_process_data returned dict - summary: {summary is not None}, "
+                        f"articles: {len(articles)}, metadata: {metadata}, error: {error}")
+
+        # Prepare and log the response
+        if articles:
+            response_data = {
+                'summary': summary if summary else "Summary not available.",
+                'articles': articles,
+                'metadata': metadata
+            }
+            if error:  # Add warning if there was a partial failure
+                response_data['warning'] = error
+                logger.warning(f"[DATA] Partial failure warning: {error}")
+            logger.info(f"[DATA] Returning success response - articles: {len(articles)}, summary: {summary is not None}")
+            logger.info(f"[DATA] Response data: {response_data}")
+            return jsonify(response_data), 200
+        elif error:
+            logger.error(f"[DATA] Returning error response: {error}")
+            logger.info(f"[DATA] Response data: {{'error': '{error}'}}")
+            return jsonify({'error': error}), 400
+        else:
+            logger.error("[DATA] No articles found and no specific error provided")
+            logger.info("[DATA] Response data: {'error': 'No articles found.'}")
+            return jsonify({'error': 'No articles found.'}), 404
+
+    except Exception as e:
+        logger.error(f"[DATA] Unexpected error in get_news_data: {str(e)}", exc_info=True)
+        logger.info(f"[DATA] Response data: {{'error': 'An internal server error occurred: {str(e)}'}}")
+        return jsonify({'error': f"An internal server error occurred: {str(e)}"}), 500
+
+@routes.route('/test', methods=['GET'])
+def test():
+    """Test route to verify routing is working."""
+    logger.info("[TEST] Test route accessed")
+    logger.info("[TEST] Returning status: ok")
+    return jsonify({"status": "ok"})
+>>>>>>> dbcc478 (added logging)

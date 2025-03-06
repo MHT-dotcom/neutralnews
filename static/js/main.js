@@ -14,10 +14,12 @@ $(document).ready(function() {
     // Pull to refresh functionality for mobile
     document.addEventListener('touchstart', function(e) {
         startY = e.touches[0].clientY;
+        console.log('[TOUCHSTART] Touch started at Y:', startY);
         
         // Only enable pull-to-refresh when at the top of the page
         if (window.scrollY <= 0) {
             isPulling = true;
+            console.log('[TOUCHSTART] Pull-to-refresh enabled');
         }
     }, { passive: true });
     
@@ -26,6 +28,7 @@ $(document).ready(function() {
         
         var currentY = e.touches[0].clientY;
         var pullDistance = currentY - startY;
+        console.log('[TOUCHMOVE] Pull distance:', pullDistance);
         
         if (pullDistance > 0 && pullDistance < pullThreshold) {
             $pullIndicator.addClass('active');
@@ -38,9 +41,11 @@ $(document).ready(function() {
         
         var currentY = e.changedTouches[0].clientY;
         var pullDistance = currentY - startY;
+        console.log('[TOUCHEND] Pull ended with distance:', pullDistance);
         
         if (pullDistance > pullThreshold) {
             // Refresh the page
+            console.log('[TOUCHEND] Triggering page reload');
             window.location.reload();
         } else {
             $pullIndicator.removeClass('active');
@@ -236,6 +241,9 @@ $(document).ready(function() {
     }
 
     function displayArticles(articles, summary, metadata) {
+        console.log('[DISPLAY] Displaying articles:', articles);
+        console.log('[DISPLAY] Summary:', summary);
+        console.log('[DISPLAY] Metadata:', metadata);
         $loading.hide();
         if (articles && articles.length > 0) {
             let articlesHtml = articles.map(article => {
@@ -272,6 +280,7 @@ $(document).ready(function() {
             
             // Create source distribution visualization
             if (metadata.source_distribution) {
+                console.log('[DISPLAY] Creating source distribution with:', metadata.source_distribution);
                 createSourceDistribution(metadata.source_distribution);
                 $results.find('.source-dashboard').show();
             } else {
@@ -284,6 +293,7 @@ $(document).ready(function() {
             $results.find('.clear-button').show();
             $results.find('.sentiment-summary').show();
         } else {
+            console.log('[DISPLAY] No articles to display');
             $errorMessage.text('No articles found.').show();
         }
     }
@@ -291,10 +301,15 @@ $(document).ready(function() {
     $('#search-form').submit(function(event) {
         event.preventDefault();
         var eventQuery = $('input[name="event"]', this).val();
+        console.log('[SUBMIT] Form submitted with query:', eventQuery);
+        
         if (!eventQuery) {
+            console.log('[SUBMIT] No query provided');
             alert('Please enter a news event to search for.');
             return;
         }
+        
+        console.log('[SUBMIT] Sending POST request to /data with query:', eventQuery);
         $loading.show();
         $results.hide();
         $errorMessage.text('').hide();
@@ -304,35 +319,61 @@ $(document).ready(function() {
         $results.find('.sentiment-summary').hide();
         $results.find('.source-dashboard').hide();
 
-        $.post('/data', {event: eventQuery}, function(data) {
-            if (data.error) {
-                $errorMessage.text(data.error).show();
-            } else {
-                $results.find('.current-topic').text('Current topic: ' + eventQuery).show();
-                if (data.warning) {
-                    // Only show warning if no articles were found
-                    if (!data.articles || data.articles.length === 0) {
-                        $errorMessage.text(data.warning).show();
+        $.ajax({
+            url: '/data',
+            type: 'POST',
+            data: JSON.stringify({ event: eventQuery }),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            beforeSend: function(xhr) {
+                console.log('[AJAX] Before send - URL:', '/data');
+                console.log('[AJAX] Request data:', { event: eventQuery });
+                console.log('[AJAX] Headers:', {
+                    'Content-Type': 'application/json; charset=utf-8'
+                });
+            },
+            success: function(data) {
+                console.log('[AJAX] Success response:', data);
+                if (data.error) {
+                    console.log('[AJAX] Error in response:', data.error);
+                    $errorMessage.text(data.error).show();
+                } else {
+                    $results.find('.current-topic').text('Current topic: ' + eventQuery).show();
+                    if (data.warning) {
+                        // Only show warning if no articles were found
+                        if (!data.articles || data.articles.length === 0) {
+                            console.log('[AJAX] Warning with no articles:', data.warning);
+                            $errorMessage.text(data.warning).show();
+                        } else {
+                            console.log('[AJAX] Warning with articles, hiding error:', data.warning);
+                            $errorMessage.hide();
+                        }
                     } else {
                         $errorMessage.hide();
                     }
-                } else {
-                    $errorMessage.hide();
+                    displayArticles(data.articles, data.summary, data.metadata);
                 }
-                displayArticles(data.articles, data.summary, data.metadata);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('[AJAX] Error - Status:', textStatus);
+                console.log('[AJAX] Error -Thrown:', errorThrown);
+                console.log('[AJAX] Error - Response Status:', jqXHR.status);
+                console.log('[AJAX] Error - Response Text:', jqXHR.responseText);
+                if (textStatus === 'timeout') {
+                    $errorMessage.text('Request timed out. Please try again later.').show();
+                } else {
+                    $errorMessage.text('An error occurred: ' + textStatus + ' - ' + errorThrown).show();
+                }
+            },
+            complete: function() {
+                console.log('[AJAX] Request completed');
+                $loading.hide();
             }
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            if (textStatus === 'timeout') {
-                $errorMessage.text('Request timed out. Please try again later.').show();
-            } else {
-                $errorMessage.text('An error occurred: ' + textStatus + ' - ' + errorThrown).show();
-            }
-        }).always(function() {
-            $loading.hide();
         });
     });
 
     $results.find('.clear-button').on('click', function() {
+        console.log('[CLEAR] Clear button clicked, redirecting to /');
         window.location.href = "/";
     });
-}); 
+});
