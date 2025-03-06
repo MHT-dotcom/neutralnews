@@ -24,26 +24,27 @@ CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cached_tr
 
 def get_cached_topics(max_age_hours=24):
     """Get cached trending topics if available and not too old"""
-    try:
-        if os.path.exists(CACHE_FILE):
-            with open(CACHE_FILE, 'r') as f:
-                cache_data = json.load(f)
+    return None
+    # try:
+    #     if os.path.exists(CACHE_FILE):
+    #         with open(CACHE_FILE, 'r') as f:
+    #             cache_data = json.load(f)
                 
-            timestamp = cache_data.get('timestamp')
-            topics = cache_data.get('topics')
+    #         timestamp = cache_data.get('timestamp')
+    #         topics = cache_data.get('topics')
             
-            # Check if cache is valid
-            if timestamp and topics:
-                cache_time = datetime.fromtimestamp(timestamp)
-                if datetime.now() - cache_time < timedelta(hours=max_age_hours):
-                    logger.info(f"Using cached trends from {cache_time}")
-                    return topics
-                else:
-                    logger.info(f"Cached trends are too old ({cache_time})")
-        return None
-    except Exception as e:
-        logger.error(f"Error reading cached topics: {e}")
-        return None
+    #         # Check if cache is valid
+    #         if timestamp and topics:
+    #             cache_time = datetime.fromtimestamp(timestamp)
+    #             if datetime.now() - cache_time < timedelta(hours=max_age_hours):
+    #                 logger.info(f"Using cached trends from {cache_time}")
+    #                 return topics
+    #             else:
+    #                 logger.info(f"Cached trends are too old ({cache_time})")
+    #     return None
+    # except Exception as e:
+    #     logger.error(f"Error reading cached topics: {e}")
+    #     return None
 
 def save_cached_topics(topics):
     """Save topics to cache file"""
