@@ -220,6 +220,5 @@ def get_news():
 
 @routes.route('/health')
 def health_check():
-    """Health check endpoint"""
     logger.info("[HEALTH] Health check requested")
     return jsonify({"status": "healthy", "message": "API is operational"})
