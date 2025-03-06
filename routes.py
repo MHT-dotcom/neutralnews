@@ -122,28 +122,28 @@ def get_trending_summaries():
     summaries = {}
     logger.info(f"[TRENDING] Fetching trending summaries for topics: {topics}")
     
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        future_to_topic = {executor.submit(fetch_and_process_data, topic): topic for topic in topics}
-        for future in future_to_topic:
-            topic = future_to_topic[future]
-            try:
-                result = future.result()
-                if isinstance(result, tuple) and result[0]:
-                    summaries[topic] = {
-                        'summary': result[0],
-                        'articles': result[1][:3]  # Limit to 3 articles per topic
-                    }
-                else:
-                    summaries[topic] = {
-                        'summary': result[2] if result[2] else "No summary available",
-                        'articles': []
-                    }
-            except Exception as e:
-                logger.error(f"[TRENDING] Error processing trending topic '{topic}': {e}", exc_info=True)
-                summaries[topic] = {
-                    'summary': "Error generating summary",
-                    'articles': []
-                }
+    # with ThreadPoolExecutor(max_workers=4) as executor:
+    #     future_to_topic = {executor.submit(fetch_and_process_data, topic): topic for topic in topics}
+    #     for future in future_to_topic:
+    #         topic = future_to_topic[future]
+    #         try:
+    #             result = future.result()
+    #             if isinstance(result, tuple) and result[0]:
+    #                 summaries[topic] = {
+    #                     'summary': result[0],
+    #                     'articles': result[1][:3]  # Limit to 3 articles per topic
+    #                 }
+    #             else:
+    #                 summaries[topic] = {
+    #                     'summary': result[2] if result[2] else "No summary available",
+    #                     'articles': []
+    #                 }
+    #         except Exception as e:
+    #             logger.error(f"[TRENDING] Error processing trending topic '{topic}': {e}", exc_info=True)
+    #             summaries[topic] = {
+    #                 'summary': "Error generating summary",
+    #                 'articles': []
+    #             }
     
     logger.info(f"[TRENDING] Generated trending summaries for {list(summaries.keys())} in {time.time() - start_time:.2f}s")
     return summaries
