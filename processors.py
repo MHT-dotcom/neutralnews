@@ -366,12 +366,9 @@ if SUMMARIZER_BY_GPT:
             return f"Found {len(articles)} articles about '{query}', but no content was available for summarization."
         
         # Create a focused, token-efficient prompt
-        prompt = (
-            f"Summarize these news articles about '{query}' in 2-3 sentences. "
-            "Be concise and factual:"
-            "\n\n"
-            + "\n\n".join(articles_content)
-        )
+        base_prompt = f"Summarize these news articles about '{query}' in 2-3 sentences. Be concise and factual:\n\n"
+        articles_text = "\n\n".join(articles_content)
+        prompt = base_prompt + articles_text
         
         logger.info(f"GPT prompt length: {len(prompt)} characters")
         logger.debug(f"GPT prompt content: {prompt}")
@@ -450,10 +447,10 @@ def process_trending_articles(trending_data):
         standardized_articles = standardize_articles(articles)
         
         # Analyze sentiment (assuming analyze_sentiment exists)
-        articles_with_sentiment = analyze_sentiment(standardized_articles, model_manager)
+        articles_with_sentiment = analyze_sentiment(standardized_articles)
         
         # Generate a summary for the topic (assuming summarize_articles exists)
-        summary = summarize_articles(articles_with_sentiment, model_manager, prompt=f"Summarize news about {topic}")
+        summary = summarize_articles(articles_with_sentiment, topic)
         
         processed_data[topic] = {
             "articles": articles_with_sentiment[:3],  # Limit to 3 articles

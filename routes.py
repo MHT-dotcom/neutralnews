@@ -18,7 +18,7 @@ from processors import (process_articles, remove_duplicates, filter_relevant_art
 from trends import get_trending_topics  # Absolute import for Render compatibility
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
-                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY)
+                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N)
 import os
 from datetime import datetime
 
@@ -124,26 +124,126 @@ def fetch_and_process_data(event):
         standardize_time = time.time() - standardize_start
         logger.info(f"Standardization took {standardize_time:.2f} seconds for event '{event}'")
 
-        # Group by true source and cap at MAX_ARTICLES_PER_SOURCE
+        # Log initial article counts and distribution
+        initial_source_counts = {}
+        for article in all_articles:
+            source = article.get('source', 'Unknown')
+            initial_source_counts[source] = initial_source_counts.get(source, 0) + 1
+        logger.info(f"Initial source distribution before processing for '{event}': {initial_source_counts}")
+        logger.info(f"Initial total articles: {len(all_articles)}")
+
+        # First, remove duplicates
+        duplicate_start = time.time()
+        logger.info(f"Starting duplicate removal for event '{event}' at {duplicate_start}")
+        unique_articles = remove_duplicates(all_articles)
+        
+        # Log distribution after duplicate removal
+        after_dedup_counts = {}
+        for article in unique_articles:
+            source = article.get('source', 'Unknown')
+            after_dedup_counts[source] = after_dedup_counts.get(source, 0) + 1
+        logger.info(f"Source distribution after duplicate removal for '{event}': {after_dedup_counts}")
+        logger.info(f"Articles removed by deduplication: {len(all_articles) - len(unique_articles)}")
+        duplicate_time = time.time() - duplicate_start
+        logger.info(f"Duplicate removal took {duplicate_time:.2f} seconds for event '{event}'")
+
+        # Then apply relevance filtering
+        filter_start = time.time()
+        logger.info(f"Starting filtering for event '{event}' at {filter_start}")
+        relevant_articles = filter_relevant_articles(unique_articles, event)
+        
+        # Log distribution after relevance filtering
+        after_relevance_counts = {}
+        for article in relevant_articles:
+            source = article.get('source', 'Unknown')
+            after_relevance_counts[source] = after_relevance_counts.get(source, 0) + 1
+        logger.info(f"Source distribution after relevance filtering for '{event}': {after_relevance_counts}")
+        logger.info(f"Articles removed by relevance filtering: {len(unique_articles) - len(relevant_articles)}")
+        filter_time = time.time() - filter_start
+        logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
+
+        if not relevant_articles:
+            total_time = time.time() - start_time
+            logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
+            return None, None, f"No relevant articles found for '{event}' after filtering. Try a broader topic."
+
+        # Finally, group by source and cap to ensure balanced distribution
         group_and_cap_start = time.time()
         logger.info(f"Starting grouping and capping for event '{event}' at {group_and_cap_start}")
         source_groups = {}
-        for article in all_articles:
+        for article in relevant_articles:
             source = article.get('source', 'Unknown')
-            logger.debug(f"Processing article with source '{source}' for event '{event}'")
             if source not in source_groups:
                 source_groups[source] = []
             source_groups[source].append(article)
         
-        capped_articles = []
+        # Log article counts per source before capping
+        logger.info(f"Articles per source before capping for '{event}':")
         for source, articles_list in source_groups.items():
-            logger.debug(f"Before capping, source '{source}' has {len(articles_list)} articles for event '{event}'")
-            capped_articles.extend(articles_list[:MAX_ARTICLES_PER_SOURCE])
-            logger.debug(f"After capping, source '{source}' has {min(len(articles_list), MAX_ARTICLES_PER_SOURCE)} articles for event '{event}'")
+            logger.info(f"- {source}: {len(articles_list)} articles")
+        
+        # Calculate dynamic cap based on number of sources
+        num_sources = len(source_groups)
+        dynamic_cap = min(MAX_ARTICLES_PER_SOURCE, max(2, DEFAULT_TOP_N // num_sources))
+        logger.info(f"Using dynamic cap of {dynamic_cap} articles per source for {num_sources} sources")
+        logger.info(f"Total slots available: {DEFAULT_TOP_N}")
+        
+        # Apply balanced distribution
+        final_articles = []
+        remaining_slots = DEFAULT_TOP_N
+        
+        # First round: Take at least one from each source
+        first_round_sources = []
+        for source, articles_list in source_groups.items():
+            if articles_list and remaining_slots > 0:
+                final_articles.append(articles_list[0])
+                articles_list.pop(0)
+                remaining_slots -= 1
+                first_round_sources.append(source)
+        logger.info(f"First round distribution - Added one article from each of these sources: {first_round_sources}")
+        logger.info(f"Remaining slots after first round: {remaining_slots}")
+        
+        # Second round: Fill remaining slots evenly
+        second_round_additions = {}
+        while remaining_slots > 0:
+            added_article = False
+            for source, articles_list in source_groups.items():
+                current_source_count = len([a for a in final_articles if a.get('source') == source])
+                if articles_list and current_source_count < dynamic_cap:
+                    final_articles.append(articles_list[0])
+                    articles_list.pop(0)
+                    remaining_slots -= 1
+                    second_round_additions[source] = second_round_additions.get(source, 0) + 1
+                    added_article = True
+                    if remaining_slots <= 0:
+                        break
+            if not added_article:
+                break
+        logger.info(f"Second round distribution - Additional articles per source: {second_round_additions}")
+        logger.info(f"Remaining slots after second round: {remaining_slots}")
+        
         group_and_cap_time = time.time() - group_and_cap_start
         logger.info(f"Grouping and capping took {group_and_cap_time:.2f} seconds for event '{event}'")
 
-        articles = capped_articles
+        # Log final source distribution with detailed stats
+        final_source_counts = {}
+        for article in final_articles:
+            source = article.get('source', 'Unknown')
+            final_source_counts[source] = final_source_counts.get(source, 0) + 1
+        
+        logger.info(f"=== Final Distribution Summary for '{event}' ===")
+        logger.info(f"Initial article count: {len(all_articles)}")
+        logger.info(f"After deduplication: {len(unique_articles)}")
+        logger.info(f"After relevance filtering: {len(relevant_articles)}")
+        logger.info(f"Final article count: {len(final_articles)}")
+        logger.info(f"Source distribution progression:")
+        logger.info(f"1. Initial: {initial_source_counts}")
+        logger.info(f"2. After dedup: {after_dedup_counts}")
+        logger.info(f"3. After relevance: {after_relevance_counts}")
+        logger.info(f"4. Final: {final_source_counts}")
+        logger.info(f"=== End Distribution Summary ===")
+
+        articles = final_articles
         logger.info(f"Capped articles count for event '{event}': {len(articles)}")
 
         # Check for partial failure and set a warning
@@ -168,15 +268,9 @@ def fetch_and_process_data(event):
             logger.warning(f"Partial API failure for event '{event}': {failed_sources}")
             total_time = time.time() - start_time
 
-            duplicate_start = time.time()
-            logger.info(f"Starting duplicate removal for event '{event}' at {duplicate_start}")
-            unique_articles = remove_duplicates(articles)
-            duplicate_time = time.time() - duplicate_start
-            logger.info(f"Duplicate removal took {duplicate_time:.2f} seconds for event '{event}'")
-
             filter_start = time.time()
             logger.info(f"Starting filtering for event '{event}' at {filter_start}")
-            relevant_articles = filter_relevant_articles(unique_articles, event)
+            relevant_articles = filter_relevant_articles(articles, event)
             filter_time = time.time() - filter_start
             logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
 
