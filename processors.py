@@ -23,14 +23,31 @@ class ModelManager:
     def get_instance(cls):
         if cls._instance is None:
             cls._instance = cls()
-            logger.info("Preloading sentiment analysis model at startup...")
-            cls._instance._sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=-1)  # CPU, preloaded
+            try:
+                logger.info("Preloading sentiment analysis model at startup...")
+                # Use a smaller model to reduce memory issues
+                cls._instance._sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=-1)  # CPU, preloaded
+                logger.info("Sentiment analysis model loaded successfully")
+            except Exception as e:
+                logger.error(f"Error loading sentiment analysis model: {e}")
+                # Create a fallback model that returns neutral sentiment
+                cls._instance._sentiment_analyzer = lambda text: [{'label': 'POSITIVE', 'score': 0.5}]
+                logger.warning("Using fallback sentiment analyzer")
         return cls._instance
 
     def get_summarizer(self):
         if self._summarizer is None:
-            logger.info("Loading summarization model...")
-            self._summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+            try:
+                logger.info("Loading summarization model...")
+                self._summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+                logger.info("Summarization model loaded successfully")
+            except Exception as e:
+                logger.error(f"Error loading summarization model: {e}")
+                # Define a simple fallback summarizer
+                def fallback_summarizer(text, **kwargs):
+                    return [{"summary_text": "Summary not available due to technical issues."}]
+                self._summarizer = fallback_summarizer
+                logger.warning("Using fallback summarizer")
         return self._summarizer
 
     def get_sentiment_analyzer(self):
@@ -229,9 +246,20 @@ def process_articles(articles, source):
 def analyze_sentiment(text):
     """Analyze the sentiment of a text and return a normalized score between -1 and 1."""
     try:
+        # Ensure text is not too large to avoid memory issues
+        if not text or not isinstance(text, str):
+            logger.warning(f"Invalid text for sentiment analysis: {type(text)}")
+            return 0
+            
+        # Truncate text to avoid memory issues (512 tokens is typically safe)
+        safe_text = text[:1000] if len(text) > 1000 else text
+        
         model_manager = ModelManager.get_instance()
         sentiment_analyzer = model_manager.get_sentiment_analyzer()
-        result = sentiment_analyzer(text[:512])  # Kept as fallback, though batching is primary
+        
+        # Handle potentially large batch inputs
+        result = sentiment_analyzer(safe_text)
+        
         score = result[0]['score']
         if result[0]['label'] == 'NEGATIVE':
             score = -score

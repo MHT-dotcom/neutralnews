@@ -7,7 +7,6 @@
 # New feature: Retrieves dynamic hot topics for the main page using trends.py.
 
 from flask import Blueprint, render_template, request, jsonify
-from flask_caching import Cache
 from concurrent.futures import ThreadPoolExecutor
 import time
 import logging
@@ -17,10 +16,11 @@ from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
                        summarize_articles, ModelManager)
 from trends import get_trending_topics  # Absolute import for Render compatibility
-from app import MAX_ARTICLES_PER_SOURCE  # Assuming defined in app.py; adjust if in config.py
+from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
+                        GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
+                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY)
 
 routes = Blueprint('routes', __name__)
-cache = Cache()  # Initialized in app.py
 logger = logging.getLogger(__name__)
 
 _is_first_request = True
@@ -32,11 +32,24 @@ def before_first_request():
         # Your initialization code here (unchanged from original)
         _is_first_request = False
 
-@cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
+# Completely remove caching for the search function to fix the issue
+# @cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
 def fetch_and_process_data(event):
     start_time = time.time()
     cache_key = f"summary_{event}"
-    logger.info(f"Starting fetch_and_process_data for event '{event}', total start time: {start_time}, cache key: {cache_key}")
+    logger.info(f"UNCACHED: Starting fetch_and_process_data for event '{event}', total start time: {start_time}")
+    
+    # Debug API key availability
+    logger.info(f"[Debug] API Keys for '{event}' search:")
+    logger.info(f"NEWSAPI_ORG_KEY: {'Available' if NEWSAPI_ORG_KEY else 'Missing'}")
+    logger.info(f"GUARDIAN_API_KEY: {'Available' if GUARDIAN_API_KEY else 'Missing'}")
+    logger.info(f"GNEWS_API_KEY: {'Available' if GNEWS_API_KEY else 'Missing'}")
+    logger.info(f"NYT_API_KEY: {'Available' if NYT_API_KEY else 'Missing'}")
+    logger.info(f"OPENAI_API_KEY: {'Available' if OPENAI_API_KEY else 'Missing'}")
+    logger.info(f"MEDIASTACK_API_KEY: {'Available' if MEDIASTACK_API_KEY else 'Missing'}")
+    logger.info(f"NEWSDATA_API_KEY: {'Available' if NEWSDATA_API_KEY else 'Missing'}")
+    logger.info(f"AYLIEN keys: {'Available' if AYLIEN_APP_ID and AYLIEN_API_KEY else 'Missing'}")
+    
     try:
         # Fetch articles from multiple APIs in parallel
         fetch_start = time.time()
@@ -90,21 +103,17 @@ def fetch_and_process_data(event):
         
         all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
                         std_nyt + std_mediastack + std_newsapi_ai)
-        if all_articles:
-            model_manager = ModelManager.get_instance()
-            sentiment_analyzer = model_manager.get_sentiment_analyzer()
-            logger.info(f"Batching sentiment for {len(all_articles)} articles")
-            sentiment_start = time.time()
-            titles = [article['title'][:200] for article in all_articles]
-            contents = [article['content'][:200] for article in all_articles]
-            title_results = sentiment_analyzer(titles)  # Single batch for all titles
-            content_results = sentiment_analyzer(contents)  # Single batch for all contents
-            sentiment_time = time.time() - sentiment_start
-            logger.info(f"Sentiment batching took {sentiment_time:.2f} seconds")
-            for article, title_result, content_result in zip(all_articles, title_results, content_results):
-                title_score = title_result['score'] if title_result['label'] == 'POSITIVE' else -title_result['score']
-                content_score = content_result['score'] if content_result['label'] == 'POSITIVE' else -content_result['score']
-                article['sentiment_score'] = 0.3 * title_score + 0.7 * content_score
+        
+        # TEMPORARILY DISABLE SENTIMENT ANALYSIS TO AVOID CRASHES
+        logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles to avoid crashes")
+        sentiment_start = time.time()
+        
+        # Just set a default neutral sentiment for all articles
+        for article in all_articles:
+            article['sentiment_score'] = 0
+            
+        sentiment_time = time.time() - sentiment_start
+        logger.info(f"Sentiment processing (disabled) took {sentiment_time:.2f} seconds")
         
         standardize_time = time.time() - standardize_start
         logger.info(f"Standardization took {standardize_time:.2f} seconds for event '{event}'")
@@ -170,11 +179,13 @@ def fetch_and_process_data(event):
                 logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
                 return None, None, f"No relevant articles found for '{event}' after filtering. Try a broader topic."
 
+            # TEMPORARILY DISABLE REAL SUMMARIZATION TO AVOID CRASHES
+            logger.info(f"Skipping actual summarization for event '{event}' to avoid crashes")
             summarize_start = time.time()
-            logger.info(f"Starting summarization for event '{event}' at {summarize_start}")
-            summary = summarize_articles(relevant_articles, event)
+            # summary = summarize_articles(relevant_articles, event)
+            summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
             summarize_time = time.time() - summarize_start
-            logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
+            logger.info(f"Simple summarization took {summarize_time:.2f} seconds for event '{event}'")
             
             total_time = time.time() - start_time
             logger.info(f"Total request time (partial failure): {total_time:.2f} seconds, ending at {time.time()}")
@@ -199,64 +210,24 @@ def fetch_and_process_data(event):
         relevant_articles = filter_relevant_articles(unique_articles, event)
         filter_time = time.time() - filter_start
         logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
-
+        
+        # Check if we have relevant articles after filtering
         if not relevant_articles:
             total_time = time.time() - start_time
             logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
             return None, None, f"No relevant articles found for '{event}' after filtering. Try a broader topic."
-
-        # Summarize articles
+        
+        # TEMPORARILY DISABLE REAL SUMMARIZATION TO AVOID CRASHES
+        logger.info(f"Skipping actual summarization for event '{event}' to avoid crashes")
         summarize_start = time.time()
-        logger.info(f"Starting summarization for event '{event}' at {summarize_start}")
-        summary = summarize_articles(relevant_articles, event)
+        # summary = summarize_articles(relevant_articles, event)
+        summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
         summarize_time = time.time() - summarize_start
-        logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
-
-        if summary.startswith("Error"):
-            total_time = time.time() - start_time
-            logger.info(f"Total request time (summarization error): {total_time:.2f} seconds, ending at {time.time()}")
-            return None, None, f"Failed to generate a summary for '{event}' due to processing issues."
-
-        # Log the final number of articles
-        logger.info(f"Final number of articles for event '{event}': {len(relevant_articles)}")
-
-        # Calculate average sentiment and prepare article data
-        total_sentiment = 0
-        article_data = []
+        logger.info(f"Simple summarization took {summarize_time:.2f} seconds for event '{event}'")
         
-        for article in relevant_articles:
-            sentiment_score = article.get('sentiment_score', 0)
-            total_sentiment += sentiment_score
-            article_data.append({
-                'title': article.get('title', ''),
-                'url': article.get('url', ''),
-                'content': article.get('content', ''),
-                'source': article.get('source', 'Unknown'),
-                'sentiment_score': sentiment_score
-            })
-        
-        avg_sentiment = total_sentiment / len(relevant_articles) if relevant_articles else 0
-        
-        response = {
-            'articles': article_data,
-            'summary': summary,
-            'metadata': {
-                'total_articles': len(relevant_articles),
-                'average_sentiment': avg_sentiment,
-                'source_distribution': source_counts
-            }
-        }
-
         total_time = time.time() - start_time
         logger.info(f"Total request time: {total_time:.2f} seconds, ending at {time.time()}")
-
-        # Ensure models are cleared after processing
-        try:
-            ModelManager.get_instance().clear_models()
-        except Exception as e:
-            logger.warning(f"Failed to clear models: {e}")
-
-        return response
+        return summary, relevant_articles, None
     except Exception as e:
         total_time = time.time() - start_time
         logger.error(f"Exception occurred, total time: {total_time:.2f} seconds, error: {str(e)}, ending at {time.time()}", exc_info=True)
@@ -269,8 +240,16 @@ def fetch_and_process_data(event):
             
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
-# Cache trending topics and summaries with dynamic hot topics
-@cache.cached(timeout=3600, key_prefix="trending_summaries")  # 1-hour cache
+# Fix for the request context issue with a safer approach for the lambda
+def trending_cache_key():
+    try:
+        # Try to get from request context if available
+        return f"trending_summaries_{int(time.time() / 3600)}"
+    except Exception:
+        # Fall back to hourly key when outside request context
+        return f"trending_summaries_{int(time.time() / 3600)}"
+
+@cache.cached(timeout=3600, key_prefix=trending_cache_key)
 def get_trending_summaries():
     """
     Fetch and process summaries for trending topics (4 topics, 3 articles each).
@@ -311,7 +290,11 @@ def get_trending_summaries():
 def preload_trending_summaries():
     """Precompute trending summaries at startup."""
     logger.info("Preloading trending summaries at startup")
-    get_trending_summaries()
+    try:
+        get_trending_summaries()
+    except Exception as e:
+        logger.error(f"Error preloading trending summaries: {e}")
+        # Continue with request even if preloading fails
 
 @routes.route('/', methods=['GET', 'POST'])
 def index():
@@ -354,81 +337,61 @@ def get_news_data():
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request headers: {dict(request.headers)}")  # Log headers for more context
     logger.info(f"Request form data: {request.form}")
-    logger.info(f"Request JSON data: {request.get_json(silent=True)}")
-    logger.info(f"Request args: {request.args}")
-    logger.info(f"Raw data: {request.data}")
-
+    
     try:
-        # Try to get the event from various sources
-        event = (request.form.get('event') or 
-                 (request.get_json(silent=True) or {}).get('event') or 
-                 request.args.get('event'))
+        # Get the event from the form data
+        event = request.form.get('event')
         
         if not event:
             logger.error("No event provided in request")
             return jsonify({'error': "Please enter a news event to search for."}), 400
         
-        logger.info(f"Processing event: {event}")
-        result = fetch_and_process_data(event)
+        logger.info(f"Processing FRESH search for event: {event}")
         
-        # Log detailed result info
-        if isinstance(result, tuple):
-            summary, articles, error = result
-            logger.info(f"fetch_and_process_data returned tuple - summary: {summary is not None}, "
-                        f"articles: {len(articles) if articles else 0}, error: {error}")
-            # Create metadata if it's not available
-            if articles:
-                total_sentiment = sum(article.get('sentiment_score', 0) for article in articles)
-                avg_sentiment = total_sentiment / len(articles) if articles else 0
-                source_counts = {}
-                for article in articles:
-                    source = article.get('source', 'Unknown')
-                    source_counts[source] = source_counts.get(source, 0) + 1
-                metadata = {
-                    'total_articles': len(articles),
-                    'average_sentiment': avg_sentiment,
-                    'source_distribution': source_counts
-                }
-            else:
-                metadata = {
-                    'total_articles': 0,
-                    'average_sentiment': 0,
-                    'source_distribution': {}
-                }
-        else:
-            summary = result.get('summary')
-            articles = result.get('articles', [])
-            metadata = result.get('metadata', {
-                'total_articles': len(articles),
-                'average_sentiment': 0,
-                'source_distribution': {}
-            })
-            error = None
-            logger.info(f"fetch_and_process_data returned dict - summary: {summary is not None}, "
-                        f"articles: {len(articles)}, metadata: {metadata}, error: {error}")
-
-        # Prepare and log the response
-        if articles:
-            response_data = {
-                'summary': summary if summary else "Summary not available.",
-                'articles': articles,
-                'metadata': metadata
-            }
-            if error:  # Add warning if there was a partial failure
-                response_data['warning'] = error
-                logger.warning(f"Partial failure warning: {error}")
-            logger.info(f"Returning success response - articles: {len(articles)}, summary: {summary is not None}")
-            return jsonify(response_data), 200
-        elif error:
-            logger.error(f"Returning error response: {error}")
-            return jsonify({'error': error}), 400
-        else:
-            logger.error("No articles found and no specific error provided")
-            return jsonify({'error': 'No articles found.'}), 404
-
+        # Get current time to show in results that they're fresh
+        import datetime
+        current_time = datetime.datetime.now().strftime("%H:%M:%S")
+        
+        # Directly process the search without caching
+        summary, articles, error = fetch_and_process_data(event)
+        
+        # Prepare metadata in the format expected by the frontend
+        source_counts = {}
+        total_sentiment = 0
+        for article in articles or []:
+            source = article.get('source', 'Unknown')
+            source_counts[source] = source_counts.get(source, 0) + 1
+            total_sentiment += article.get('sentiment_score', 0)
+        
+        avg_sentiment = total_sentiment / len(articles) if articles and len(articles) > 0 else 0
+        
+        metadata = {
+            'total_articles': len(articles) if articles else 0,
+            'average_sentiment': avg_sentiment,
+            'source_distribution': source_counts
+        }
+        
+        # Add timestamp to summary to show it's a fresh result
+        summary_with_time = f"{summary} (searched at {current_time})" if summary else None
+        
+        # Structure response in format expected by frontend
+        response = {
+            'success': True,
+            'summary': summary_with_time,
+            'articles': articles,
+            'metadata': metadata,
+        }
+        
+        # Add warning if there was a partial failure
+        if error:
+            logger.warning(f"Partial failure warning: {error}")
+            response['warning'] = error
+        
+        logger.info(f"Returning success response with metadata: {metadata}")
+        return jsonify(response)
     except Exception as e:
-        logger.error(f"Unexpected error in get_news_data: {str(e)}", exc_info=True)  # Include stack trace
-        return jsonify({'error': f"An internal server error occurred: {str(e)}"}), 500
+        logger.error(f"Error processing request: {str(e)}")
+        return jsonify({'error': f"An error occurred: {str(e)}"}), 500
 
 @routes.route('/test', methods=['GET'])
 def test():

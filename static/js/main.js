@@ -305,10 +305,18 @@ $(document).ready(function() {
         $results.find('.source-dashboard').hide();
 
         $.post('/data', {event: eventQuery}, function(data) {
+            console.log('Response received:', data);
             if (data.error) {
+                console.log('Error found in response:', data.error);
                 $errorMessage.text(data.error).show();
             } else {
                 $results.find('.current-topic').text('Current topic: ' + eventQuery).show();
+                
+                // Debug the actual content
+                console.log('Articles:', data.articles ? data.articles.length : 0);
+                console.log('Summary:', data.summary);
+                console.log('Metadata:', data.metadata);
+                
                 if (data.warning) {
                     // Only show warning if no articles were found
                     if (!data.articles || data.articles.length === 0) {
@@ -319,9 +327,10 @@ $(document).ready(function() {
                 } else {
                     $errorMessage.hide();
                 }
-                displayArticles(data.articles, data.summary, data.metadata);
+                displayArticles(data.articles, data.summary, data.metadata || {});
             }
         }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('AJAX error:', textStatus, errorThrown, jqXHR.responseText);
             if (textStatus === 'timeout') {
                 $errorMessage.text('Request timed out. Please try again later.').show();
             } else {

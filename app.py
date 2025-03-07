@@ -7,12 +7,27 @@ import os
 import logging
 import sys
 from flask_cors import CORS
-from config_prod import cache, MAX_ARTICLES_PER_SOURCE, DEBUG
 from processors import ModelManager
 from flask import Flask, url_for
 
 # Load environment variables
 load_dotenv()
+logger = logging.getLogger(__name__)
+
+# Check environment variables loading
+logger.info("Checking API key availability:")
+from config_prod import (NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, 
+                        NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
+                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY)
+
+logger.info(f"NEWSAPI_ORG_KEY available: {'Yes' if NEWSAPI_ORG_KEY else 'No'}")
+logger.info(f"GUARDIAN_API_KEY available: {'Yes' if GUARDIAN_API_KEY else 'No'}")
+logger.info(f"GNEWS_API_KEY available: {'Yes' if GNEWS_API_KEY else 'No'}")
+logger.info(f"NYT_API_KEY available: {'Yes' if NYT_API_KEY else 'No'}")
+logger.info(f"OPENAI_API_KEY available: {'Yes' if OPENAI_API_KEY else 'No'}")
+logger.info(f"MEDIASTACK_API_KEY available: {'Yes' if MEDIASTACK_API_KEY else 'No'}")
+logger.info(f"NEWSDATA_API_KEY available: {'Yes' if NEWSDATA_API_KEY else 'No'}")
+logger.info(f"AYLIEN keys available: {'Yes' if AYLIEN_APP_ID and AYLIEN_API_KEY else 'No'}")
 
 # Initialize Flask app
 # app = Flask(__name__)
@@ -33,16 +48,16 @@ logger.info("Preloading sentiment analysis model...")
 ModelManager.get_instance()  # Trigger preloading here
 logger.info("Sentiment analysis model preloaded")
 
+# Import configuration
+from config_prod import cache, CACHE_CONFIG, MAX_ARTICLES_PER_SOURCE, DEBUG
+
 # Configure cache
-cache.init_app(app)
+cache.init_app(app, config=CACHE_CONFIG)
 
 # Log initial startup details
 logger.info(f"Python version: {sys.version}")
 logger.info(f"Flask version: {flask.__version__}")
-if cache:
-    logger.info(f"Cache type: {cache.config.get('CACHE_TYPE', 'Not configured')}")
-else:
-    logger.warning("Cache is not initialized.")
+logger.info(f"Cache type: {CACHE_CONFIG.get('CACHE_TYPE', 'Not configured')}")
 
 # Register the routes blueprint with a unique name
 logger.info("About to register routes blueprint")

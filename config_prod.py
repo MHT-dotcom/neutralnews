@@ -1,8 +1,11 @@
 # Production configuration using environment variables
 import os
+# type: ignore
 from flask_caching import Cache
-cache = Cache(config={'CACHE_TYPE': 'simple'})  # Basic in-memory cache
 
+# Basic in-memory cache with init_app pattern
+cache = Cache()
+CACHE_CONFIG = {'CACHE_TYPE': 'simple'}
 
 # News API keys
 NEWSAPI_ORG_KEY = os.environ.get("NEWSAPI_ORG_KEY", "")
