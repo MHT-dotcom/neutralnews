@@ -236,8 +236,21 @@ $(document).ready(function() {
     }
 
     function displayArticles(articles, summary, metadata) {
+        console.log('displayArticles called with:', {
+            articlesCount: articles ? articles.length : 0,
+            summary: summary,
+            metadata: metadata
+        });
+        
         $loading.hide();
         if (articles && articles.length > 0) {
+            // Log the state of the summary card before updating
+            console.log('Summary card state:', {
+                exists: $results.find('.summary-card').length > 0,
+                visible: $results.find('.summary-card').is(':visible'),
+                content: $results.find('.summary-card .summary-content').html()
+            });
+            
             let articlesHtml = articles.map(article => {
                 return `
                     <div class="article-card">
@@ -261,8 +274,18 @@ $(document).ready(function() {
                     </div>
                 `;
             }).join('');
+            
+            // Update the DOM
             $results.find('.article-list').html(articlesHtml);
             $results.find('.summary-card .summary-content').html(summary);
+            
+            // Log the state after updating
+            console.log('After update:', {
+                summaryContent: $results.find('.summary-card .summary-content').html(),
+                summaryCardVisible: $results.find('.summary-card').is(':visible')
+            });
+            
+            // Update metadata display
             $results.find('#articles-analyzed').text(articles.length);
             $results.find('#average-sentiment').text(getSentimentLabel(metadata.average_sentiment));
             $results.find('#sentiment-gauge-indicator').css({
@@ -278,12 +301,14 @@ $(document).ready(function() {
                 $results.find('.source-dashboard').hide();
             }
             
+            // Show all components
             $results.show();
             $results.find('.summary-card').show();
             $results.find('.articles-card').show();
             $results.find('.clear-button').show();
             $results.find('.sentiment-summary').show();
         } else {
+            console.log('No articles found, showing error message');
             $errorMessage.text('No articles found.').show();
         }
     }

@@ -20,6 +20,7 @@ from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDI
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY)
 import os
+from datetime import datetime
 
 routes = Blueprint('routes', __name__)
 logger = logging.getLogger(__name__)
@@ -184,13 +185,18 @@ def fetch_and_process_data(event):
                 logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
                 return None, None, f"No relevant articles found for '{event}' after filtering. Try a broader topic."
 
-            # TEMPORARILY DISABLE REAL SUMMARIZATION TO AVOID CRASHES
-            logger.info(f"Skipping actual summarization for event '{event}' to avoid crashes")
+            # Re-enable summarization with proper error handling
+            logger.info(f"Starting summarization for event '{event}'")
             summarize_start = time.time()
-            # summary = summarize_articles(relevant_articles, event)
-            summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
+            try:
+                summary = summarize_articles(relevant_articles, event)
+                if not summary or "Error generating summary" in summary:
+                    summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
+            except Exception as e:
+                logger.error(f"Error during summarization: {e}")
+                summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
             summarize_time = time.time() - summarize_start
-            logger.info(f"Simple summarization took {summarize_time:.2f} seconds for event '{event}'")
+            logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
             
             total_time = time.time() - start_time
             logger.info(f"Total request time (partial failure): {total_time:.2f} seconds, ending at {time.time()}")
@@ -222,13 +228,18 @@ def fetch_and_process_data(event):
             logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
             return None, None, f"No relevant articles found for '{event}' after filtering. Try a broader topic."
         
-        # TEMPORARILY DISABLE REAL SUMMARIZATION TO AVOID CRASHES
-        logger.info(f"Skipping actual summarization for event '{event}' to avoid crashes")
+        # Re-enable summarization with proper error handling
+        logger.info(f"Starting summarization for event '{event}'")
         summarize_start = time.time()
-        # summary = summarize_articles(relevant_articles, event)
-        summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
+        try:
+            summary = summarize_articles(relevant_articles, event)
+            if not summary or "Error generating summary" in summary:
+                summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
+        except Exception as e:
+            logger.error(f"Error during summarization: {e}")
+            summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
         summarize_time = time.time() - summarize_start
-        logger.info(f"Simple summarization took {summarize_time:.2f} seconds for event '{event}'")
+        logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
         
         total_time = time.time() - start_time
         logger.info(f"Total request time: {total_time:.2f} seconds, ending at {time.time()}")
@@ -338,45 +349,37 @@ def index():
 @routes.route('/data', methods=['POST'])
 def get_news_data():
     """Handle the AJAX request for fetching news data with detailed error logging."""
-    logger.info("Route /data accessed")
-    logger.info(f"Request method: {request.method}")
-    logger.info(f"Request headers: {dict(request.headers)}")  # Log headers for more context
-    logger.info(f"Request form data: {request.form}")
-    
     try:
-        # Get the event from the form data
         event = request.form.get('event')
-        
         if not event:
             logger.error("No event provided in request")
-            return jsonify({'error': "Please enter a news event to search for."}), 400
+            return jsonify({'error': 'Please provide an event to search for.'}), 400
+
+        logger.info(f"Processing request for event: '{event}'")
+        current_time = datetime.now().strftime('%H:%M:%S')
         
-        logger.info(f"Processing FRESH search for event: {event}")
-        
-        # Get current time to show in results that they're fresh
-        import datetime
-        current_time = datetime.datetime.now().strftime("%H:%M:%S")
-        
-        # Directly process the search without caching
+        # Fetch and process data
         summary, articles, error = fetch_and_process_data(event)
         
-        # Additional check to ensure articles is never None
-        if articles is None:
-            logger.warning(f"Articles returned as None for event '{event}'. Setting to empty list.")
-            articles = []
+        # Log the results
+        logger.info(f"fetch_and_process_data results for '{event}':")
+        logger.info(f"- Summary: {summary if summary else 'None'}")
+        logger.info(f"- Articles count: {len(articles) if articles else 0}")
+        logger.info(f"- Error: {error if error else 'None'}")
         
-        # Debug the contents of the articles
-        logger.info(f"Article count for '{event}': {len(articles)}")
+        if not articles:
+            logger.warning(f"No articles found for event '{event}'")
+            return jsonify({'error': error or f"No articles found for '{event}'"}), 404
+
+        # Calculate average sentiment
+        sentiments = [article.get('sentiment_score', 0) for article in articles]
+        avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
         
-        # Prepare metadata in the format expected by the frontend
+        # Count articles by source
         source_counts = {}
-        total_sentiment = 0
         for article in articles:
             source = article.get('source', 'Unknown')
             source_counts[source] = source_counts.get(source, 0) + 1
-            total_sentiment += article.get('sentiment_score', 0)
-        
-        avg_sentiment = total_sentiment / len(articles) if articles and len(articles) > 0 else 0
         
         metadata = {
             'total_articles': len(articles),
@@ -387,9 +390,11 @@ def get_news_data():
         # Add timestamp to summary to show it's a fresh result
         if summary:
             summary_with_time = f"{summary} (searched at {current_time})"
+            logger.info(f"Final summary for '{event}': {summary_with_time}")
         else:
             # Provide a fallback summary if none was generated
             summary_with_time = f"Found {len(articles)} articles about '{event}'. (searched at {current_time})"
+            logger.warning(f"Using fallback summary for '{event}': {summary_with_time}")
         
         # Structure response in format expected by frontend
         response = {
@@ -401,13 +406,13 @@ def get_news_data():
         
         # Add warning if there was a partial failure
         if error:
-            logger.warning(f"Partial failure warning: {error}")
+            logger.warning(f"Partial failure warning for '{event}': {error}")
             response['warning'] = error
         
-        logger.info(f"Returning success response with metadata: {metadata}")
+        logger.info(f"Returning success response for '{event}' with metadata: {metadata}")
         return jsonify(response)
     except Exception as e:
-        logger.error(f"Error processing request: {str(e)}")
+        logger.error(f"Error processing request for '{event}': {str(e)}", exc_info=True)
         return jsonify({'error': f"An error occurred: {str(e)}"}), 500
 
 @routes.route('/test', methods=['GET'])

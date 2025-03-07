@@ -350,41 +350,60 @@ def filter_relevant_articles(articles, query, top_n=DEFAULT_TOP_N, relevance_thr
 
 if SUMMARIZER_BY_GPT:
     def summarize_articles(articles, query):
-        logger.info(f"Summarizing {len(articles)} articles for query '{query}'")
-        total_chars = sum(len(article.get('content', '')) for article in articles)
-        logger.info(f"Total input character length: {total_chars}")
+        """Generate a concise summary of articles using GPT-3.5-turbo."""
+        logger.info(f"Starting GPT-based summarization for {len(articles)} articles about '{query}'")
         
-        articles_content = [article.get('content', '')[:150] or article.get('title', '')[:150] for article in articles]
+        # Only use title and first 100 chars of content to keep token count low
+        articles_content = []
+        for article in articles:
+            title = article.get('title', '').strip()
+            content = article.get('content', '').strip()[:100]  # Limit content length
+            if title or content:
+                articles_content.append(f"Title: {title}\nExcerpt: {content}")
         
-        prompt = "You are an expert in summarizing news articles neutrally. Your task is to generate a balanced summary from the following articles, ensuring that you present a fair and unbiased view.\n\n"
-        for i, content in enumerate(articles_content):
-            prompt += f"Article {i+1}:\n{content}\n\n"
-        # TODO: update deze 150 naar de var uit de config 
-        prompt += "Please generate a summary that is approximately 150 words long, focusing on the main points and maintaining neutrality. The summary needs to be straight to the point and easy to read. Use simple language (B1 english).\n"
-        logger.info(f"Prompt length: {len(prompt)} characters")
+        if not articles_content:
+            logger.warning("No content available for summarization")
+            return f"Found {len(articles)} articles about '{query}', but no content was available for summarization."
+        
+        # Create a focused, token-efficient prompt
+        prompt = (
+            f"Summarize these news articles about '{query}' in 2-3 sentences. "
+            "Be concise and factual:"
+            "\n\n"
+            + "\n\n".join(articles_content)
+        )
+        
+        logger.info(f"GPT prompt length: {len(prompt)} characters")
+        logger.debug(f"GPT prompt content: {prompt}")
         
         try:
             client = openai.OpenAI(api_key=OPENAI_API_KEY)
             start_time = time.time()
-            logger.info(f"Starting OpenAI API call at {start_time}")
+            logger.info(f"Starting OpenAI API call for '{query}' at {start_time}")
+            
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",  # Faster model
+                model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=200,
-                temperature=0.2
+                max_tokens=100,  # Limit response length
+                temperature=0.3,  # More focused responses
+                presence_penalty=-0.1,  # Encourage conciseness
+                frequency_penalty=0.3   # Reduce repetition
             )
+            
             end_time = time.time()
+            summary = response.choices[0].message.content.strip()
             logger.info(f"OpenAI API call completed in {end_time - start_time:.2f}s")
-            summary = response.choices[0].message.content
+            logger.info(f"Generated summary for '{query}': {summary}")
+            
+            return summary
+            
         except Exception as e:
-            logger.error(f"OpenAI API call failed: {str(e)}", exc_info=True)
-            summary = f"Error generating summary: {str(e)}"
-        
-        return summary
+            logger.error(f"OpenAI API call failed for '{query}': {str(e)}", exc_info=True)
+            return f"Found {len(articles)} articles about '{query}'. View them below for the latest news on this topic."
 else:
     def summarize_articles(articles, query):
         """Summarize the combined content of articles and split into sentences."""
-        logger.info(f"Summarizing {len(articles)} articles for query '{query}'")
+        logger.info(f"Starting fallback summarization for {len(articles)} articles about '{query}'")
         combined_content = " ".join([article.get('content', '') or article.get('title', '') for article in articles])
         if combined_content.strip():
             try:
@@ -395,15 +414,15 @@ else:
                 # Split into sentences and join with <br> tags
                 sentences = re.split(r'(?<=[.!?])\s+', summary_text.strip())
                 formatted_summary = '<br>'.join(sentences)
-                logger.info("Summary generated successfully with sentence splitting")
+                logger.info(f"Generated fallback summary for '{query}': {formatted_summary}")
                 # Clear models after use
                 model_manager.clear_models()
                 return formatted_summary
             except Exception as e:
-                logger.error(f"Error generating summary: {e}")
+                logger.error(f"Error generating fallback summary for '{query}': {e}", exc_info=True)
                 return "Error generating summary."
         else:
-            logger.warning("No content available for summarization")
+            logger.warning(f"No content available for fallback summarization for '{query}'")
             return "No content available for summarization."
         
 
