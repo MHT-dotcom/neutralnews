@@ -6,7 +6,7 @@ import requests
 from transformers import pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from config_prod import DEFAULT_TOP_N, RELEVANCE_THRESHOLD, OPENAI_API_KEY, SUMMARIZER_BY_GPT, WEIGHT_RELEVANCE, WEIGHT_POPULARITY
+from config_prod import DEFAULT_TOP_N, RELEVANCE_THRESHOLD, ELECTION_RELEVANCE_THRESHOLD, OPENAI_API_KEY, SUMMARIZER_BY_GPT, WEIGHT_RELEVANCE, WEIGHT_POPULARITY
 import torch
 import re
 import time
@@ -283,28 +283,69 @@ def remove_duplicates(articles):
 
 def filter_relevant_articles(articles, query, top_n=DEFAULT_TOP_N, relevance_threshold=RELEVANCE_THRESHOLD):
     """Filter and sort articles by combined relevance and popularity scores."""
+    logger.info(f"Starting detailed filtering for '{query}' with {len(articles)} articles")
+    
+    # Use a lower global threshold - simpler approach to fix the issue
+    relevance_threshold = 0.01  # Very low threshold to allow most articles through
+    logger.info(f"Using universal low threshold: {relevance_threshold}")
+    
+    # For debugging, print out all articles before filtering
+    logger.info(f"Articles before filtering for '{query}':")
+    for i, article in enumerate(articles):
+        title = article.get('title', 'No title')
+        source = article.get('source', 'Unknown')
+        logger.info(f"Article {i+1}: '{title[:50]}...' - Source: {source}")
+    
     texts = [article.get('content', '') or article.get('title', '') for article in articles]
     if not any(texts):
+        logger.warning(f"No text content found in articles for '{query}'")
         return articles[:top_n]
     
-    vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform(texts)
-    query_vector = vectorizer.transform([query])
-    similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
+    # Catch any exceptions during vectorization
+    try:
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform(texts)
+        query_vector = vectorizer.transform([query])
+        similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
+    except Exception as e:
+        logger.error(f"Error during vectorization: {str(e)}")
+        # If vectorization fails, return all articles
+        logger.info(f"Returning all articles due to vectorization error")
+        return articles[:top_n]
     
     share_counts = [article.get('share_count', 0) for article in articles]
     max_share_count = max(share_counts) if share_counts else 0
     
+    # Debug: log details about each article
+    logger.info(f"Relevance threshold for '{query}': {relevance_threshold}")
+    logger.info(f"Article filtering details for '{query}':")
+    
     article_scores = []
-    for article, similarity, share_count in zip(articles, similarities, share_counts):
+    filtered_count = 0
+    for i, (article, similarity, share_count) in enumerate(zip(articles, similarities, share_counts)):
+        article_title = article.get('title', 'No title')
+        article_source = article.get('source', 'Unknown')
+        
         if similarity >= relevance_threshold:
             normalized_share_count = share_count / max_share_count if max_share_count > 0 else 0
             combined_score = similarity * WEIGHT_RELEVANCE + normalized_share_count * WEIGHT_POPULARITY
             article_scores.append((article, combined_score))
+            logger.info(f"KEPT: Article {i+1} - Title: '{article_title[:30]}...' - Source: {article_source} - Similarity: {similarity:.4f}")
+        else:
+            filtered_count += 1
+            logger.info(f"FILTERED OUT: Article {i+1} - Title: '{article_title[:30]}...' - Source: {article_source} - Similarity: {similarity:.4f} (below threshold {relevance_threshold})")
+    
+    logger.info(f"Articles filtered out for '{query}': {filtered_count}/{len(articles)}")
+    
+    # If no articles passed the filter, return all articles instead
+    if not article_scores:
+        logger.warning(f"No articles passed relevance filter for '{query}'. Returning all articles instead.")
+        return articles[:top_n]
     
     sorted_articles = sorted(article_scores, key=lambda x: x[1], reverse=True)
     relevant_articles = [article for article, _ in sorted_articles[:top_n]]
     
+    logger.info(f"Final article count for '{query}' after filtering: {len(relevant_articles)}")
     return relevant_articles
 
 if SUMMARIZER_BY_GPT:

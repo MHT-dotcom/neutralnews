@@ -19,6 +19,7 @@ from trends import get_trending_topics  # Absolute import for Render compatibili
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY)
+import os
 
 routes = Blueprint('routes', __name__)
 logger = logging.getLogger(__name__)
@@ -35,11 +36,15 @@ def before_first_request():
 # Completely remove caching for the search function to fix the issue
 # @cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
 def fetch_and_process_data(event):
+    """Fetch data from multiple APIs, process it, and return articles and a summary."""
     start_time = time.time()
-    cache_key = f"summary_{event}"
     logger.info(f"UNCACHED: Starting fetch_and_process_data for event '{event}', total start time: {start_time}")
     
-    # Debug API key availability
+    # Special logging for Elections-related topics
+    if 'election' in event.lower():
+        logger.info(f"ELECTIONS TOPIC DETECTED in search: '{event}'")
+    
+    # Log API key availability for debugging
     logger.info(f"[Debug] API Keys for '{event}' search:")
     logger.info(f"NEWSAPI_ORG_KEY: {'Available' if NEWSAPI_ORG_KEY else 'Missing'}")
     logger.info(f"GUARDIAN_API_KEY: {'Available' if GUARDIAN_API_KEY else 'Missing'}")
@@ -355,10 +360,18 @@ def get_news_data():
         # Directly process the search without caching
         summary, articles, error = fetch_and_process_data(event)
         
+        # Additional check to ensure articles is never None
+        if articles is None:
+            logger.warning(f"Articles returned as None for event '{event}'. Setting to empty list.")
+            articles = []
+        
+        # Debug the contents of the articles
+        logger.info(f"Article count for '{event}': {len(articles)}")
+        
         # Prepare metadata in the format expected by the frontend
         source_counts = {}
         total_sentiment = 0
-        for article in articles or []:
+        for article in articles:
             source = article.get('source', 'Unknown')
             source_counts[source] = source_counts.get(source, 0) + 1
             total_sentiment += article.get('sentiment_score', 0)
@@ -366,13 +379,17 @@ def get_news_data():
         avg_sentiment = total_sentiment / len(articles) if articles and len(articles) > 0 else 0
         
         metadata = {
-            'total_articles': len(articles) if articles else 0,
+            'total_articles': len(articles),
             'average_sentiment': avg_sentiment,
             'source_distribution': source_counts
         }
         
         # Add timestamp to summary to show it's a fresh result
-        summary_with_time = f"{summary} (searched at {current_time})" if summary else None
+        if summary:
+            summary_with_time = f"{summary} (searched at {current_time})"
+        else:
+            # Provide a fallback summary if none was generated
+            summary_with_time = f"Found {len(articles)} articles about '{event}'. (searched at {current_time})"
         
         # Structure response in format expected by frontend
         response = {

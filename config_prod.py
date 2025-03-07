@@ -55,7 +55,8 @@ SUMMARIZER_MODEL = "facebook/bart-large-cnn"
 # Default Settings
 MAX_ARTICLES_PER_API = 8  # Maximum number of articles to request from each API source
 DEFAULT_TOP_N = 7  # Number of articles to return after filtering
-RELEVANCE_THRESHOLD = 0.05  # Lowered from 0.1 to allow more articles through
+RELEVANCE_THRESHOLD = 0.03  # Lowered from 0.05 to allow more articles through
+ELECTION_RELEVANCE_THRESHOLD = 0.01  # Special lower threshold for election-related topics
 SUMMARIZER_MAX_LENGTH = 250
 SUMMARIZER_MIN_LENGTH = 100
 AYLIEN_PER_PAGE = MAX_ARTICLES_PER_API
