@@ -1,5 +1,4 @@
-# This file initializes the Flask application, sets up logging, loads environment variables, preloads the sentiment analysis model, and registers the routes blueprint. It serves as the entry point for the web server, configuring core settings like CORS and cache, and starts the app on a specified port (default 10000) for local testing or Render deployment.
- 
+# app.py
 import flask
 from flask import Flask
 from dotenv import load_dotenv
@@ -8,17 +7,32 @@ import logging
 import sys
 from flask_cors import CORS
 from processors import ModelManager
-from flask import Flask, url_for
+from fetchers import fetch_grok_trending_topics
+
+# Set up logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
-load_dotenv()
-logger = logging.getLogger(__name__)
+# Load environment variables with explicit path
+env_path = '/Users/maxteeuwen/neutralnews/.env'
+logger.info(f"Loading .env from: {env_path}")
+load_dotenv(env_path)
+logger.info(f".env loaded. GROK_API_KEY from os.environ: {os.environ.get('GROK_API_KEY', 'Not found')}")
 
 # Check environment variables loading
 logger.info("Checking API key availability:")
-from config_prod import (NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, 
-                        NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
-                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY)
+
+from config_prod import (
+    NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, 
+    NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
+    NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
+    GROK_API_KEY
+)
 
 logger.info(f"NEWSAPI_ORG_KEY available: {'Yes' if NEWSAPI_ORG_KEY else 'No'}")
 logger.info(f"GUARDIAN_API_KEY available: {'Yes' if GUARDIAN_API_KEY else 'No'}")
@@ -28,9 +42,9 @@ logger.info(f"OPENAI_API_KEY available: {'Yes' if OPENAI_API_KEY else 'No'}")
 logger.info(f"MEDIASTACK_API_KEY available: {'Yes' if MEDIASTACK_API_KEY else 'No'}")
 logger.info(f"NEWSDATA_API_KEY available: {'Yes' if NEWSDATA_API_KEY else 'No'}")
 logger.info(f"AYLIEN keys available: {'Yes' if AYLIEN_APP_ID and AYLIEN_API_KEY else 'No'}")
+logger.info(f"GROK_API_KEY available: {'Yes' if GROK_API_KEY else 'No'}")
 
 # Initialize Flask app
-# app = Flask(__name__)
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)  # Enable CORS
 
@@ -53,6 +67,22 @@ from config_prod import cache, CACHE_CONFIG, MAX_ARTICLES_PER_SOURCE, DEBUG
 
 # Configure cache
 cache.init_app(app, config=CACHE_CONFIG)
+cache.clear()  # Clear cache on startup
+logger.info("Cache cleared on startup")
+
+# Global trending topics
+trending_topics = ["Bitcoin", "Climate", "Elections", "Economy"]  # Fallback
+
+def update_trending_topics():
+    """Fetch trending topics from Grok API at startup."""
+    global trending_topics
+    topics = fetch_grok_trending_topics()
+    if topics:
+        trending_topics = topics
+    logger.info(f"Trending topics set to: {trending_topics}")
+
+# Run at startup
+update_trending_topics()
 
 # Log initial startup details
 logger.info(f"Python version: {sys.version}")
@@ -70,7 +100,6 @@ logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
 
 # Application fully initialized
 logger.info("Application fully initialized")
-
 if __name__ == "__main__":
     # Get port from environment variable or default to 10000
     port = int(os.environ.get("PORT", 10000))

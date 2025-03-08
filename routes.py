@@ -4,7 +4,7 @@
 # '/data' for AJAX news fetching (POST), and '/test' for a simple status check (GET).
 # The core function 'fetch_and_process_data' fetches articles from multiple APIs in parallel, processes them,
 # and generates summaries, with detailed timing logs for performance tracking.
-# New feature: Retrieves dynamic hot topics for the main page using trends.py.
+# New feature: Uses dynamic trending topics from app.py (fetched via Grok API) for the main page.
 
 from flask import Blueprint, render_template, request, jsonify
 from concurrent.futures import ThreadPoolExecutor
@@ -15,10 +15,10 @@ from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_newsapi_ai_articles)
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
                        summarize_articles, ModelManager)
-from trends import get_trending_topics  # Absolute import for Render compatibility
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N)
+# from app import trending_topics  # Import global trending_topics from app.py
 import os
 from datetime import datetime
 
@@ -31,11 +31,9 @@ _is_first_request = True
 def before_first_request():
     global _is_first_request
     if _is_first_request:
-        # Your initialization code here (unchanged from original)
         _is_first_request = False
 
 # Completely remove caching for the search function to fix the issue
-# @cache.cached(timeout=3600, key_prefix=lambda: f"summary_{request.form.get('event', 'default')}")
 def fetch_and_process_data(event):
     """Fetch data from multiple APIs, process it, and return articles and a summary."""
     start_time = time.time()
@@ -350,65 +348,10 @@ def fetch_and_process_data(event):
             
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
-# Fix for the request context issue with a safer approach for the lambda
-def trending_cache_key():
-    try:
-        # Try to get from request context if available
-        return f"trending_summaries_{int(time.time() / 3600)}"
-    except Exception:
-        # Fall back to hourly key when outside request context
-        return f"trending_summaries_{int(time.time() / 3600)}"
-
-@cache.cached(timeout=3600, key_prefix=trending_cache_key)
-def get_trending_summaries():
-    """
-    Fetch and process summaries for trending topics (4 topics, 3 articles each).
-    Uses dynamic topics from trends.py instead of hardcoded ones.
-    """
-    topics = get_trending_topics(limit=4)  # Fetch dynamic topics
-    summaries = {}
-    logger.info(f"Fetching trending summaries for topics: {topics}")
-    
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        future_to_topic = {executor.submit(fetch_and_process_data, topic): topic for topic in topics}
-        for future in future_to_topic:
-            topic = future_to_topic[future]
-            try:
-                result = future.result()
-                if isinstance(result, tuple) and result[0]:
-                    summaries[topic] = {
-                        'summary': result[0],
-                        'articles': result[1][:3]  # Limit to 3 articles per topic
-                    }
-                else:
-                    summaries[topic] = {
-                        'summary': "No summary available",
-                        'articles': []
-                    }
-            except Exception as e:
-                logger.error(f"Error processing trending topic '{topic}': {e}")
-                summaries[topic] = {
-                    'summary': "Error generating summary",
-                    'articles': []
-                }
-    
-    logger.info(f"Generated trending summaries for {list(summaries.keys())}")
-    return summaries
-
-# Precompute trending summaries at startup
-@routes.before_app_request
-def preload_trending_summaries():
-    """Precompute trending summaries at startup."""
-    logger.info("Preloading trending summaries at startup")
-    try:
-        get_trending_summaries()
-    except Exception as e:
-        logger.error(f"Error preloading trending summaries: {e}")
-        # Continue with request even if preloading fails
-
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for displaying trending topics and fetching custom summaries."""
+    from app import trending_topics  # Import trending_topics directly
     logger.info("Route / accessed")
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request form data: {request.form}")
@@ -416,7 +359,33 @@ def index():
     articles = []
     event = None
     error = None
-    trending_summaries = get_trending_summaries()  # Fetch dynamic trending summaries
+
+    # Fetch and process trending topics from Grok API (set in app.py)
+    logger.info(f"Processing trending topics: {trending_topics}")
+    trending_data = {}
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        future_to_topic = {executor.submit(fetch_and_process_data, topic): topic for topic in trending_topics}
+        for future in future_to_topic:
+            topic = future_to_topic[future]
+            try:
+                result = future.result()
+                if isinstance(result, tuple) and result[0]:
+                    trending_data[topic] = {
+                        'summary': result[0],
+                        'articles': result[1][:3]  # Limit to 3 articles per topic
+                    }
+                else:
+                    trending_data[topic] = {
+                        'summary': result[2] if result and len(result) > 2 else "No summary available",
+                        'articles': []
+                    }
+            except Exception as e:
+                logger.error(f"Error processing trending topic '{topic}': {e}")
+                trending_data[topic] = {
+                    'summary': "Error generating summary",
+                    'articles': []
+                }
+    logger.info(f"Generated trending data for topics: {list(trending_data.keys())}")
 
     if request.method == 'POST':
         event = request.form.get('event')
@@ -438,8 +407,7 @@ def index():
                 logger.error(f"Error in processing event '{event}': {error}")
 
     logger.info(f"Rendering template with summary: {summary is not None}, articles: {len(articles) if articles else 0}, event: {event}, error: {error}")
-    return render_template('index.html', summary=summary, articles=articles, event=event, error=error, trending_summaries=trending_summaries)
-
+    return render_template('index.html', summary=summary, articles=articles, event=event, error=error, trending_data=trending_data)
 @routes.route('/data', methods=['POST'])
 def get_news_data():
     """Handle the AJAX request for fetching news data with detailed error logging."""

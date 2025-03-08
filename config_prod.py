@@ -18,6 +18,7 @@ MEDIASTACK_API_KEY = os.environ.get("MEDIASTACK_API_KEY", "")
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_API_KEY", "")
 AYLIEN_APP_ID = os.environ.get("AYLIEN_APP_ID", "")
 AYLIEN_API_KEY = os.environ.get("AYLIEN_API_KEY", "")
+GROK_API_KEY = os.environ.get("GROK_API_KEY", "")
 
 # api endpoints
 # NEWSAPI_URL = "https://newsapi.org/v2/everything"
@@ -35,6 +36,7 @@ USE_OPENAI = bool(OPENAI_API_KEY)
 USE_MEDIASTACK = bool(MEDIASTACK_API_KEY)
 USE_NEWSDATA = bool(NEWSDATA_API_KEY)
 USE_AYLIEN = bool(AYLIEN_APP_ID and AYLIEN_API_KEY)
+USE_GROK = bool(GROK_API_KEY)
 
 # Cache configuration
 CACHE_TYPE = "FileSystemCache"
