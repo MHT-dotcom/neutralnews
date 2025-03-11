@@ -319,6 +319,109 @@ $(document).ready(function() {
         }
     }
 
+    // Function to simplify search topics
+    function simplifySearchTopic(topic) {
+        // List of words to remove (common words that don't add search value)
+        const removeWords = ['and', 'the', 'by', 'from', 'to', 'in', 'on', 'at', 'for', 'of'];
+        
+        // Special cases mapping (add more as needed)
+        const specialCases = {
+            'administration': 'admin',
+            'president': '',
+            'impeached': 'impeach',
+            'released': 'release',
+            'imposes': 'impose',
+            'sanctions': 'sanction'
+        };
+
+        // Split the topic into words
+        let words = topic.split(' ');
+        
+        // Keep only significant words
+        words = words.filter(word => {
+            const lowerWord = word.toLowerCase();
+            return !removeWords.includes(lowerWord);
+        });
+
+        // Replace special cases
+        words = words.map(word => {
+            const lowerWord = word.toLowerCase();
+            return specialCases[lowerWord] || word;
+        });
+
+        // If we have more than 3 words, keep only the most important ones
+        // Usually these are proper nouns and key terms
+        if (words.length > 3) {
+            // Priority for words starting with capital letters (proper nouns)
+            const properNouns = words.filter(word => word[0] === word[0].toUpperCase());
+            const keyTerms = words.filter(word => word[0] !== word[0].toUpperCase());
+            
+            // Combine proper nouns with important key terms
+            words = [...properNouns, ...keyTerms.slice(0, 2)];
+        }
+
+        // Filter out empty strings and join
+        const simplified = words.filter(word => word).join(' ');
+        console.log(`Simplified topic "${topic}" to "${simplified}"`);
+        return simplified;
+    }
+
+    // Handle trending card clicks
+    $('.trending-card').click(function() {
+        const index = $(this).data('index');  // Get the index from the data attribute
+        const searchTopic = $(this).data('search-term');  // Get the search term from the data attribute
+        const displayTopic = $(this).find('h3').text().trim();
+        
+        // Set the search value
+        $('input[name="event"]').val(searchTopic);
+        
+        // Show loading state
+        $loading.show();
+        $results.hide();
+        $errorMessage.text('').hide();
+        $results.find('.summary-card').hide();
+        $results.find('.articles-card').hide();
+        $results.find('.clear-button').hide();
+        $results.find('.sentiment-summary').hide();
+        $results.find('.source-dashboard').hide();
+        $trendingContainer.hide();
+
+        // Make the search request
+        $.post('/data', {event: searchTopic}, function(data) {
+            console.log('Response received:', data);
+            if (data.error) {
+                console.log('Error found in response:', data.error);
+                $errorMessage.text(data.error).show();
+            } else {
+                // Show the original topic in the current-topic display
+                $results.find('.current-topic').text('Current topic: ' + displayTopic).show();
+                
+                // Debug the actual content
+                console.log('Articles:', data.articles ? data.articles.length : 0);
+                console.log('Summary:', data.summary);
+                console.log('Metadata:', data.metadata);
+                
+                if (data.warning) {
+                    if (!data.articles || data.articles.length === 0) {
+                        $errorMessage.text(data.warning).show();
+                    } else {
+                        $errorMessage.hide();
+                    }
+                } else {
+                    $errorMessage.hide();
+                }
+                displayArticles(data.articles, data.summary, data.metadata || {});
+            }
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('AJAX request failed:', textStatus, errorThrown);
+            $errorMessage.text('Failed to fetch results. Please try again.').show();
+        }).always(function() {
+            $loading.hide();
+            $results.show();
+        });
+    });
+
+    // Existing search form submit handler
     $('#search-form').submit(function(event) {
         event.preventDefault();
         var eventQuery = $('input[name="event"]', this).val();
@@ -362,14 +465,11 @@ $(document).ready(function() {
                 displayArticles(data.articles, data.summary, data.metadata || {});
             }
         }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error('AJAX error:', textStatus, errorThrown, jqXHR.responseText);
-            if (textStatus === 'timeout') {
-                $errorMessage.text('Request timed out. Please try again later.').show();
-            } else {
-                $errorMessage.text('An error occurred: ' + textStatus + ' - ' + errorThrown).show();
-            }
+            console.error('AJAX request failed:', textStatus, errorThrown);
+            $errorMessage.text('Failed to fetch results. Please try again.').show();
         }).always(function() {
             $loading.hide();
+            $results.show();
         });
     });
 

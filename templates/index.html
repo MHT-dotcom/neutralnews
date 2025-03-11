@@ -39,15 +39,9 @@
             <div class="trending-container" style="display: {% if event is none or event == '' %}block{% else %}none{% endif %};">
                 <h2 class="trending-title">Trending News Topics</h2>
                 <div class="trending-topics">
-                    {% for topic, data in trending_data.items() %}
-                        <div class="trending-card">
-                            <h3>{{ topic }}</h3>
-                            <p class="trending-summary">{{ data.summary }}</p>
-                            <div class="trending-articles">
-                                {% for article in data.articles %}
-                                    <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="trending-article-link">{{ article.title }}</a>
-                                {% endfor %}
-                            </div>
+                    {% for display_topic, search_topic in trending_data %}
+                        <div class="trending-card" data-search-term="{{ search_topic }}">
+                            <h3>{{ display_topic }}</h3>
                         </div>
                     {% endfor %}
                 </div>

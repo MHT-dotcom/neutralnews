@@ -261,15 +261,15 @@ def fetch_grok_trending_topics(api_key=GROK_API_KEY, max_topics=4):
     # print("\n\n\n type: ", type(topics))
     # print("\n\n\n")
 
-    topics = [
-    # 'Trump Administration Imposes 25% Tariffs on Mexico and Canada',
+    topics = [ [
+    'Trump Administration Imposes 25% Tariffs on Mexico and Canada',
     'Significant Lunar Landings by Private Companies',
     'Trump-Zelenskyy Meeting and Ukraine Aid Suspension',
     'South Korea’s Impeached President Yoon Suk Yeol Released from Prison',
-    # 'Bitcoin ETF Sees Record Inflows After Regulatory Shift',
-    'EU Sanctions Russian Crypto Exchange Garantex']
-    # 'Pakistan Sets Deadline for Afghan Migrants to Leave',
-    # 'French Rail Disrupted by WWII Bomb Discovery']
+    'Bitcoin ETF Sees Record Inflows After Regulatory Shift',
+    'EU Sanctions Russian Crypto Exchange Garantex',
+    'Pakistan Sets Deadline for Afghan Migrants to Leave',
+    'French Rail Disrupted by WWII Bomb Discovery'], ['trump tariffs', 'lunar landings', 'trump zelenskyy', 'yoon suk yeol', 'bitcoin etf', 'eu sanctions', 'pakistan migrants', 'french rail']]
     return topics
 
 def fetch_articles_for_topic(topic, max_articles=3, days_back=7):

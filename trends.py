@@ -1,7 +1,8 @@
 from pytrends.request import TrendReq
 import logging
 logger = logging.getLogger(__name__)
-def get_trending_topics(limit=4):
+
+def get_trending_topics(limit=8):
     try:
         pytrends = TrendReq(hl='en-US', tz=360, retries=3, backoff_factor=2)
         logger.info("Attempting to fetch trending searches from Google Trends")
@@ -11,12 +12,14 @@ def get_trending_topics(limit=4):
         cleaned_topics = [topic.strip() for topic in topics if len(topic.strip()) > 3]
         if len(cleaned_topics) < limit:
             logger.warning(f"Fetched only {len(cleaned_topics)} valid topics, padding with fallbacks")
-            cleaned_topics.extend(["Climate Change", "Artificial Intelligence", "Elections", "Global Economy"][:limit - len(cleaned_topics)])
+            cleaned_topics.extend(["Climate Change", "Artificial Intelligence", "Elections", "Global Economy", 
+                                 "Technology", "Healthcare", "Space Exploration", "Renewable Energy"][:limit - len(cleaned_topics)])
         final_topics = cleaned_topics[:limit]
         logger.info(f"Final trending topics: {final_topics}")
         return final_topics
     except Exception as e:
         logger.error(f"Error fetching trends: {e}")
-        fallback = ["Climate Change", "Artificial Intelligence", "Elections", "Global Economy"]
+        fallback = ["Climate Change", "Artificial Intelligence", "Elections", "Global Economy", 
+                   "Technology", "Healthcare", "Space Exploration", "Renewable Energy"]
         logger.info(f"Using fallback topics: {fallback[:limit]}")
         return fallback[:limit]

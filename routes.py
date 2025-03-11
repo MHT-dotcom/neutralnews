@@ -381,30 +381,9 @@ def index():
 
     # Fetch and process trending topics from Grok API (set in app.py)
     logger.info(f"Processing trending topics: {trending_topics}")
-    trending_data = {}
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        future_to_topic = {executor.submit(fetch_and_process_data, topic): topic for topic in trending_topics}
-        for future in future_to_topic:
-            topic = future_to_topic[future]
-            try:
-                result = future.result()
-                if isinstance(result, tuple) and result[0]:
-                    trending_data[topic] = {
-                        'summary': result[0],
-                        'articles': result[1][:3]  # Limit to 3 articles per topic
-                    }
-                else:
-                    trending_data[topic] = {
-                        'summary': result[2] if result and len(result) > 2 else "No summary available",
-                        'articles': []
-                    }
-            except Exception as e:
-                logger.error(f"Error processing trending topic '{topic}': {e}")
-                trending_data[topic] = {
-                    'summary': "Error generating summary",
-                    'articles': []
-                }
-    logger.info(f"Generated trending data for topics: {list(trending_data.keys())}")
+    # Convert trending topics into a list of tuples (display_topic, search_topic)
+    trending_data = list(zip(trending_topics[0], trending_topics[1]))
+    logger.info(f"Generated trending data: {trending_data}")
 
     if request.method == 'POST':
         event = request.form.get('event')
