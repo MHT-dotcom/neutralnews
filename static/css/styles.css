@@ -62,7 +62,7 @@ body {
 }
 
 .trending-card {
-    background-color: #f5f5f5;
+    background-color: #edf2f7;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
@@ -153,12 +153,10 @@ body {
 }
 
 .app-container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 1rem;
 }
-
-
 
 .branding {
     display: flex;
@@ -770,7 +768,6 @@ body {
     }
 }
 
-
 @media (max-width: 380px) {
     .headline h1 {
         font-size: 1.5rem;
@@ -802,8 +799,6 @@ body {
         flex-basis: 100%;
     }
 }
-
-
 
 .search-bar {
     display: flex;
@@ -850,7 +845,7 @@ body {
     background-color: #0056b3;
 }
 
-/* Ensure content doesn’t overlap with sticky header */
+/* Ensure content doesn't overlap with sticky header */
 .app-container > *:not(.header) {
     padding-top: 20px;
 }
@@ -883,7 +878,6 @@ body {
         width: 100%;
         max-width: none;
     }
-
 
 #results {
     width: 100%;
