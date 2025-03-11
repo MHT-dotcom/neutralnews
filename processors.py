@@ -24,37 +24,29 @@ class ModelManager:
         if cls._instance is None:
             cls._instance = cls()
             try:
-                logger.info("Preloading sentiment analysis model at startup...")
-                # Use a smaller model to reduce memory issues
                 cls._instance._sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=-1)  # CPU, preloaded
-                logger.info("Sentiment analysis model loaded successfully")
             except Exception as e:
                 logger.error(f"Error loading sentiment analysis model: {e}")
                 # Create a fallback model that returns neutral sentiment
                 cls._instance._sentiment_analyzer = lambda text: [{'label': 'POSITIVE', 'score': 0.5}]
-                logger.warning("Using fallback sentiment analyzer")
         return cls._instance
 
     def get_summarizer(self):
         if self._summarizer is None:
             try:
-                logger.info("Loading summarization model...")
                 self._summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-                logger.info("Summarization model loaded successfully")
             except Exception as e:
                 logger.error(f"Error loading summarization model: {e}")
                 # Define a simple fallback summarizer
                 def fallback_summarizer(text, **kwargs):
                     return [{"summary_text": "Summary not available due to technical issues."}]
                 self._summarizer = fallback_summarizer
-                logger.warning("Using fallback summarizer")
         return self._summarizer
 
     def get_sentiment_analyzer(self):
         return self._sentiment_analyzer  # Return preloaded model
 
     def clear_models(self):
-        logger.info("Clearing models from memory...")
         self._summarizer = None
         # Keep _sentiment_analyzer loaded to avoid reload overhead
         torch.cuda.empty_cache() if torch.cuda.is_available() else None
@@ -73,7 +65,6 @@ def get_share_count(url, sharecount_api_key):
     
 def standardize_aylien_articles(articles):
     """Standardize Aylien articles into a common format with source attribution."""
-    logger.info(f"Standardizing {len(articles)} Aylien articles")
     standardized_articles = []
     
     for i, article in enumerate(articles):
@@ -84,7 +75,6 @@ def standardize_aylien_articles(articles):
                 'content': article.body,
                 'source': 'Aylien'
             }
-            logger.debug(f"Standardized Aylien article {i+1}: {standardized_article['title']} (Source: Aylien)")
             standardized_articles.append(standardized_article)
         except Exception as e:
             logger.error(f"Error standardizing Aylien article {i+1}: {e}")
@@ -93,7 +83,6 @@ def standardize_aylien_articles(articles):
 
 def standardize_gnews_articles(articles):
     """Standardize GNews articles into a common format with true source attribution."""
-    logger.info(f"Standardizing {len(articles)} GNews articles")
     standardized_articles = []
     
     for i, article in enumerate(articles):
@@ -104,7 +93,6 @@ def standardize_gnews_articles(articles):
                 'content': article.get('content', ''),
                 'source': article.get('source', {}).get('name', 'GNews')
             }
-            logger.debug(f"Standardized GNews article {i+1}: {standardized_article['title']} (Source: {standardized_article['source']})")
             standardized_articles.append(standardized_article)
         except Exception as e:
             logger.error(f"Error standardizing GNews article {i+1}: {e}")
@@ -113,7 +101,6 @@ def standardize_gnews_articles(articles):
 
 def standardize_articles(articles, source):
     """Standardize articles from NewsAPI.org or The Guardian into a common format with true source attribution."""
-    logger.info(f"Standardizing {len(articles)} {source} articles")
     standardized_articles = []
     
     for article in articles:
@@ -132,7 +119,6 @@ def standardize_articles(articles, source):
 
 def standardize_nyt_articles(articles):
     """Standardize articles from the New York Times API."""
-    logger.info(f"Standardizing {len(articles)} NYT articles")
     standardized_articles = []
     
     for i, article in enumerate(articles):
@@ -140,7 +126,6 @@ def standardize_nyt_articles(articles):
             headline = article.get('headline', {}).get('main', '')
             content = article.get('abstract', '') or article.get('lead_paragraph', '')
             if not content.strip():
-                logger.warning(f"NYT: Skipping article {i+1} due to empty content")
                 continue
             
             standardized_article = {
@@ -149,17 +134,14 @@ def standardize_nyt_articles(articles):
                 'content': content,
                 'source': 'New York Times'
             }
-            logger.debug(f"NYT: Successfully standardized article {i+1}: {standardized_article['title']}")
             standardized_articles.append(standardized_article)
         except Exception as e:
             logger.error(f"NYT: Error standardizing article {i+1}: {e}")
     
-    logger.info(f"NYT: Successfully standardized {len(standardized_articles)} out of {len(articles)} articles")
     return standardized_articles
 
 def standardize_mediastack_articles(articles):
     """Standardize articles from the Mediastack API."""
-    logger.info(f"Standardizing {len(articles)} Mediastack articles")
     standardized_articles = []
     
     for i, article in enumerate(articles):
@@ -167,7 +149,6 @@ def standardize_mediastack_articles(articles):
             title = article.get('title', '')
             content = article.get('description', '')
             if not content.strip():
-                logger.warning(f"Mediastack: Skipping article {i+1} due to empty content")
                 continue
             
             standardized_article = {
@@ -176,17 +157,14 @@ def standardize_mediastack_articles(articles):
                 'content': content,
                 'source': article.get('source', 'Mediastack')
             }
-            logger.debug(f"Mediastack: Successfully standardized article {i+1}: {standardized_article['title']}")
             standardized_articles.append(standardized_article)
         except Exception as e:
             logger.error(f"Mediastack: Error standardizing article {i+1}: {e}")
     
-    logger.info(f"Mediastack: Successfully standardized {len(standardized_articles)} out of {len(articles)} articles")
     return standardized_articles
 
 def standardize_newsapi_ai_articles(articles):
     """Standardize articles from the NewsAPI.ai API."""
-    logger.info(f"Standardizing {len(articles)} NewsAPI.ai articles")
     standardized_articles = []
     
     for i, article in enumerate(articles):
@@ -194,7 +172,6 @@ def standardize_newsapi_ai_articles(articles):
             title = article.get('title', '')
             content = article.get('body', '') or article.get('description', '')
             if not content.strip():
-                logger.warning(f"NewsAPI.ai: Skipping article {i+1} due to empty content")
                 continue
             
             standardized_article = {
@@ -203,12 +180,10 @@ def standardize_newsapi_ai_articles(articles):
                 'content': content,
                 'source': article.get('source', {}).get('title', 'NewsAPI.ai')
             }
-            logger.debug(f"NewsAPI.ai: Successfully standardized article {i+1}: {standardized_article['title']}")
             standardized_articles.append(standardized_article)
         except Exception as e:
             logger.error(f"NewsAPI.ai: Error standardizing article {i+1}: {e}")
     
-    logger.info(f"NewsAPI.ai: Successfully standardized {len(standardized_articles)} out of {len(articles)} articles")
     return standardized_articles
 
 def process_articles(articles, source):

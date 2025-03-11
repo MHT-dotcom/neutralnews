@@ -476,4 +476,23 @@ $(document).ready(function() {
     $results.find('.clear-button').on('click', function() {
         window.location.href = "/";
     });
+
+    // Add click handler for logo to return to homepage
+    $('.logo').on('click', function() {
+        // Clear the search input
+        $('.search-input').val('');
+        
+        // Hide results and show trending
+        $('#results').hide();
+        $('.trending-container').show();
+        
+        // Hide current topic
+        $('.current-topic').hide();
+        
+        // Clear any error messages
+        $('.error-message').hide();
+        
+        // Reset the page title
+        document.title = 'Neutral News';
+    });
 }); 
