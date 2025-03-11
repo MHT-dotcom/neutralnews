@@ -7,9 +7,15 @@ $(document).ready(function() {
     var $results = $('#results');
     var $errorMessage = $results.find('.error-message');
     var $pullIndicator = $('.pull-indicator');
+    var $trendingContainer = $('.trending-container');
     var startY = 0;
     var pullThreshold = 80;
     var isPulling = false;
+    
+    // Handle search form submission
+    $('#search-form').on('submit', function(e) {
+        $trendingContainer.hide(); // Hide the trending container when search is submitted
+    });
     
     // Pull to refresh functionality for mobile
     document.addEventListener('touchstart', function(e) {
@@ -328,6 +334,7 @@ $(document).ready(function() {
         $results.find('.clear-button').hide();
         $results.find('.sentiment-summary').hide();
         $results.find('.source-dashboard').hide();
+        $trendingContainer.hide();
 
         $.post('/data', {event: eventQuery}, function(data) {
             console.log('Response received:', data);

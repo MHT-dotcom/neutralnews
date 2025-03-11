@@ -6,7 +6,7 @@
 # and generates summaries, with detailed timing logs for performance tracking.
 # New feature: Uses dynamic trending topics from app.py (fetched via Grok API) for the main page.
 
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, current_app
 from concurrent.futures import ThreadPoolExecutor
 import time
 import logging
@@ -351,6 +351,25 @@ def fetch_and_process_data(event):
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for displaying trending topics and fetching custom summaries."""
+    logger.info("=== Template Debug Info ===")
+    logger.info(f"Current working directory: {os.getcwd()}")
+    template_folder = current_app.template_folder
+    template_path = os.path.join(template_folder, 'index.html')
+    logger.info(f"Template folder path: {template_folder}")
+    logger.info(f"Full template path: {template_path}")
+    logger.info(f"Template exists: {os.path.exists(template_path)}")
+    
+    try:
+        with open(template_path, 'r') as f:
+            content = f.read()
+            logger.info(f"Template file size: {len(content)} bytes")
+            logger.info("Template content preview:")
+            for i, line in enumerate(content.split('\n')[:20]):
+                logger.info(f"Line {i+1}: {line}")
+    except Exception as e:
+        logger.error(f"Error reading template: {e}")
+    logger.info("========================")
+
     from app import trending_topics  # Import trending_topics directly
     logger.info("Route / accessed")
     logger.info(f"Request method: {request.method}")

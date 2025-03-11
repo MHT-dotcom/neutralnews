@@ -10,21 +10,33 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     </head>
     <body>
+        
         <div class="app-container">
+            <!-- Updated Header with Logo and Search Bar -->
             <header class="header">
-                <div class="branding">
-                    <div class="logo">Neutral News</div>
+                <div class="logo">
+                    <h1>Neutral News</h1>
                 </div>
-                <div class="badge">Balanced Coverage</div>
+                <div class="search-bar">
+                    <form id="search-form" class="search-form">
+                        <input type="text" name="event" class="search-input" placeholder="Enter news event (e.g., Election 2025)" value="{{ event if event else '' }}"/>
+                        <button type="submit" class="search-button">
+                            <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </form>
+                    <div class="current-topic" style="display: {% if event %}block{% else %}none{% endif %};">Current topic: {{ event if event else '' }}</div>
+                </div>
             </header>
-            
+
             <div class="headline">
                 <h1>neutral and unbiased news coverage</h1>
                 <p>an AI based summary from multiple perspectives</p>
             </div>
             
             <!-- Trending Topics Section -->
-            <div class="trending-container">
+            <div class="trending-container" style="display: {% if event is none or event == '' %}block{% else %}none{% endif %};">
                 <h2 class="trending-title">Trending News Topics</h2>
                 <div class="trending-topics">
                     {% for topic, data in trending_data.items() %}
@@ -39,20 +51,6 @@
                         </div>
                     {% endfor %}
                 </div>
-            </div>
-            
-            <div class="search-container">
-                <div class="search-prompt">Type a news topic to research</div>
-                <form id="search-form" class="search-form">
-                    <input type="text" name="event" class="search-input" placeholder="Enter news event (e.g., Election 2025)" value="{{ event if event else '' }}"/>
-                    <button type="submit" class="search-button">
-                        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </form>
-                
-                <div class="current-topic" style="display: {% if event %}block{% else %}none{% endif %};">Current topic: {{ event if event else '' }}</div>
             </div>
             
             <div class="pull-indicator">Pull down to refresh</div>

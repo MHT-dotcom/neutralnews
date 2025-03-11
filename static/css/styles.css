@@ -26,6 +26,22 @@ body {
     background-size: 20px 20px;
 }
 
+.header {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 15px 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+#results {
+    width: 100%;
+    padding: 30px;
+}
+
 /* Trending Topics Section */
 .trending-container {
     margin-bottom: 2rem;
@@ -46,17 +62,27 @@ body {
 }
 
 .trending-card {
-    background-color: var(--card-bg);
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -1px rgb(0 0 0 / 6%);
-    padding: 1.5rem;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .trending-card h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--primary);
-    margin-bottom: 1rem;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.trending-card p {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.trending-card .trending-articles a {
+    display: block;
+    margin-bottom: 5px;
+    color: #007BFF;
 }
 
 .trending-summary {
@@ -132,13 +158,7 @@ body {
     padding: 2rem 1rem;
 }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 0;
-    margin-bottom: 2rem;
-}
+
 
 .branding {
     display: flex;
@@ -750,6 +770,7 @@ body {
     }
 }
 
+
 @media (max-width: 380px) {
     .headline h1 {
         font-size: 1.5rem;
@@ -782,5 +803,103 @@ body {
     }
 }
 
+
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    max-width: 500px;
+}
+
+.search-bar .search-form {
+    display: flex;
+    width: 100%;
+}
+
+.search-bar .search-form {
+    display: flex;
+    width: 100%;
+}
+
+.search-bar .search-input {
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.3s ease;
+}
+
+.search-bar .search-input:focus {
+    border-color: #007BFF;
+}
+
+.search-bar .search-button {
+    padding: 8px 16px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-bar .search-button:hover {
+    background-color: #0056b3;
+}
+
+/* Ensure content doesn’t overlap with sticky header */
+.app-container > *:not(.header) {
+    padding-top: 20px;
+}
+
+.logo h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-right: 20px;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .search-bar {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+    .logo h1 {
+        margin-right: 0;
+    }
+
+    .search-bar {
+        width: 100%;
+        max-width: none;
+    }
+
+
+#results {
+    width: 100%;
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+.content-card {
+    width: 100%;
+    max-width: 1200px; /* Optional: limit max width for readability */
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script> 
