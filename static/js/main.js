@@ -1,8 +1,36 @@
 console.log('main.js loaded');
+
 $(document).ready(function() {
     console.log('jQuery ready');
+    
     // Verify form exists
     console.log('Search form exists:', $('#search-form').length > 0);
+    
+    // Log the number of trending cards found
+    const cardCount = $('.trending-card').length;
+    console.log(`Found ${cardCount} trending-card elements`);
+
+    // Log styles and positions for each card to debug click and hover issues
+    $('.trending-card').each(function(index) {
+        const $card = $(this);
+        const cardText = $card.find('h3').text().trim();
+        const computedStyle = window.getComputedStyle($card[0]);
+        const rect = $card[0].getBoundingClientRect();
+        console.log(`Card ${index + 1} (${cardText}):`, {
+            pointerEvents: computedStyle.pointerEvents,
+            zIndex: computedStyle.zIndex,
+            position: computedStyle.position,
+            display: computedStyle.display,
+            visibility: computedStyle.visibility,
+            boundingBox: {
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height
+            }
+        });
+    });
+    
     var $loading = $('.loading');
     var $results = $('#results');
     var $errorMessage = $results.find('.error-message');
@@ -367,13 +395,16 @@ $(document).ready(function() {
     }
 
     // Handle trending card clicks
-    $('.trending-card').click(function() {
-        const index = $(this).data('index');  // Get the index from the data attribute
-        const searchTopic = $(this).data('search-term');  // Get the search term from the data attribute
+    $('.trending-card').on('click', function() {
+        console.log('Trending card click event triggered');
+        const index = $(this).data('index'); // Use the data-index attribute
+        console.log('Clicked card index:', index);
+        const searchTerm = $(this).data('search-term');
+        console.log('Clicked card with search term:', searchTerm);
         const displayTopic = $(this).find('h3').text().trim();
         
         // Set the search value
-        $('input[name="event"]').val(searchTopic);
+        $('input[name="event"]').val(searchTerm);
         
         // Show loading state
         $loading.show();
@@ -387,7 +418,7 @@ $(document).ready(function() {
         $trendingContainer.hide();
 
         // Make the search request
-        $.post('/data', {event: searchTopic}, function(data) {
+        $.post('/data', {event: searchTerm}, function(data) {
             console.log('Response received:', data);
             if (data.error) {
                 console.log('Error found in response:', data.error);
@@ -495,4 +526,4 @@ $(document).ready(function() {
         // Reset the page title
         document.title = 'Neutral News';
     });
-}); 
+});

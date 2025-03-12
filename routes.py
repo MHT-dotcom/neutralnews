@@ -347,10 +347,9 @@ def fetch_and_process_data(event):
             
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
+# routes.py (snippet in index function)
 @routes.route('/', methods=['GET', 'POST'])
 def index():
-    from app import trending_topics
-
     """Handle the main route for displaying trending topics and fetching custom summaries."""
     logger.info("=== Template Debug Info ===")
     logger.info(f"Current working directory: {os.getcwd()}")
@@ -375,12 +374,15 @@ def index():
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request form data: {request.form}")
 
+    # Defer import to avoid circular import
+    from app import trending_topics
+    
     # Log the trending topics before any processing
     logger.info(f"Processing trending topics: {trending_topics}")
     
     # Pass trending_topics directly as trending_data without transformation
-    trending_data = trending_topics  # Keep as [['event', 'keywords'], ...]
-    logger.info(f"Generated trending data: {trending_data}")
+    trending_data = trending_topics
+    logger.info(f"Generated trending data for template: {trending_data}")  # New log
 
     summary = None
     articles = []
