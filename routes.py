@@ -4,12 +4,15 @@
 # '/data' for AJAX news fetching (POST), and '/test' for a simple status check (GET).
 # The core function 'fetch_and_process_data' fetches articles from multiple APIs in parallel, processes them,
 # and generates summaries, with detailed timing logs for performance tracking.
-# New feature: Uses dynamic trending topics from app.py (fetched via Grok API) for the main page.
+# New feature: Uses SQLite to cache search results, reducing API calls and loading times.
 
 from flask import Blueprint, render_template, request, jsonify, current_app
 from concurrent.futures import ThreadPoolExecutor
 import time
 import logging
+import sqlite3
+import json
+from datetime import datetime, timedelta
 from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
                      fetch_newsapi_ai_articles)
@@ -19,7 +22,6 @@ from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDI
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N)
 import os
-from datetime import datetime
 
 routes = Blueprint('routes', __name__)
 logger = logging.getLogger(__name__)
@@ -413,7 +415,7 @@ def index():
 
 @routes.route('/data', methods=['POST'])
 def get_news_data():
-    """Handle the AJAX request for fetching news data with detailed error logging."""
+    """Handle the AJAX request for fetching news data with detailed error logging and SQLite caching."""
     try:
         event = request.form.get('event')
         if not event:
@@ -423,7 +425,32 @@ def get_news_data():
         logger.info(f"Processing request for event: '{event}'")
         current_time = datetime.now().strftime('%H:%M:%S')
         
-        # Fetch and process data
+        # Connect to SQLite database
+        conn = sqlite3.connect('search_db.sqlite')
+        c = conn.cursor()
+        
+        # Check if query exists and is recent (last 24 hours)
+        c.execute("SELECT * FROM search_history WHERE query = ? AND timestamp > ?", 
+                  (event, (datetime.now() - timedelta(hours=24)).isoformat()))
+        result = c.fetchone()
+        
+        if result:
+            logger.info(f"Found cached result for '{event}' in database")
+            data = {
+                'success': True,
+                'summary': result[3] + f" (cached at {result[2].split('T')[1][:8]})",
+                'articles': json.loads(result[5]),
+                'metadata': {
+                    'average_sentiment': result[4],
+                    'source_distribution': json.loads(result[6]),
+                    'total_articles': len(json.loads(result[5]))
+                }
+            }
+            conn.close()
+            return jsonify(data)
+
+        # Fetch and process data if no recent cache
+        logger.info(f"No recent cache found for '{event}', fetching from APIs")
         summary, articles, error = fetch_and_process_data(event)
         
         # Log the results
@@ -434,6 +461,7 @@ def get_news_data():
         
         if not articles:
             logger.warning(f"No articles found for event '{event}'")
+            conn.close()
             return jsonify({'error': error or f"No articles found for '{event}'"}), 404
 
         # Calculate average sentiment
@@ -446,18 +474,17 @@ def get_news_data():
             source = article.get('source', 'Unknown')
             source_counts[source] = source_counts.get(source, 0) + 1
         
-        metadata = {
-            'total_articles': len(articles),
-            'average_sentiment': avg_sentiment,
-            'source_distribution': source_counts
-        }
-        
+        # Save to database
+        c.execute("INSERT INTO search_history (query, timestamp, summary, average_sentiment, articles, source_distribution) VALUES (?, ?, ?, ?, ?, ?)",
+                  (event, datetime.now().isoformat(), summary or f"Found {len(articles)} articles about '{event}'.", avg_sentiment, json.dumps(articles), json.dumps(source_counts)))
+        conn.commit()
+        conn.close()
+
         # Add timestamp to summary to show it's a fresh result
         if summary:
             summary_with_time = f"{summary} (searched at {current_time})"
             logger.info(f"Final summary for '{event}': {summary_with_time}")
         else:
-            # Provide a fallback summary if none was generated
             summary_with_time = f"Found {len(articles)} articles about '{event}'. (searched at {current_time})"
             logger.warning(f"Using fallback summary for '{event}': {summary_with_time}")
         
@@ -466,7 +493,11 @@ def get_news_data():
             'success': True,
             'summary': summary_with_time,
             'articles': articles,
-            'metadata': metadata,
+            'metadata': {
+                'total_articles': len(articles),
+                'average_sentiment': avg_sentiment,
+                'source_distribution': source_counts
+            }
         }
         
         # Add warning if there was a partial failure
@@ -474,10 +505,11 @@ def get_news_data():
             logger.warning(f"Partial failure warning for '{event}': {error}")
             response['warning'] = error
         
-        logger.info(f"Returning success response for '{event}' with metadata: {metadata}")
+        logger.info(f"Returning success response for '{event}' with metadata: {response['metadata']}")
         return jsonify(response)
     except Exception as e:
         logger.error(f"Error processing request for '{event}': {str(e)}", exc_info=True)
+        conn.close()  # Ensure connection is closed on error
         return jsonify({'error': f"An error occurred: {str(e)}"}), 500
 
 @routes.route('/test', methods=['GET'])
