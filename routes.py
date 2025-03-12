@@ -18,7 +18,6 @@ from processors import (process_articles, remove_duplicates, filter_relevant_art
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N)
-# from app import trending_topics  # Import global trending_topics from app.py
 import os
 from datetime import datetime
 
@@ -350,6 +349,8 @@ def fetch_and_process_data(event):
 
 @routes.route('/', methods=['GET', 'POST'])
 def index():
+    from app import trending_topics
+
     """Handle the main route for displaying trending topics and fetching custom summaries."""
     logger.info("=== Template Debug Info ===")
     logger.info(f"Current working directory: {os.getcwd()}")
@@ -370,20 +371,21 @@ def index():
         logger.error(f"Error reading template: {e}")
     logger.info("========================")
 
-    from app import trending_topics  # Import trending_topics directly
     logger.info("Route / accessed")
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request form data: {request.form}")
+
+    # Log the trending topics before any processing
+    logger.info(f"Processing trending topics: {trending_topics}")
+    
+    # Pass trending_topics directly as trending_data without transformation
+    trending_data = trending_topics  # Keep as [['event', 'keywords'], ...]
+    logger.info(f"Generated trending data: {trending_data}")
+
     summary = None
     articles = []
     event = None
     error = None
-
-    # Fetch and process trending topics from Grok API (set in app.py)
-    logger.info(f"Processing trending topics: {trending_topics}")
-    # Convert trending topics into a list of tuples (display_topic, search_topic)
-    trending_data = list(zip(trending_topics[0], trending_topics[1]))
-    logger.info(f"Generated trending data: {trending_data}")
 
     if request.method == 'POST':
         event = request.form.get('event')
@@ -406,6 +408,7 @@ def index():
 
     logger.info(f"Rendering template with summary: {summary is not None}, articles: {len(articles) if articles else 0}, event: {event}, error: {error}")
     return render_template('index.html', summary=summary, articles=articles, event=event, error=error, trending_data=trending_data)
+
 @routes.route('/data', methods=['POST'])
 def get_news_data():
     """Handle the AJAX request for fetching news data with detailed error logging."""

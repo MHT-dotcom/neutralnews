@@ -1,6 +1,6 @@
 # app.py
 import flask
-from flask import Flask
+from flask import Flask, render_template
 from dotenv import load_dotenv
 import os
 import logging
@@ -71,18 +71,19 @@ cache.clear()  # Clear cache on startup
 logger.info("Cache cleared on startup")
 
 # Global trending topics
-trending_topics = ["Bitcoin", "Climate", "Elections", "Economy"]  # Fallback
+# trending_topics = ["Bitcoin", "Climate", "Elections", "Economy"]  # Fallback
 
 def update_trending_topics():
     """Fetch trending topics from Grok API at startup."""
     global trending_topics
-    topics = fetch_grok_trending_topics()
+    topics = fetch_grok_trending_topics(max_topics=8)  # Fetch 8 topics as per your latest request
     if topics:
-        trending_topics = topics
+        trending_topics = topics  # Now a list of [event, keywords] pairs
     logger.info(f"Trending topics set to: {trending_topics}")
 
 # Run at startup
 update_trending_topics()
+# logger.info(f"Trending topics set to: {trending_topics}")
 
 # Log initial startup details
 logger.info(f"Python version: {sys.version}")
@@ -93,15 +94,28 @@ logger.info(f"Cache type: {CACHE_CONFIG.get('CACHE_TYPE', 'Not configured')}")
 logger.info("About to register routes blueprint")
 logger.info(f"Available routes before registration: {app.url_map}")
 from routes import routes
-app.register_blueprint(routes, name='news_routes')  # Unique name to avoid conflict
+app.register_blueprint(routes, name='news_routes')
 logger.info("Routes blueprint registered")
 logger.info(f"Available routes after registration: {app.url_map}")
 logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
 
+
+# Add a basic route to render the template (assuming this was in routes.py before)
+@app.route('/')
+def index():
+    logger.info(f"Passing trending_data to template: {trending_topics}")
+    return render_template(
+        'index.html',
+        trending_data=trending_topics,  # Pass the 2D list directly
+        event=None,  # Adjust as needed based on your app logic
+        summary=None,
+        articles=None,
+        error=None
+    )
+
 # Application fully initialized
 logger.info("Application fully initialized")
 if __name__ == "__main__":
-    # Get port from environment variable or default to 10000
     port = int(os.environ.get("PORT", 10000))
     logger.info(f"Application configuration complete, starting server on port {port}")
     try:

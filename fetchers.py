@@ -4,7 +4,7 @@
 # results from all sources. Additionally, it fetches trending topics from the Grok API.
 
 import requests
-
+import random
 import json
 from datetime import datetime, timedelta
 import logging
@@ -216,61 +216,98 @@ def fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_D
         logger.warning(f"NewsAPI.ai: No articles found in response")
     return articles
 
-def fetch_grok_trending_topics(api_key=GROK_API_KEY, max_topics=4):
-    # logger.info(f"Fetching Grok trends with API key: {api_key[:4] if api_key else 'None'}...")
-    # # Set date range explicitly
-    # today = datetime.now().date()  # March 08, 2025
-    # one_week_ago = today - timedelta(days=7)  # March 01, 2025
-    # date_str = today.strftime("%B %d, %Y")
-    # # More explicit query to demand real events
-    # query = f"As of {date_str}, list the 4 most trending news events that occurred between {one_week_ago.strftime('%B %d, %Y')} and {date_str}. Provide only the event titles, numbered 1 to 4."
-    # url = "https://api.x.ai/v1/chat/completions"
-    # headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    # payload = {
-    #     "model": "grok-beta",
-    #     "messages": [{"role": "user", "content": query}],
-    #     "max_tokens": 200
-    # }
-    # logger.info(f"Grok request payload: {payload}")
-    # data, error = fetch_with_error_handling(url, headers=headers, params=None, json=payload)
-    # if error or not data:
-    #     logger.error(f"Grok fetch failed: {error or 'No data'}")
-    #     return ["Bitcoin Price Surge", "Climate Policy Update", "Election Results", "Economic Report"]
-    # content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-    # logger.info(f"Grok raw response: {content}")
+def fetch_grok_trending_topics(max_topics=8):
+    """
+    Fetch trending news topics from Grok API and return them as a 2D list.
+    Falls back to hardcoded topics if API fails.
     
-    # # Parse into four event titles
-    # topics = []
-    # lines = content.split("\n")
-    # for line in lines:
-    #     line = line.strip()
-    #     if line and line[0].isdigit() and ". " in line:
-    #         topic = line.split(". ", 1)[1].strip().strip("**")  # Remove bold markers
-    #         topics.append(topic)
+    Args:
+        max_topics (int): Number of trending topics to fetch.
     
-    # Ensure exactly 4 topics
-    # if len(topics) < 4:
-    #     logger.warning(f"Only {len(topics)} topics found, padding with fallbacks")
-    #     fallbacks = ["Bitcoin Price Surge", "Climate Policy Update", "Election Results", "Economic Report"]
-    #     topics.extend(fallbacks[:4 - len(topics)])
-    # elif len(topics) > 4:
-    #     topics = topics[:4]
+    Returns:
+        list: 2D list of [headline, keywords] pairs, e.g., [['Headline', 'kw1 kw2'], ...].
+    """
+    # Hardcoded fallback topics (topics2)
+    topics2 = [['Ukraine Agrees to Ceasefire After U.S. Talks', 'Ukraine ceasefire'],
+    ['Charges Filed in Child’s Hyperbaric Chamber Death', 'hyperbaric explosion Thomas Cooper'],
+    ['Trump Issues Warning to Hamas on Hostage Crisis', 'Trump Hamas'],
+    ['Slotkin Compares Trump Voters to Angry Teens', 'Slotkin Trump voters'],
+    ['Meta Tests In-House AI Chip', 'Meta, Nvidia'],
+    ['Stock Market Falls Amid Trump Tariff Concerns', 'stock market Trump tariffs'],
+    ['Xiaomi 15 Series Launches with Leica Cameras', 'Xiaomi 15 Leica cameras'],
+    ['Starlink Partners with Airtel in India', 'Starlink Airtel']]
     
-    # logger.info(f"Parsed trending topics: {topics}")
-    # print("\n\n\n here are the topics: ", topics)
-    # print("\n\n\n type: ", type(topics))
-    # print("\n\n\n")
+    # Ensure max_topics is between 1 and 8
+    max_topics = min(max(1, max_topics), 8)
+    
+    # Get current date for the query
+    current_date = datetime.now().strftime("%B %d, %Y")  # e.g., "March 11, 2025"
+    
+    # API endpoint (assumed, replace with actual endpoint)
+    url = "https://api.xai.com/grok/v1/query"  # Hypothetical endpoint
+    
+    # Query for the API
+    query = (
+        f"Analyze news and social media data for {current_date} to identify the {max_topics} "
+        "most talked-about news topics from today, including a mix of general news, technology, "
+        "and business stories. For each topic, generate a concise, neutral headline (title only, "
+        "no content) with no sentiment or sensationalism, and provide three relevant keywords "
+        "that summarize the core elements of the story as a single comma-separated string. "
+        "Return the results as a list of lists, where each inner list contains two elements: "
+        "the headline and the keyword string. Format the output exactly as: "
+        "[['Headline', 'keyword1 keyword2'], ...]. Example: "
+        "[['Trump raises tariffs on China', 'Trump tariffs'], ...]. "
+        "Use current web search results and X trends to determine prominence, prioritizing "
+        "diverse, high-impact stories across categories like geopolitics, tech innovation, "
+        "business developments, and political events."
+    )
+    
+    # Headers for API authentication using GROK_API_KEY from config_prod
+    headers = {
+        "Authorization": f"Bearer {GROK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    # Payload with the query
+    payload = {
+        "query": query
+    }
+    
+    try:
+        # Make the API request
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        
+        # Parse the JSON response
+        topics = response.json()
+        
+        # Validate the response format
+        if not isinstance(topics, list) or not all(
+            isinstance(item, list) and len(item) == 2 and 
+            isinstance(item[0], str) and isinstance(item[1], str) 
+            for item in topics
+        ):
+            raise ValueError("Invalid response format from API")
+        
+        # Adjust to max_topics
+        if len(topics) > max_topics:
+            topics = topics[:max_topics]
+        elif len(topics) < max_topics:
+            topics.extend([["No headline available", "no, keywords, available"]] * 
+                         (max_topics - len(topics)))
+        
+        return topics
+    
+    except (requests.exceptions.RequestException, ValueError) as e:
+        print(f"API request or validation failed: {e}. Falling back to hardcoded topics.")
+        # Return topics2 trimmed or padded to max_topics
+        if len(topics2) > max_topics:
+            return topics2[:max_topics]
+        elif len(topics2) < max_topics:
+            return topics2 + [["No headline available", "no, keywords, available"]] * \
+                   (max_topics - len(topics2))
+        return topics2
 
-    topics = [ [
-    'Trump Administration Imposes 25% Tariffs on Mexico and Canada',
-    'Significant Lunar Landings by Private Companies',
-    'Trump-Zelenskyy Meeting and Ukraine Aid Suspension',
-    'South Korea’s Impeached President Yoon Suk Yeol Released from Prison',
-    'Bitcoin ETF Sees Record Inflows After Regulatory Shift',
-    'EU Sanctions Russian Crypto Exchange Garantex',
-    'Pakistan Sets Deadline for Afghan Migrants to Leave',
-    'French Rail Disrupted by WWII Bomb Discovery'], ['trump tariffs', 'lunar landings', 'trump zelenskyy', 'yoon suk yeol', 'bitcoin etf', 'eu sanctions', 'pakistan migrants', 'french rail']]
-    return topics
 
 def fetch_articles_for_topic(topic, max_articles=3, days_back=7):
     """
