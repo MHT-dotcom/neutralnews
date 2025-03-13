@@ -216,40 +216,56 @@ def fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_D
         logger.warning(f"NewsAPI.ai: No articles found in response")
     return articles
 
-def fetch_grok_trending_topics(max_topics=8):
+def fetch_grok_trending_topics(max_topics=8, start_date=None, end_date=None):
     """
-    Fetch trending news topics from Grok API and return them as a 2D list.
+    Fetch trending news topics from Grok API for a specified date range and return them as a 2D list.
     Falls back to hardcoded topics if API fails.
     
     Args:
         max_topics (int): Number of trending topics to fetch.
+        start_date (str, optional): Start date in "YYYY-MM-DD" format. Defaults to today if None.
+        end_date (str, optional): End date in "YYYY-MM-DD" format. Defaults to today if None.
     
     Returns:
         list: 2D list of [headline, keywords] pairs, e.g., [['Headline', 'kw1 kw2'], ...].
     """
-    # Hardcoded fallback topics (topics2)
-    topics2 = [['Ukraine Agrees to Ceasefire After U.S. Talks', 'Ukraine ceasefire'],
-    ['Charges Filed in Child’s Hyperbaric Chamber Death', 'hyperbaric explosion Thomas Cooper'],
-    ['Trump Issues Warning to Hamas on Hostage Crisis', 'Trump Hamas'],
-    ['Slotkin Compares Trump Voters to Angry Teens', 'Slotkin Trump voters'],
-    ['Meta Tests In-House AI Chip', 'Meta, Nvidia'],
-    ['Stock Market Falls Amid Trump Tariff Concerns', 'stock market Trump tariffs'],
-    ['Xiaomi 15 Series Launches with Leica Cameras', 'Xiaomi 15 Leica cameras'],
-    ['Starlink Partners with Airtel in India', 'Starlink Airtel']]
+    # Hardcoded fallback topics
+    topics2 = [
+        ['Ukraine Agrees to Ceasefire After U.S. Talks', 'Ukraine ceasefire'],
+        ['Charges Filed in Childs Hyperbaric Chamber Death', 'hyperbaric explosion Thomas Cooper'],
+        ['Trump Issues Warning to Hamas on Hostage Crisis', 'Trump Hamas'],
+        ['Slotkin Compares Trump Voters to Angry Teens', 'Slotkin Trump voters'],
+        ['Meta Tests In-House AI Chip', 'Meta Nvidia'],
+        ['Stock Market Falls Amid Trump Tariff Concerns', 'stock market Trump tariffs'],
+        ['Xiaomi 15 Series Launches with Leica Cameras', 'Xiaomi 15 Leica cameras'],
+        ['Starlink Partners with Airtel in India', 'Starlink Airtel']
+    ]
     
     # Ensure max_topics is between 1 and 8
     max_topics = min(max(1, max_topics), 8)
     
-    # Get current date for the query
-    current_date = datetime.now().strftime("%B %d, %Y")  # e.g., "March 11, 2025"
+    # Set default dates if not provided
+    if end_date is None:
+        end_date = datetime.now().strftime("%Y-%m-%d")  # e.g., "2025-03-13"
+    if start_date is None:
+        start_date = end_date  # Single day (today) if no range specified
     
-    # API endpoint (assumed, replace with actual endpoint)
+    # Format dates for query
+    start_date_str = datetime.strptime(start_date, "%Y-%m-%d").strftime("%B %d, %Y")  # e.g., "March 6, 2025"
+    end_date_str = datetime.strptime(end_date, "%Y-%m-%d").strftime("%B %d, %Y")  # e.g., "March 12, 2025"
+    
+    # API endpoint (assumed)
     url = "https://api.xai.com/grok/v1/query"  # Hypothetical endpoint
     
-    # Query for the API
+    # Query for the API, adjusted for date range
+    if start_date == end_date:
+        date_range_str = f"for {start_date_str}"
+    else:
+        date_range_str = f"from {start_date_str} to {end_date_str}"
+    
     query = (
-        f"Analyze news and social media data for {current_date} to identify the {max_topics} "
-        "most talked-about news topics from today, including a mix of general news, technology, "
+        f"Analyze news and social media data {date_range_str} to identify the {max_topics} "
+        "most talked-about news topics, including a mix of general news, technology, "
         "and business stories. For each topic, generate a concise, neutral headline (title only, "
         "no content) with no sentiment or sensationalism, and provide three relevant keywords "
         "that summarize the core elements of the story as a single comma-separated string. "
@@ -262,7 +278,8 @@ def fetch_grok_trending_topics(max_topics=8):
         "business developments, and political events."
     )
     
-    # Headers for API authentication using GROK_API_KEY from config_prod
+    # Headers for API authentication
+    from config_prod import GROK_API_KEY
     headers = {
         "Authorization": f"Bearer {GROK_API_KEY}",
         "Content-Type": "application/json"
@@ -276,7 +293,7 @@ def fetch_grok_trending_topics(max_topics=8):
     try:
         # Make the API request
         response = requests.post(url, json=payload, headers=headers)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response.raise_for_status()
         
         # Parse the JSON response
         topics = response.json()

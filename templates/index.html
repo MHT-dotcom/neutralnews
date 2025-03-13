@@ -12,7 +12,7 @@
     <body>
         
         <div class="app-container">
-            <!-- Updated Header with Logo and Search Bar -->
+            <!-- Header with Logo and Search Bar -->
             <header class="header">
                 <div class="logo" style="cursor: pointer;">
                     <h1>Neutral News</h1>
@@ -38,15 +38,33 @@
             <!-- Trending Topics Section -->
             <div class="trending-container" style="display: {% if event is none or event == '' %}block{% else %}none{% endif %};">
                 <h2 class="trending-title">Trending News Topics</h2>
+                
+                <!-- Today's Topics -->
                 <div class="trending-topics">
-                    {% for item in trending_data %}
+                    <h3>Today</h3>
+                    {% for item in today_topics %}
                         <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 }}">
-                            <h3>{{ item[0] if item|length >= 1 else 'No topic' }}</h3>
+                            <h4>{{ item[0] if item|length >= 1 else 'No topic' }}</h4>
                         </div>
                     {% endfor %}
                     <!-- For debugging -->
-                    <div style="display: none;" id="debug-trending-count">{{ trending_data|length }}</div> 
+                    <div style="display: none;" id="debug-today-count">{{ today_topics|length }}</div> 
                 </div>
+                
+                <!-- Last Week's Topics -->
+                <div class="trending-topics">
+                    <h3>Last Week</h3>
+                    {% for item in last_week_topics %}
+                        <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 + 8 }}">
+                            <h4>{{ item[0] if item|length >= 1 else 'No topic' }}</h4>
+                        </div>
+                    {% endfor %}
+                    <!-- For debugging -->
+                    <div style="display: none;" id="debug-last-week-count">{{ last_week_topics|length }}</div> 
+                </div>
+                
+                <!-- Total debug count -->
+                <div style="display: none;" id="debug-trending-count">{{ today_topics|length + last_week_topics|length }}</div> 
             </div>
             
             <div class="pull-indicator">Pull down to refresh</div>
