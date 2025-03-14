@@ -1,6 +1,6 @@
 # app.py
 import flask
-from flask import Flask
+from flask import Flask, jsonify
 from dotenv import load_dotenv
 import os
 import logging
@@ -11,6 +11,9 @@ from datetime import date, timedelta
 from flask_cors import CORS
 from processors import ModelManager
 from fetchers import fetch_grok_trending_topics
+import requests
+import certifi
+from datetime import datetime
 
 # Set up logging
 logging.basicConfig(
@@ -133,6 +136,265 @@ logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
 
 # Application initialized
 logger.info("Application fully initialized")
+
+@app.route('/test-grok')
+def test_grok():
+    from fetchers import test_grok_api
+    result = test_grok_api()
+    return jsonify(result)
+
+@app.before_request
+def log_cache_usage():
+    if hasattr(app, 'config') and app.config.get('CACHE_TYPE') == 'simple':
+        logger.info("=== CACHE INSPECTION ===")
+        # Add logging to inspect the cache
+
+@app.route('/clear-cache')
+def clear_cache():
+    """Clear the application cache and force a fresh fetch"""
+    cache.clear()
+    logger.info("Cache manually cleared")
+    return """
+    <h2>Cache cleared!</h2>
+    <p>The application cache has been cleared. All data will be fetched fresh on next access.</p>
+    <p><a href='/'>Return to Homepage</a></p>
+    <p><a href='/test-grok-key'>Test Grok API Key</a></p>
+    """
+
+@app.route('/test-grok-key')
+def test_grok_key():
+    """Test endpoint to try different API key formats with the Grok API"""
+    # Get original key
+    api_key = os.environ.get("GROK_API_KEY", "")
+    if not api_key:
+        return "No API key found!"
+    
+    # Format 1: Original with xai- prefix
+    format1 = api_key
+    
+    # Format 2: Without xai- prefix
+    format2 = api_key[4:] if api_key.startswith("xai-") else api_key
+    
+    # Test URL
+    url = "https://api.x.ai/v1/chat/completions"
+    
+    formats = [
+        {"name": "Original with xai- prefix", "key": format1, "header": f"Bearer {format1}"},
+        {"name": "Without xai- prefix", "key": format2, "header": f"Bearer {format2}"},
+        {"name": "No Bearer, just raw key", "key": format2, "header": format2},
+        {"name": "X-API-Key header", "key": format1, "header": None, "x_api_key": format1}
+    ]
+    
+    # Simple request payload
+    payload = {
+        "model": "grok-1",
+        "messages": [{"role": "user", "content": "Hello, what's the current date?"}],
+        "max_tokens": 100
+    }
+    
+    # Test each format
+    results = []
+    for fmt in formats:
+        try:
+            headers = {"Content-Type": "application/json"}
+            
+            if fmt.get("header"):
+                headers["Authorization"] = fmt["header"]
+            
+            if fmt.get("x_api_key"):
+                headers["X-API-Key"] = fmt["x_api_key"]
+            
+            logger.info(f"Testing format: {fmt['name']}")
+            logger.info(f"Headers: {headers}")
+            
+            response = requests.post(
+                url, 
+                json=payload, 
+                headers=headers, 
+                timeout=10,
+                verify=certifi.where()
+            )
+            
+            results.append({
+                "format": fmt["name"],
+                "status_code": response.status_code,
+                "response": response.text[:200] + "..." if len(response.text) > 200 else response.text
+            })
+            
+            logger.info(f"Status code: {response.status_code}")
+            
+            # If successful, log the full response
+            if response.status_code == 200:
+                logger.info(f"SUCCESS with format: {fmt['name']}")
+                logger.info(f"Response: {response.text[:500]}...")
+        except Exception as e:
+            logger.error(f"Error testing format {fmt['name']}: {e}")
+            results.append({
+                "format": fmt["name"],
+                "error": str(e)
+            })
+    
+    # Format results as HTML
+    html = "<h1>Grok API Key Testing Results</h1>"
+    html += "<style>table {border-collapse: collapse; width: 100%;} th, td {padding: 8px; text-align: left; border: 1px solid #ddd;} tr:nth-child(even) {background-color: #f2f2f2;} pre {white-space: pre-wrap; word-wrap: break-word;}</style>"
+    html += "<table><tr><th>Format</th><th>Status</th><th>Response</th></tr>"
+    
+    for result in results:
+        html += f"<tr><td>{result['format']}</td>"
+        
+        if "error" in result:
+            html += f"<td colspan='2'>Error: {result['error']}</td>"
+        else:
+            status_color = "green" if result["status_code"] == 200 else "red"
+            html += f"<td style='color:{status_color}'>{result['status_code']}</td><td><pre>{result['response']}</pre></td>"
+        
+        html += "</tr>"
+    
+    html += "</table>"
+    html += "<p><a href='/'>Return to Homepage</a></p>"
+    return html
+
+@app.route('/test-models')
+def test_grok_models():
+    """Test endpoint to try different model names with the Grok API"""
+    import requests
+    import json
+    import certifi
+    
+    # Get original key with xai- prefix
+    api_key = os.environ.get("GROK_API_KEY", "")
+    if not api_key:
+        return "No API key found!"
+    
+    # Test URL
+    url = "https://api.x.ai/v1/chat/completions"
+    
+    # Models to test
+    models = [
+        "grok-1",
+        "grok-2", 
+        "grok",
+        "grok-lite",
+        "xai-grok",
+        "claude-3-opus-20240229",  # Try a common model name format
+        "gpt-4"  # Try a common model name
+    ]
+    
+    # Simple request payload
+    base_payload = {
+        "messages": [{"role": "user", "content": "Hello, what's the current date?"}],
+        "max_tokens": 100
+    }
+    
+    # Authentication headers - use full key with xai- prefix
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    # Test each model
+    results = []
+    for model in models:
+        try:
+            payload = base_payload.copy()
+            payload["model"] = model
+            
+            logging.info(f"Testing model: {model}")
+            
+            response = requests.post(
+                url, 
+                json=payload, 
+                headers=headers, 
+                timeout=10,
+                verify=certifi.where()
+            )
+            
+            results.append({
+                "model": model,
+                "status_code": response.status_code,
+                "response": response.text[:300] + "..." if len(response.text) > 300 else response.text
+            })
+            
+            logging.info(f"Status code: {response.status_code}")
+            
+            # If successful, log the full response
+            if response.status_code == 200:
+                logging.info(f"SUCCESS with model: {model}")
+                logging.info(f"Response: {response.text[:500]}...")
+        except Exception as e:
+            logging.error(f"Error testing model {model}: {e}")
+            results.append({
+                "model": model,
+                "error": str(e)
+            })
+    
+    # Format results as HTML
+    html = "<h1>Grok API Model Testing Results</h1>"
+    html += "<style>table {border-collapse: collapse; width: 100%;} th, td {padding: 8px; text-align: left; border: 1px solid #ddd;} tr:nth-child(even) {background-color: #f2f2f2;} pre {white-space: pre-wrap; word-wrap: break-word;}</style>"
+    html += "<table><tr><th>Model</th><th>Status</th><th>Response</th></tr>"
+    
+    for result in results:
+        html += f"<tr><td>{result['model']}</td>"
+        
+        if "error" in result:
+            html += f"<td colspan='2'>Error: {result['error']}</td>"
+        else:
+            status_color = "green" if result["status_code"] == 200 else "red"
+            html += f"<td style='color:{status_color}'>{result['status_code']}</td><td><pre>{result['response']}</pre></td>"
+        
+        html += "</tr>"
+    
+    html += "</table>"
+    html += "<p><a href='/'>Return to Homepage</a></p>"
+    return html
+
+@app.route('/check-topics')
+def check_topics():
+    """Check that current and last week topics are different"""
+    from datetime import datetime, timedelta
+    
+    today = datetime.now().strftime("%Y-%m-%d")
+    last_week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    
+    # Force refresh to ensure we're not using cached data
+    today_topics = fetch_grok_trending_topics(
+        max_topics=8, 
+        start_date=today, 
+        end_date=today,
+        time_period="current"
+    )
+    
+    last_week_topics = fetch_grok_trending_topics(
+        max_topics=8, 
+        start_date=last_week, 
+        end_date=last_week,
+        time_period="last_week"
+    )
+    
+    html = "<h1>Topic Comparison</h1>"
+    html += "<style>table {border-collapse: collapse; width: 100%;} th, td {padding: 8px; text-align: left; border: 1px solid #ddd;} tr:nth-child(even) {background-color: #f2f2f2;}</style>"
+    
+    # Display today's topics
+    html += "<h2>Current Topics:</h2>"
+    html += "<table><tr><th>#</th><th>Headline</th><th>Keywords</th></tr>"
+    for i, (headline, keywords) in enumerate(today_topics, 1):
+        html += f"<tr><td>{i}</td><td>{headline}</td><td>{keywords}</td></tr>"
+    html += "</table>"
+    
+    # Display last week's topics
+    html += "<h2>Last Week's Topics:</h2>"
+    html += "<table><tr><th>#</th><th>Headline</th><th>Keywords</th></tr>"
+    for i, (headline, keywords) in enumerate(last_week_topics, 1):
+        html += f"<tr><td>{i}</td><td>{headline}</td><td>{keywords}</td></tr>"
+    html += "</table>"
+    
+    # Check if they're different
+    are_different = today_topics[0][0] != last_week_topics[0][0]
+    html += f"<p><strong>Topics are different: {'Yes' if are_different else 'No'}</strong></p>"
+    
+    html += "<p><a href='/'>Return to Homepage</a></p>"
+    return html
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     logger.info(f"Application configuration complete, starting server on port {port}")

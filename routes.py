@@ -8,12 +8,12 @@ import json
 from datetime import datetime, timedelta
 from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
-                     fetch_newsapi_ai_articles)
+                     fetch_newsapi_ai_articles, fetch_grok_trending_topics)
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
                        summarize_articles, ModelManager)
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
-                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N)
+                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N, GROK_API_KEY)
 import os
 
 # Align blueprint name with app.py registration
@@ -311,6 +311,30 @@ def fetch_and_process_data(event):
             logger.warning(f"Failed to clear models after error: {clear_error}")
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
+def get_trending_topics(date_str, force_refresh=False, time_period="current"):
+    """Get trending topics for a given date"""
+    # Include time_period in the cache key to ensure different caching
+    cache_key = f"trending_topics_{date_str}_{time_period}"
+    
+    logger.info(f"Getting trending topics for {date_str} with time_period={time_period}")
+    
+    # Skip cache if force_refresh is True
+    if force_refresh or not cache.get(cache_key):
+        logger.info(f"Fetching fresh trending topics for {date_str} ({time_period})")
+        topics = fetch_grok_trending_topics(
+            max_topics=8, 
+            start_date=date_str, 
+            end_date=date_str,
+            time_period=time_period
+        )
+        
+        # Cache the results with the time_period-specific key
+        cache.set(cache_key, topics)
+        return topics
+    else:
+        logger.info(f"Using cached {date_str} trending topics ({time_period})")
+        return cache.get(cache_key)
+
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for displaying trending topics and fetching custom summaries."""
@@ -337,12 +361,28 @@ def index():
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request form data: {request.form}")
 
-    # Import the new topic variables from app
-    from app import today_topics, last_week_topics
+    # Force refresh trending topics
+    today = datetime.now().strftime("%Y-%m-%d")
+    last_week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
     
-    # Log the trending topics before any processing
-    logger.info(f"Processing today topics: {today_topics}")
-    logger.info(f"Processing last week topics: {last_week_topics}")
+    # Very explicitly set the time_period for each call
+    today_topics = get_trending_topics(
+        today, 
+        force_refresh=False, 
+        time_period="current"  # Explicitly "current" for today's topics
+    )
+    logger.info(f"Today topics sample: {today_topics[0] if today_topics else 'None'}")
+    
+    last_week_topics = get_trending_topics(
+        last_week, 
+        force_refresh=False, 
+        time_period="last_week"  # Explicitly "last_week" for last week's topics
+    )
+    logger.info(f"Last week topics sample: {last_week_topics[0] if last_week_topics else 'None'}")
+    
+    # Verify the topics are different by logging them
+    are_same = today_topics[0][0] == last_week_topics[0][0] if today_topics and last_week_topics else False
+    logger.info(f"Today and last week topics are the same: {are_same}")
     
     summary = None
     articles = []
