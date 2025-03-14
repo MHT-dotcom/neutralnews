@@ -394,17 +394,117 @@ $(document).ready(function() {
         return simplified;
     }
 
+    // Add these utility functions at the top of your file
+    function formatImageName(searchTerm) {
+        console.log('formatImageName input:', searchTerm);
+        
+        // Split and clean the terms
+        const terms = searchTerm
+            .split(',')
+            .map(term => term.trim())
+            .filter(term => term);
+        console.log('Split terms:', terms);
+        
+        // Join with hyphens and capitalize first letter of each word
+        const formatted = terms
+            .join('-')
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join('-');
+        
+        console.log('Final formatted name:', formatted);
+        return formatted;
+    }
+
+    function showImageLoading() {
+        $('.topic-image-card').show();
+        $('.image-loading').show();
+        $('.image-error').hide();
+        $('#topic-image').hide();
+    }
+
+    function showImageError() {
+        $('.topic-image-card').show();
+        $('.image-loading').hide();
+        $('.image-error').show();
+        $('#topic-image').hide();
+    }
+
+    function showImage(imagePath) {
+        $('.image-loading').hide();
+        $('.image-error').hide();
+        $('#topic-image')
+            .attr('src', imagePath)
+            .show()
+            .on('error', function() {
+                showImageError();
+                console.error('Image failed to load:', imagePath);
+            });
+    }
+
     // Handle trending card clicks
     $('.trending-card').on('click', function() {
         console.log('Trending card click event triggered');
-        const index = $(this).data('index'); // Use the data-index attribute
-        console.log('Clicked card index:', index);
         const searchTerm = $(this).data('search-term');
-        console.log('Clicked card with search term:', searchTerm);
-        const displayTopic = $(this).find('h3').text().trim();
+        console.log('Original search term:', searchTerm);
         
-        // Set the search value
-        $('input[name="event"]').val(searchTerm);
+        if (!searchTerm) {
+            console.error('No search term found for this topic');
+            return;
+        }
+
+        showImageLoading();
+        
+        try {
+            const formattedImageName = formatImageName(searchTerm);
+            console.log('Formatted image name:', formattedImageName);
+            
+            const imagePath = `/static/images/${formattedImageName}.png`;
+            console.log('Full image path:', imagePath);
+            
+            // Log the actual search term processing steps
+            console.log('Search term processing:', {
+                original: searchTerm,
+                split: searchTerm.split(','),
+                trimmed: searchTerm.split(',').map(term => term.trim()),
+                filtered: searchTerm.split(',').map(term => term.trim()).filter(term => term),
+                formatted: formattedImageName
+            });
+
+            // Add this to check if file exists on server
+            fetch(imagePath, { method: 'HEAD' })
+                .then(response => {
+                    console.log('File check response:', response.status);
+                })
+                .catch(error => {
+                    console.error('File check error:', error);
+                });
+
+            const loadingTimeout = setTimeout(() => {
+                console.error('Image loading timed out');
+                showImageError();
+            }, 10000);
+
+            const img = new Image();
+            
+            img.onload = function() {
+                clearTimeout(loadingTimeout);
+                showImage(imagePath);
+                console.log('Image loaded successfully');
+            };
+            
+            img.onerror = function() {
+                clearTimeout(loadingTimeout);
+                console.error(`No image found at path: ${imagePath}`);
+                showImageError();
+            };
+            
+            img.src = imagePath;
+
+        } catch (error) {
+            console.error('Error in image processing:', error);
+            showImageError();
+        }
         
         // Show loading state
         $loading.show();
@@ -425,7 +525,7 @@ $(document).ready(function() {
                 $errorMessage.text(data.error).show();
             } else {
                 // Show the original topic in the current-topic display
-                $results.find('.current-topic').text('Current topic: ' + displayTopic).show();
+                $results.find('.current-topic').text('Current topic: ' + searchTerm).show();
                 
                 // Debug the actual content
                 console.log('Articles:', data.articles ? data.articles.length : 0);
@@ -505,6 +605,10 @@ $(document).ready(function() {
     });
 
     $results.find('.clear-button').on('click', function() {
+        $('.topic-image-card').hide();
+        $('.image-loading').hide();
+        $('.image-error').hide();
+        $('#topic-image').hide();
         window.location.href = "/";
     });
 

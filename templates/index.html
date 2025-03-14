@@ -101,6 +101,26 @@
                     <div class="summary-content">{{ summary if summary else '' }}</div>
                 </div>
                 
+                <!-- Add this new image card -->
+                <div class="content-card topic-image-card" style="display: none;">
+                    <div class="card-title">
+                        <span class="card-title-dot"></span> Topic Visualization
+                    </div>
+                    <div class="topic-image-container">
+                        <div class="image-loading" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            <!-- <div>Loading visualization...</div> -->
+                        </div>
+                        <div class="image-error" style="display: none;">
+                            <svg class="error-icon" viewBox="0 0 24 24" width="48" height="48">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                            </svg>
+                            <p>Unable to load visualization</p>
+                        </div>
+                        <img id="topic-image" src="" alt="Topic visualization" style="display: none;">
+                    </div>
+                </div>
+                
                 <!-- Source Transparency Dashboard -->
                 <div class="content-card source-dashboard" style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
