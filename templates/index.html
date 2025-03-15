@@ -22,7 +22,7 @@
                         <input type="text" name="event" class="search-input" placeholder="Enter news event (e.g., Election 2025)" value="{{ event if event else '' }}"/>
                         <button type="submit" class="search-button">
                             <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoinV="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
                     </form>
@@ -47,7 +47,6 @@
                             <h4>{{ item[0] if item|length >= 1 else 'No topic' }}</h4>
                         </div>
                     {% endfor %}
-                    <!-- For debugging -->
                     <div style="display: none;" id="debug-today-count">{{ today_topics|length }}</div> 
                 </div>
                 
@@ -59,11 +58,9 @@
                             <h4>{{ item[0] if item|length >= 1 else 'No topic' }}</h4>
                         </div>
                     {% endfor %}
-                    <!-- For debugging -->
                     <div style="display: none;" id="debug-last-week-count">{{ last_week_topics|length }}</div> 
                 </div>
                 
-                <!-- Total debug count -->
                 <div style="display: none;" id="debug-trending-count">{{ today_topics|length + last_week_topics|length }}</div> 
             </div>
             
@@ -101,24 +98,14 @@
                     <div class="summary-content">{{ summary if summary else '' }}</div>
                 </div>
                 
-                <!-- Add this new image card -->
-                <div class="content-card topic-image-card" style="display: none;">
+                <!-- Added Image Container -->
+                <div id="image-container" class="content-card" style="display: {% if image_path %}block{% else %}none{% endif %}; margin-top: 20px;">
                     <div class="card-title">
                         <span class="card-title-dot"></span> Topic Visualization
                     </div>
-                    <div class="topic-image-container">
-                        <div class="image-loading" style="display: none;">
-                            <div class="loading-spinner"></div>
-                            <!-- <div>Loading visualization...</div> -->
-                        </div>
-                        <div class="image-error" style="display: none;">
-                            <svg class="error-icon" viewBox="0 0 24 24" width="48" height="48">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                            </svg>
-                            <p>Unable to load visualization</p>
-                        </div>
-                        <img id="topic-image" src="" alt="Topic visualization" style="display: none;">
-                    </div>
+                    {% if image_path %}
+                        <img src="{{ image_path }}" alt="Generated Image" style="max-width: 100%; display: block;">
+                    {% endif %}
                 </div>
                 
                 <!-- Source Transparency Dashboard -->

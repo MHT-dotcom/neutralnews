@@ -15,6 +15,7 @@ from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDI
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N, GROK_API_KEY)
 import os
+from get_img import generate_and_save_image
 
 # Align blueprint name with app.py registration
 routes = Blueprint('news_routes', __name__)
@@ -246,7 +247,7 @@ def fetch_and_process_data(event):
             if not relevant_articles:
                 total_time = time.time() - start_time
                 logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
-                return None, None, f"No relevant articles found for '{event}' after filtering. Try a broader topic."
+                return None, None, error_message
 
             logger.info(f"Starting summarization for event '{event}'")
             summarize_start = time.time()
@@ -334,10 +335,10 @@ def get_trending_topics(date_str, force_refresh=False, time_period="current"):
     else:
         logger.info(f"Using cached {date_str} trending topics ({time_period})")
         return cache.get(cache_key)
-
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for displaying trending topics and fetching custom summaries."""
+    # Existing template debugging (unchanged)
     logger.info("=== Template Debug Info ===")
     logger.info(f"Current working directory: {os.getcwd()}")
     template_folder = current_app.template_folder
@@ -361,26 +362,16 @@ def index():
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request form data: {request.form}")
 
-    # Force refresh trending topics
+    # Force refresh trending topics (unchanged)
     today = datetime.now().strftime("%Y-%m-%d")
     last_week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
     
-    # Very explicitly set the time_period for each call
-    today_topics = get_trending_topics(
-        today, 
-        force_refresh=False, 
-        time_period="current"  # Explicitly "current" for today's topics
-    )
+    today_topics = get_trending_topics(today, force_refresh=False, time_period="current")
     logger.info(f"Today topics sample: {today_topics[0] if today_topics else 'None'}")
     
-    last_week_topics = get_trending_topics(
-        last_week, 
-        force_refresh=False, 
-        time_period="last_week"  # Explicitly "last_week" for last week's topics
-    )
+    last_week_topics = get_trending_topics(last_week, force_refresh=False, time_period="last_week")
     logger.info(f"Last week topics sample: {last_week_topics[0] if last_week_topics else 'None'}")
     
-    # Verify the topics are different by logging them
     are_same = today_topics[0][0] == last_week_topics[0][0] if today_topics and last_week_topics else False
     logger.info(f"Today and last week topics are the same: {are_same}")
     
@@ -388,27 +379,56 @@ def index():
     articles = []
     event = None
     error = None
+    image_path = None
 
     if request.method == 'POST':
         event = request.form.get('event')
-        logger.info(f"Received POST request with event: {event}")
+        logger.info(f"POST request received with event: '{event}'")
         if not event:
             error = "Please enter a news event to search for."
-            logger.warning("No event provided in POST request")
+            logger.warning("No event provided")
         else:
-            logger.info(f"Calling fetch_and_process_data for event: {event}")
-            result = fetch_and_process_data(event)
-            if isinstance(result, tuple):
-                summary, articles, error = result
+            logger.info(f"Processing event: '{event}'")
+            # Check cache first
+            conn = sqlite3.connect('search_db.sqlite')
+            c = conn.cursor()
+            c.execute("""SELECT * FROM search_history 
+                        WHERE query = ? AND timestamp > ?""", 
+                     (event, (datetime.now() - timedelta(hours=24)).isoformat()))
+            result = c.fetchone()
+            
+            if result:
+                logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}..., Image Path: {result[7]}")
+                summary = result[3]
+                articles = json.loads(result[5])
+                image_path = result[7]
+                if image_path and os.path.exists(image_path):
+                    logger.info(f"Existing image found at {image_path}")
+                else:
+                    logger.info(f"No valid image in cache or on disk, generating for '{event}'")
+                    image_path, image_status = generate_and_save_image(event, summary)
+                    if image_status:
+                        logger.info(f"Generated new image: {image_path}")
+                        c.execute("UPDATE search_history SET image_path = ? WHERE query = ?", (image_path, event))
+                        conn.commit()
+                    else:
+                        logger.warning(f"Image generation failed")
+                        image_path = None
+                conn.close()
             else:
-                summary = result.get('summary')
-                articles = result.get('articles', [])
-                error = None
-            logger.info(f"After fetch_and_process_data, summary: {summary is not None}, articles: {len(articles) if articles else 0}, error: {error}")
-            if error:
-                logger.error(f"Error in processing event '{event}': {error}")
+                # New data
+                result = fetch_and_process_data(event)
+                if isinstance(result, tuple):
+                    summary, articles, error = result
+                else:
+                    summary = result.get('summary')
+                    articles = result.get('articles', [])
+                if summary and not error:
+                    image_path, image_status = generate_and_save_image(event, summary)
+                    logger.info(f"Image generation result - Path: {image_path}, Status: {image_status}")
+                conn.close()
 
-    logger.info(f"Rendering template with summary: {summary is not None}, articles: {len(articles) if articles else 0}, event: {event}, error: {error}")
+    logger.info(f"Rendering template with: summary={summary is not None}, articles={len(articles)}, event='{event}', error='{error}', image_path='{image_path}'")
     return render_template(
         'index.html',
         today_topics=today_topics,
@@ -416,91 +436,138 @@ def index():
         summary=summary,
         articles=articles,
         event=event,
-        error=error
+        error=error,
+        image_path=f"/{image_path}" if image_path else None
     )
 
 @routes.route('/data', methods=['POST'])
 def get_news_data():
-    """Handle the AJAX request for fetching news data with detailed error logging and SQLite caching."""
+    """Handle AJAX requests with detailed logging and image handling."""
+    logger.info("=== Entering get_news_data() ===")
     try:
         event = request.form.get('event')
+        logger.info(f"Received event: '{event}'")
         if not event:
-            logger.error("No event provided in request")
+            logger.warning("No event provided")
             return jsonify({'error': 'Please provide an event to search for.'}), 400
 
-        logger.info(f"Processing request for event: '{event}'")
-        current_time = datetime.now().strftime('%H:%M:%S')
-        
+        # Check cache
+        logger.info(f"Checking cache for '{event}'")
         conn = sqlite3.connect('search_db.sqlite')
         c = conn.cursor()
-        
-        c.execute("SELECT * FROM search_history WHERE query = ? AND timestamp > ?", 
-                  (event, (datetime.now() - timedelta(hours=24)).isoformat()))
+        c.execute("""SELECT * FROM search_history 
+                    WHERE query = ? AND timestamp > ?""", 
+                 (event, (datetime.now() - timedelta(hours=24)).isoformat()))
         result = c.fetchone()
         
         if result:
-            logger.info(f"Found cached result for '{event}' in database")
+            logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}..., Image Path: {result[7]}")
+            image_path = result[7]
+            # Check if image exists on disk
+            if image_path and os.path.exists(image_path):
+                logger.info(f"Existing image found at {image_path}")
+            else:
+                logger.info(f"No valid image in cache or on disk, generating for '{event}'")
+                image_path, image_status = generate_and_save_image(event, result[3])
+                if image_status:
+                    logger.info(f"Generated new image: {image_path}")
+                    c.execute("UPDATE search_history SET image_path = ? WHERE query = ?", (image_path, event))
+                    conn.commit()
+                else:
+                    logger.warning(f"Image generation failed for cached entry '{event}'")
+                    image_path = None
+            
             data = {
                 'success': True,
-                'summary': result[3] + f" (cached at {result[2].split('T')[1][:8]})",
+                'summary': result[3],
                 'articles': json.loads(result[5]),
                 'metadata': {
                     'average_sentiment': result[4],
                     'source_distribution': json.loads(result[6]),
-                    'total_articles': len(json.loads(result[5]))
+                    'image': {
+                        'path': f"/{image_path}" if image_path else None,
+                        'generated': bool(image_path)
+                    }
                 }
             }
             conn.close()
-            return jsonify(data)
+            logger.info(f"Returning cached response: {json.dumps(data, indent=2)[:200]}...")
+            return jsonify(data), 200
 
-        logger.info(f"No recent cache found for '{event}', fetching from APIs")
-        summary, articles, error = fetch_and_process_data(event)
-        
-        logger.info(f"fetch_and_process_data results for '{event}':")
-        logger.info(f"- Summary: {summary if summary else 'None'}")
-        logger.info(f"- Articles count: {len(articles) if articles else 0}")
-        logger.info(f"- Error: {error if error else 'None'}")
+        # Fetch and process new data
+        logger.info(f"No cache hit, fetching data for '{event}'")
+        summary, articles, warning = fetch_and_process_data(event)
+        logger.info(f"Fetch result - Summary: {summary[:50] if summary else None}, Articles: {len(articles)}, Warning: {warning}")
         
         if not articles:
-            logger.warning(f"No articles found for event '{event}'")
+            logger.error(f"No articles found: {warning}")
             conn.close()
-            return jsonify({'error': error or f"No articles found for '{event}'"}), 404
+            return jsonify({'error': warning or 'No articles found'}), 404
 
+        # Generate image
+        logger.info(f"Generating image for '{event}' with summary: {summary[:50]}...")
+        image_path, image_status = generate_and_save_image(event, summary)
+        logger.info(f"Image generation - Path: {image_path}, Status: {image_status}")
+        if image_path:
+            logger.info(f"Verifying image file exists: {os.path.exists(image_path)}")
+        else:
+            logger.warning(f"Image generation failed")
+
+        # Metadata
         sentiments = [article.get('sentiment_score', 0) for article in articles]
         avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
-        
-        source_counts = {}
+        source_counts = {article.get('source', 'Unknown'): 0 for article in articles}
         for article in articles:
             source = article.get('source', 'Unknown')
             source_counts[source] = source_counts.get(source, 0) + 1
-        
-        c.execute("INSERT INTO search_history (query, timestamp, summary, average_sentiment, articles, source_distribution) VALUES (?, ?, ?, ?, ?, ?)",
-                  (event, datetime.now().isoformat(), summary or f"Found {len(articles)} articles about '{event}'.", avg_sentiment, json.dumps(articles), json.dumps(source_counts)))
+        logger.info(f"Metadata - Avg Sentiment: {avg_sentiment}, Sources: {source_counts}")
+
+        # Store in database
+        logger.info(f"Storing result in database for '{event}'")
+        c.execute("""INSERT INTO search_history 
+                    (query, timestamp, summary, average_sentiment, 
+                     articles, source_distribution, image_path) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                 (event, datetime.now().isoformat(), summary, 
+                  avg_sentiment, json.dumps(articles), 
+                  json.dumps(source_counts), image_path))
         conn.commit()
         conn.close()
 
-        if summary:
-            summary_with_time = f"{summary} (searched at {current_time})"
-            logger.info(f"Final summary for '{event}': {summary_with_time}")
-        else:
-            logger.info(f"Line before summary_with_time assignment for event '{event}'")
-            try:
-                summary_with_time = f"Found {len(articles)} articles about '{event}'. (searched at {current_time})"
-                logger.warning(f"Using fallback summary for '{event}': {summary_with_time}")
-            except Exception as e:
-                logger.error(f"Error generating summary: {e}")
-                summary_with_time = "Unable to generate summary at this time."
-
-        return jsonify({
+        # Prepare response
+        response_data = {
             'success': True,
-            'summary': summary_with_time,
+            'summary': summary,
             'articles': articles,
             'metadata': {
                 'average_sentiment': avg_sentiment,
                 'source_distribution': source_counts,
-                'total_articles': len(articles)
+                'image': {
+                    'path': f"/{image_path}" if image_path else None,
+                    'generated': image_status
+                }
             }
-        })
+        }
+        if warning:
+            response_data['warning'] = warning
+            logger.warning(f"Partial API failure: {warning}")
+        
+        logger.info(f"Response prepared: {json.dumps(response_data, indent=2)[:300]}...")
+        return jsonify(response_data), 200
+
     except Exception as e:
-        logger.error(f"Error processing request: {e}", exc_info=True)
-        return jsonify({'error': 'An error occurred while processing the request. Please try again later.'}), 500
+        logger.error(f"Error in get_news_data: {e}", exc_info=True)
+        return jsonify({'error': 'An unexpected error occurred'}), 500
+    
+def init_db():
+    """Initialize the SQLite database with image_path column."""
+    conn = sqlite3.connect('search_db.sqlite')
+    c = conn.cursor()
+    try:
+        c.execute('''ALTER TABLE search_history 
+                     ADD COLUMN image_path TEXT''')
+        logger.info("Added image_path column to search_history")
+    except sqlite3.OperationalError:
+        logger.info("image_path column already exists")
+    conn.commit()
+    conn.close()

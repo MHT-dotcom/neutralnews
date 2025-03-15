@@ -36,20 +36,20 @@ $(document).ready(function() {
     var $errorMessage = $results.find('.error-message');
     var $pullIndicator = $('.pull-indicator');
     var $trendingContainer = $('.trending-container');
+    var $imageContainer = $('#image-container'); // Ensure this exists in HTML
     var startY = 0;
     var pullThreshold = 80;
     var isPulling = false;
     
-    // Handle search form submission
+    // Handle search form submission (hide trending container)
     $('#search-form').on('submit', function(e) {
-        $trendingContainer.hide(); // Hide the trending container when search is submitted
+        e.preventDefault();
+        $trendingContainer.hide();
     });
     
     // Pull to refresh functionality for mobile
     document.addEventListener('touchstart', function(e) {
         startY = e.touches[0].clientY;
-        
-        // Only enable pull-to-refresh when at the top of the page
         if (window.scrollY <= 0) {
             isPulling = true;
         }
@@ -57,10 +57,8 @@ $(document).ready(function() {
     
     document.addEventListener('touchmove', function(e) {
         if (!isPulling) return;
-        
         var currentY = e.touches[0].clientY;
         var pullDistance = currentY - startY;
-        
         if (pullDistance > 0 && pullDistance < pullThreshold) {
             $pullIndicator.addClass('active');
             e.preventDefault();
@@ -69,17 +67,13 @@ $(document).ready(function() {
     
     document.addEventListener('touchend', function(e) {
         if (!isPulling) return;
-        
         var currentY = e.changedTouches[0].clientY;
         var pullDistance = currentY - startY;
-        
         if (pullDistance > pullThreshold) {
-            // Refresh the page
             window.location.reload();
         } else {
             $pullIndicator.removeClass('active');
         }
-        
         isPulling = false;
     }, { passive: true });
     
@@ -90,19 +84,16 @@ $(document).ready(function() {
         $(this).css('opacity', '1');
     });
     
+    // Sentiment color utility
     function getSentimentColor(score) {
-        // Convert score (-1 to 1) to a color
         if (score === 0) return '#e2e8f0';  // Neutral gray
-        
         let red, green, blue;
         if (score < 0) {
-            // Negative: red to gray
             let factor = 1 + score;  // Convert -1..0 to 0..1
             red = 239;  // #ef4444
             green = Math.round(68 + (148 * factor));
             blue = Math.round(68 + (148 * factor));
         } else {
-            // Positive: gray to blue
             let factor = score;  // Already 0..1
             red = Math.round(226 - (127 * factor));
             green = Math.round(232 - (111 * factor));
@@ -111,11 +102,12 @@ $(document).ready(function() {
         return `rgb(${red}, ${green}, ${blue})`;
     }
     
+    // Sentiment width utility
     function getSentimentWidth(score) {
-        // Convert score (-1 to 1) to width percentage (20% to 100%)
         return 20 + (Math.abs(score) * 80) + '%';
     }
     
+    // Sentiment label utility
     function getSentimentLabel(score) {
         if (Math.abs(score) < 0.2) return "Neutral";
         if (score < -0.6) return "Very Negative";
@@ -125,150 +117,103 @@ $(document).ready(function() {
         return "Neutral";
     }
     
-    // Generate a color for each source
+    // Source color utility
     function getSourceColor(sourceName, index) {
-        // Predefined colors for common news sources
         const sourceColors = {
-            'BBC News': '#BB1919',
-            'CNN': '#CC0000',
-            'Fox News': '#003366',
-            'The Guardian': '#052962',
-            'The New York Times': '#000000',
-            'Reuters': '#FF8000',
-            'Associated Press': '#FF0000',
-            'Washington Post': '#000000',
-            'CNBC': '#005594',
-            'Bloomberg': '#000000'
+            'BBC News': '#BB1919', 'CNN': '#CC0000', 'Fox News': '#003366',
+            'The Guardian': '#052962', 'The New York Times': '#000000',
+            'Reuters': '#FF8000', 'Associated Press': '#FF0000',
+            'Washington Post': '#000000', 'CNBC': '#005594', 'Bloomberg': '#000000'
         };
-        
-        if (sourceColors[sourceName]) {
-            return sourceColors[sourceName];
-        }
-        
-        // Generate colors based on index for other sources
-        const hue = (index * 137.5) % 360; // Golden angle approximation for good distribution
-        return `hsl(${hue}, 70%, 50%)`;
+        return sourceColors[sourceName] || `hsl(${(index * 137.5) % 360}, 70%, 50%)`;
     }
     
-    // Calculate balance score based on source distribution
+    // Calculate balance score
     function calculateBalanceScore(sourceDistribution) {
-        if (!sourceDistribution || Object.keys(sourceDistribution).length === 0) {
-            return 0;
-        }
-        
+        if (!sourceDistribution || Object.keys(sourceDistribution).length === 0) return 0;
         const sourceCount = Object.keys(sourceDistribution).length;
         const totalArticles = Object.values(sourceDistribution).reduce((sum, count) => sum + count, 0);
-        
-        // Perfect distribution would be 1/sourceCount for each source
         const idealPercentage = 1 / sourceCount;
-        
-        // Calculate how far each source is from the ideal percentage
         let totalDeviation = 0;
         for (const source in sourceDistribution) {
             const actualPercentage = sourceDistribution[source] / totalArticles;
             totalDeviation += Math.abs(actualPercentage - idealPercentage);
         }
-        
-        // Normalize to 0-100 scale (0 = completely unbalanced, 100 = perfectly balanced)
-        // Max possible deviation is 2 - (2/sourceCount)
         const maxDeviation = 2 - (2 / sourceCount);
-        const balanceScore = 100 * (1 - (totalDeviation / maxDeviation));
-        
-        return Math.round(balanceScore);
+        return Math.round(100 * (1 - (totalDeviation / maxDeviation)));
     }
     
     // Create source distribution visualization
     function createSourceDistribution(sourceDistribution) {
-        if (!sourceDistribution || Object.keys(sourceDistribution).length === 0) {
-            return;
-        }
-        
+        if (!sourceDistribution || Object.keys(sourceDistribution).length === 0) return;
         const $sourceChart = $('#source-chart');
         const $sourceLegend = $('#source-legend');
-        
         $sourceChart.empty();
         $sourceLegend.empty();
         
         const sources = Object.keys(sourceDistribution);
         const totalArticles = Object.values(sourceDistribution).reduce((sum, count) => sum + count, 0);
         
-        // Update source count
         $('#source-count').text(sources.length);
-        
-        // Calculate and update balance score
         const balanceScore = calculateBalanceScore(sourceDistribution);
         $('#balance-score').text(balanceScore + '/100');
         
-        // Create bars and legend items
         sources.forEach((source, index) => {
             const count = sourceDistribution[source];
             const percentage = Math.round((count / totalArticles) * 100);
-            const height = Math.max(20, percentage * 2); // Min height 20px, max 200px
+            const height = Math.max(20, percentage * 2);
             const color = getSourceColor(source, index);
             
-            // Create bar with tooltip
             const $bar = $('<div>')
                 .addClass('source-bar tooltip')
-                .css({
-                    'height': height + 'px',
-                    'background-color': color
-                })
+                .css({ 'height': height + 'px', 'background-color': color })
                 .appendTo($sourceChart);
+            $('<div>').addClass('source-percentage').text(percentage + '%').appendTo($bar);
+            $('<span>').addClass('tooltip-text').text(`${source}: ${count} articles (${percentage}%)`).appendTo($bar);
             
-            // Add percentage label
-            $('<div>')
-                .addClass('source-percentage')
-                .text(percentage + '%')
-                .appendTo($bar);
-                
-            // Add tooltip
-            $('<span>')
-                .addClass('tooltip-text')
-                .text(`${source}: ${count} articles (${percentage}%)`)
-                .appendTo($bar);
-            
-            // Create legend item
-            const $legendItem = $('<div>')
-                .addClass('legend-item')
-                .appendTo($sourceLegend);
-            
-            $('<div>')
-                .addClass('legend-color')
-                .css('background-color', color)
-                .appendTo($legendItem);
-            
-            $('<div>')
-                .addClass('legend-label')
-                .text(`${source} (${count})`)
-                .appendTo($legendItem);
+            const $legendItem = $('<div>').addClass('legend-item').appendTo($sourceLegend);
+            $('<div>').addClass('legend-color').css('background-color', color).appendTo($legendItem);
+            $('<div>').addClass('legend-label').text(`${source} (${count})`).appendTo($legendItem);
         });
         
-        // Add responsive behavior for mobile
-        if (window.innerWidth <= 640) {
-            // Limit the number of visible legend items on mobile
+        if (window.innerWidth <= 640 && sources.length > 6) {
             const $legendItems = $sourceLegend.find('.legend-item');
-            if ($legendItems.length > 6) {
-                // Hide excess items and add a "show more" button
-                $legendItems.slice(6).hide();
-                
-                const $showMoreBtn = $('<button>')
-                    .addClass('clear-button')
-                    .text('Show All Sources')
-                    .css({
-                        'margin-top': '0.5rem',
-                        'width': 'auto',
-                        'padding': '0.5rem'
-                    })
-                    .appendTo($sourceLegend);
-                    
-                $showMoreBtn.on('click', function() {
+            $legendItems.slice(6).hide();
+            $('<button>')
+                .addClass('clear-button')
+                .text('Show All Sources')
+                .css({ 'margin-top': '0.5rem', 'width': 'auto', 'padding': '0.5rem' })
+                .appendTo($sourceLegend)
+                .on('click', function() {
                     $legendItems.slice(6).toggle();
                     $(this).text($(this).text() === 'Show All Sources' ? 'Show Less' : 'Show All Sources');
                 });
-            }
         }
     }
 
+    // Simplify search topic (restored from original)
+    function simplifySearchTopic(topic) {
+        const removeWords = ['and', 'the', 'by', 'from', 'to', 'in', 'on', 'at', 'for', 'of'];
+        const specialCases = {
+            'administration': 'admin', 'president': '', 'impeached': 'impeach',
+            'released': 'release', 'imposes': 'impose', 'sanctions': 'sanction'
+        };
+        
+        let words = topic.split(' ').filter(word => !removeWords.includes(word.toLowerCase()));
+        words = words.map(word => specialCases[word.toLowerCase()] || word);
+        
+        if (words.length > 3) {
+            const properNouns = words.filter(word => word[0] === word[0].toUpperCase());
+            const keyTerms = words.filter(word => word[0] !== word[0].toUpperCase());
+            words = [...properNouns, ...keyTerms.slice(0, 2)];
+        }
+        
+        const simplified = words.filter(word => word).join(' ');
+        console.log(`Simplified topic "${topic}" to "${simplified}"`);
+        return simplified;
+    }
+
+    // Display articles and image
     function displayArticles(articles, summary, metadata) {
         console.log('displayArticles called with:', {
             articlesCount: articles ? articles.length : 0,
@@ -278,13 +223,6 @@ $(document).ready(function() {
         
         $loading.hide();
         if (articles && articles.length > 0) {
-            // Log the state of the summary card before updating
-            console.log('Summary card state:', {
-                exists: $results.find('.summary-card').length > 0,
-                visible: $results.find('.summary-card').is(':visible'),
-                content: $results.find('.summary-card .summary-content').html()
-            });
-            
             let articlesHtml = articles.map(article => {
                 return `
                     <div class="article-card">
@@ -309,17 +247,14 @@ $(document).ready(function() {
                 `;
             }).join('');
             
-            // Update the DOM
             $results.find('.article-list').html(articlesHtml);
             $results.find('.summary-card .summary-content').html(summary);
             
-            // Log the state after updating
             console.log('After update:', {
                 summaryContent: $results.find('.summary-card .summary-content').html(),
                 summaryCardVisible: $results.find('.summary-card').is(':visible')
             });
             
-            // Update metadata display
             $results.find('#articles-analyzed').text(articles.length);
             $results.find('#average-sentiment').text(getSentimentLabel(metadata.average_sentiment));
             $results.find('#sentiment-gauge-indicator').css({
@@ -327,7 +262,6 @@ $(document).ready(function() {
                 'background-color': getSentimentColor(metadata.average_sentiment)
             });
             
-            // Create source distribution visualization
             if (metadata.source_distribution) {
                 createSourceDistribution(metadata.source_distribution);
                 $results.find('.source-dashboard').show();
@@ -335,7 +269,20 @@ $(document).ready(function() {
                 $results.find('.source-dashboard').hide();
             }
             
-            // Show all components
+            // Display image from metadata
+            if (metadata.image && metadata.image.path) {
+                console.log('Displaying image from metadata:', metadata.image.path);
+                $imageContainer.html(`<img src="${metadata.image.path}" alt="Generated Image" style="max-width: 100%;">`)
+                    .show()
+                    .find('img').on('error', function() {
+                        console.error('Image load failed:', metadata.image.path);
+                        $imageContainer.html('<p>Image failed to load.</p>');
+                    });
+            } else {
+                console.log('No image path in metadata');
+                $imageContainer.html('<p>No image available.</p>').show();
+            }
+            
             $results.show();
             $results.find('.summary-card').show();
             $results.find('.articles-card').show();
@@ -344,102 +291,8 @@ $(document).ready(function() {
         } else {
             console.log('No articles found, showing error message');
             $errorMessage.text('No articles found.').show();
+            $imageContainer.hide();
         }
-    }
-
-    // Function to simplify search topics
-    function simplifySearchTopic(topic) {
-        // List of words to remove (common words that don't add search value)
-        const removeWords = ['and', 'the', 'by', 'from', 'to', 'in', 'on', 'at', 'for', 'of'];
-        
-        // Special cases mapping (add more as needed)
-        const specialCases = {
-            'administration': 'admin',
-            'president': '',
-            'impeached': 'impeach',
-            'released': 'release',
-            'imposes': 'impose',
-            'sanctions': 'sanction'
-        };
-
-        // Split the topic into words
-        let words = topic.split(' ');
-        
-        // Keep only significant words
-        words = words.filter(word => {
-            const lowerWord = word.toLowerCase();
-            return !removeWords.includes(lowerWord);
-        });
-
-        // Replace special cases
-        words = words.map(word => {
-            const lowerWord = word.toLowerCase();
-            return specialCases[lowerWord] || word;
-        });
-
-        // If we have more than 3 words, keep only the most important ones
-        // Usually these are proper nouns and key terms
-        if (words.length > 3) {
-            // Priority for words starting with capital letters (proper nouns)
-            const properNouns = words.filter(word => word[0] === word[0].toUpperCase());
-            const keyTerms = words.filter(word => word[0] !== word[0].toUpperCase());
-            
-            // Combine proper nouns with important key terms
-            words = [...properNouns, ...keyTerms.slice(0, 2)];
-        }
-
-        // Filter out empty strings and join
-        const simplified = words.filter(word => word).join(' ');
-        console.log(`Simplified topic "${topic}" to "${simplified}"`);
-        return simplified;
-    }
-
-    // Add these utility functions at the top of your file
-    function formatImageName(searchTerm) {
-        console.log('formatImageName input:', searchTerm);
-        
-        // Split and clean the terms
-        const terms = searchTerm
-            .split(',')
-            .map(term => term.trim())
-            .filter(term => term);
-        console.log('Split terms:', terms);
-        
-        // Join with hyphens and capitalize first letter of each word
-        const formatted = terms
-            .join('-')
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join('-');
-        
-        console.log('Final formatted name:', formatted);
-        return formatted;
-    }
-
-    function showImageLoading() {
-        $('.topic-image-card').show();
-        $('.image-loading').show();
-        $('.image-error').hide();
-        $('#topic-image').hide();
-    }
-
-    function showImageError() {
-        $('.topic-image-card').show();
-        $('.image-loading').hide();
-        $('.image-error').show();
-        $('#topic-image').hide();
-    }
-
-    function showImage(imagePath) {
-        $('.image-loading').hide();
-        $('.image-error').hide();
-        $('#topic-image')
-            .attr('src', imagePath)
-            .show()
-            .on('error', function() {
-                showImageError();
-                console.error('Image failed to load:', imagePath);
-            });
     }
 
     // Handle trending card clicks
@@ -453,60 +306,6 @@ $(document).ready(function() {
             return;
         }
 
-        showImageLoading();
-        
-        try {
-            const formattedImageName = formatImageName(searchTerm);
-            console.log('Formatted image name:', formattedImageName);
-            
-            const imagePath = `/static/images/${formattedImageName}.png`;
-            console.log('Full image path:', imagePath);
-            
-            // Log the actual search term processing steps
-            console.log('Search term processing:', {
-                original: searchTerm,
-                split: searchTerm.split(','),
-                trimmed: searchTerm.split(',').map(term => term.trim()),
-                filtered: searchTerm.split(',').map(term => term.trim()).filter(term => term),
-                formatted: formattedImageName
-            });
-
-            // Add this to check if file exists on server
-            fetch(imagePath, { method: 'HEAD' })
-                .then(response => {
-                    console.log('File check response:', response.status);
-                })
-                .catch(error => {
-                    console.error('File check error:', error);
-                });
-
-            const loadingTimeout = setTimeout(() => {
-                console.error('Image loading timed out');
-                showImageError();
-            }, 10000);
-
-            const img = new Image();
-            
-            img.onload = function() {
-                clearTimeout(loadingTimeout);
-                showImage(imagePath);
-                console.log('Image loaded successfully');
-            };
-            
-            img.onerror = function() {
-                clearTimeout(loadingTimeout);
-                console.error(`No image found at path: ${imagePath}`);
-                showImageError();
-            };
-            
-            img.src = imagePath;
-
-        } catch (error) {
-            console.error('Error in image processing:', error);
-            showImageError();
-        }
-        
-        // Show loading state
         $loading.show();
         $results.hide();
         $errorMessage.text('').hide();
@@ -516,18 +315,15 @@ $(document).ready(function() {
         $results.find('.sentiment-summary').hide();
         $results.find('.source-dashboard').hide();
         $trendingContainer.hide();
+        $imageContainer.hide();
 
-        // Make the search request
-        $.post('/data', {event: searchTerm}, function(data) {
+        $.post('/data', { event: searchTerm }, function(data) {
             console.log('Response received:', data);
             if (data.error) {
                 console.log('Error found in response:', data.error);
                 $errorMessage.text(data.error).show();
             } else {
-                // Show the original topic in the current-topic display
                 $results.find('.current-topic').text('Current topic: ' + searchTerm).show();
-                
-                // Debug the actual content
                 console.log('Articles:', data.articles ? data.articles.length : 0);
                 console.log('Summary:', data.summary);
                 console.log('Metadata:', data.metadata);
@@ -552,7 +348,7 @@ $(document).ready(function() {
         });
     });
 
-    // Existing search form submit handler
+    // Handle search form submission
     $('#search-form').submit(function(event) {
         event.preventDefault();
         var eventQuery = $('input[name="event"]', this).val();
@@ -569,22 +365,20 @@ $(document).ready(function() {
         $results.find('.sentiment-summary').hide();
         $results.find('.source-dashboard').hide();
         $trendingContainer.hide();
+        $imageContainer.hide();
 
-        $.post('/data', {event: eventQuery}, function(data) {
+        $.post('/data', { event: eventQuery }, function(data) {
             console.log('Response received:', data);
             if (data.error) {
                 console.log('Error found in response:', data.error);
                 $errorMessage.text(data.error).show();
             } else {
                 $results.find('.current-topic').text('Current topic: ' + eventQuery).show();
-                
-                // Debug the actual content
                 console.log('Articles:', data.articles ? data.articles.length : 0);
                 console.log('Summary:', data.summary);
                 console.log('Metadata:', data.metadata);
                 
                 if (data.warning) {
-                    // Only show warning if no articles were found
                     if (!data.articles || data.articles.length === 0) {
                         $errorMessage.text(data.warning).show();
                     } else {
@@ -604,30 +398,24 @@ $(document).ready(function() {
         });
     });
 
+    // Clear button handler
     $results.find('.clear-button').on('click', function() {
         $('.topic-image-card').hide();
         $('.image-loading').hide();
         $('.image-error').hide();
         $('#topic-image').hide();
+        $imageContainer.hide();
         window.location.href = "/";
     });
 
-    // Add click handler for logo to return to homepage
+    // Logo click handler
     $('.logo').on('click', function() {
-        // Clear the search input
         $('.search-input').val('');
-        
-        // Hide results and show trending
         $('#results').hide();
         $('.trending-container').show();
-        
-        // Hide current topic
         $('.current-topic').hide();
-        
-        // Clear any error messages
         $('.error-message').hide();
-        
-        // Reset the page title
+        $imageContainer.hide();
         document.title = 'Neutral News';
     });
 });
