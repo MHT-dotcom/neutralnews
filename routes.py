@@ -314,27 +314,58 @@ def fetch_and_process_data(event):
 
 def get_trending_topics(date_str, force_refresh=False, time_period="current"):
     """Get trending topics for a given date"""
-    # Include time_period in the cache key to ensure different caching
-    cache_key = f"trending_topics_{date_str}_{time_period}"
+    logger.info("Grok API disabled, returning static topics")\
+    # Hardcoded fallback topics for CURRENT week
+    current_fallback_topics = [
+        ['Ukraine-Russia Peace Talks Stall After New Sanctions', 'Ukraine Russia sanctions'],
+        ['Tesla Unveils Robotaxi Plans for 2026 Rollout', 'Tesla robotaxi autonomous'],
+        ['Federal Reserve Signals Potential Rate Cut', 'Fed interest rates economy'],
+        ['Meta AI Assistant Now Available in 40 Languages', 'Meta AI assistant languages'],
+        ['Record Temperatures Hit Mediterranean Countries', 'heatwave climate Mediterranean'],
+        ['SpaceX Launches First Commercial Lunar Lander', 'SpaceX lunar lander commercial'],
+        ['UN Report Warns of Critical Ocean Pollution Levels', 'ocean pollution plastic UN'],
+        ['China Unveils New Economic Stimulus Package', 'China economy stimulus package']
+    ]
     
-    logger.info(f"Getting trending topics for {date_str} with time_period={time_period}")
-    
-    # Skip cache if force_refresh is True
-    if force_refresh or not cache.get(cache_key):
-        logger.info(f"Fetching fresh trending topics for {date_str} ({time_period})")
-        topics = fetch_grok_trending_topics(
-            max_topics=8, 
-            start_date=date_str, 
-            end_date=date_str,
-            time_period=time_period
-        )
-        
-        # Cache the results with the time_period-specific key
-        cache.set(cache_key, topics)
-        return topics
+    # Hardcoded fallback topics for LAST week
+    last_week_fallback_topics = [
+        ['US Passes Major Climate Legislation', 'climate bill emissions'],
+        ['Twitter Introduces New Content Moderation Tools', 'Twitter moderation content'],
+        ['Major Tech Companies Announce Layoffs', 'tech layoffs recession'],
+        ['Japan Reopens Borders to International Tourism', 'Japan tourism COVID'],
+        ['Breakthrough in Nuclear Fusion Energy Announced', 'fusion energy breakthrough'],
+        ['Amazon Acquires Healthcare Provider for $4 Billion', 'Amazon healthcare acquisition'],
+        ['Global Wheat Prices Stabilize After Recent Surge', 'wheat prices food'],
+        ['New Malaria Vaccine Shows 80% Efficacy in Trials', 'malaria vaccine WHO']
+    ]
+    if time_period == "last_week":
+        return current_fallback_topics[:8]
     else:
-        logger.info(f"Using cached {date_str} trending topics ({time_period})")
-        return cache.get(cache_key)
+        return last_week_fallback_topics[:8]
+    
+    # # Include time_period in the cache key to ensure different caching
+    # cache_key = f"trending_topics_{date_str}_{time_period}"
+    
+    # logger.info(f"Getting trending topics for {date_str} with time_period={time_period}")
+    
+    # # Skip cache if force_refresh is True
+    # if force_refresh or not cache.get(cache_key):
+    #     logger.info(f"Fetching fresh trending topics for {date_str} ({time_period})")
+    #     topics = fetch_grok_trending_topics(
+    #         max_topics=8, 
+    #         start_date=date_str, 
+    #         end_date=date_str,
+    #         time_period=time_period
+    #     )
+        
+    #     # Cache the results with the time_period-specific key
+    #     cache.set(cache_key, topics)
+    #     return topics
+    # else:
+    #     logger.info(f"Using cached {date_str} trending topics ({time_period})")
+    #     return cache.get(cache_key)
+    
+
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for displaying trending topics and fetching custom summaries."""
