@@ -14,7 +14,7 @@ from processors import (process_articles, remove_duplicates, filter_relevant_art
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N)
-from get_img import generate_and_save_image
+from get_img import generate_and_save_image, get_image_cache_stats, optimize_image_storage
 
 # Align blueprint name with app.py registration
 routes = Blueprint('news_routes', __name__)
@@ -598,6 +598,58 @@ def health_check():
     """Return a simple health status for Render's health check."""
     logger.info("Health check accessed")
     return jsonify({'status': 'healthy'}), 200
+
+@routes.route('/admin/image-cache', methods=['GET', 'POST'])
+def image_cache_admin():
+    """Admin route for image cache statistics and management."""
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'optimize':
+            # Run optimization with parameters from form
+            max_age = int(request.form.get('max_age', 30))
+            target_size = int(request.form.get('target_size', 500))
+            optimize_image_storage(max_age_days=max_age, target_size_mb=target_size)
+            return jsonify({
+                'status': 'success',
+                'message': f'Optimization started with max_age={max_age}, target_size={target_size}MB'
+            })
+        return jsonify({'status': 'error', 'message': 'Invalid action'}), 400
+    
+    # Get current stats
+    stats = get_image_cache_stats()
+    
+    # Calculate directory size
+    image_dir = current_app.config["IMAGE_DIR"]
+    dir_size = 0
+    file_count = 0
+    
+    for path, dirs, files in os.walk(image_dir):
+        for f in files:
+            if f.endswith('.png'):
+                fp = os.path.join(path, f)
+                file_count += 1
+                dir_size += os.path.getsize(fp)
+    
+    stats['directory_size_mb'] = dir_size / (1024 * 1024)
+    stats['file_count'] = file_count
+    
+    # Get some sample entries from cache sorted by search count
+    conn = sqlite3.connect(current_app.config["DB_PATH"])
+    c = conn.cursor()
+    c.execute("""
+        SELECT query, image_path, search_count FROM search_history 
+        WHERE image_path IS NOT NULL
+        ORDER BY search_count DESC
+        LIMIT 10
+    """)
+    top_searches = [{'query': row[0], 'path': row[1], 'count': row[2]} for row in c.fetchall()]
+    conn.close()
+    
+    return jsonify({
+        'stats': stats,
+        'top_searches': top_searches,
+        'timestamp': datetime.now().isoformat()
+    })
 
 def init_db():
     """Initialize the SQLite database with image_path column."""

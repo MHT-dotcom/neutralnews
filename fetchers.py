@@ -11,6 +11,11 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 import socket
 import ssl
+from urllib.parse import quote
+
+import os
+from utils import secure_log_key
+from dotenv import load_dotenv
 try:
     from config_prod import (
         NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
@@ -278,195 +283,6 @@ def fetch_grok_trending_topics(max_topics=8, start_date=None, end_date=None, tim
     max_topics = min(max(1, max_topics), 8)
     logger.info("Bypassing Grok API, returning fallback topics directly")
     return fallback_topics[:max_topics]
-    # # Ensure max_topics is between 1 and 8
-    # max_topics = min(max(1, max_topics), 8)
-    
-    # # Set default dates if not provided
-    # if end_date is None:
-    #     end_date = datetime.now().strftime("%Y-%m-%d")  # e.g., "2025-03-13"
-    # if start_date is None:
-    #     start_date = end_date  # Single day (today) if no range specified
-    
-    # # Format dates for user-friendly display
-    # start_date_str = datetime.strptime(start_date, "%Y-%m-%d").strftime("%B %d, %Y")  # e.g., "March 6, 2025"
-    # end_date_str = datetime.strptime(end_date, "%Y-%m-%d").strftime("%B %d, %Y")  # e.g., "March 12, 2025"
-    
-    # # Construct the prompt for Grok
-    # date_range_text = f"from {start_date_str} to {end_date_str}" if start_date != end_date else f"for {start_date_str}"
-    
-    # prompt = (
-    #     f"Analyze news and social media data {date_range_text} to identify the {max_topics} "
-    #     "most talked-about news topics, including a mix of general news, technology, "
-    #     "and business stories. For each topic, generate a concise, neutral headline (title only, "
-    #     "no content) with no sentiment or sensationalism, and provide 2-3 relevant keywords "
-    #     "that summarize the core elements of the story as a space-separated string.\n\n"
-    #     "Return the results as a list of lists, where each inner list contains exactly two elements: "
-    #     "the headline and the keyword string. Format the output exactly as: "
-    #     "[['Headline', 'keyword1 keyword2'], ...]. Example: "
-    #     "[['Trump raises tariffs on China', 'Trump tariffs'], ...]. "
-    #     "Use current web search results and social media trends to determine prominence, prioritizing "
-    #     "diverse, high-impact stories across categories like geopolitics, tech innovation, "
-    #     "business developments, and political events."
-    # )
-    
-    # # CORRECT API endpoint for xAI's Grok
-    # url = "https://api.x.ai/v1/chat/completions"
-    # logger.info(f"Using Grok API endpoint: {url}")
-    
-    # # Log API key details (safely)
-    # if not GROK_API_KEY:
-    #     logger.error("No GROK_API_KEY found")
-    #     return fallback_topics
-    
-    # key_preview = f"{GROK_API_KEY[:8]}...{GROK_API_KEY[-8:]}" if len(GROK_API_KEY) > 16 else "[key too short]"
-    # logger.info(f"Using API key: {key_preview}")
-    
-    # # Use the full API key including the xai- prefix
-    # api_key = GROK_API_KEY  # Keep the original key with xai- prefix
-    
-    # # Prepare headers for x.ai API
-    # headers = {
-    #     "Authorization": f"Bearer {api_key}",
-    #     "Content-Type": "application/json"
-    # }
-    
-    # # Prepare payload in OpenAI-compatible format with CORRECT model name
-    # payload = {
-    #     "model": "grok-2",  # UPDATED: This is the model name that works
-    #     "messages": [
-    #         {"role": "user", "content": prompt}
-    #     ],
-    #     "temperature": 0.3,
-    #     "max_tokens": 800,
-    #     "top_p": 1.0
-    # }
-    
-    # logger.debug(f"Request payload structure: {list(payload.keys())}")
-    
-    # try:
-    #     # Make the API request
-    #     logger.info(f"Making request to Grok API for {date_range_text}")
-        
-    #     # Use certifi for proper certificate verification
-    #     import certifi
-    #     response = requests.post(
-    #         url, 
-    #         json=payload, 
-    #         headers=headers, 
-    #         timeout=15,
-    #         verify=certifi.where()  # Use certifi's certificate bundle
-    #     )
-        
-    #     # Log response details
-    #     logger.info(f"Grok API response status: {response.status_code}")
-        
-    #     # Check for successful response
-    #     if response.status_code == 200:
-    #         try:
-    #             data = response.json()
-    #             logger.debug(f"Response structure: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
-                
-    #             # Parse response - OpenAI compatible format should have 'choices'
-    #             if isinstance(data, dict) and "choices" in data and len(data["choices"]) > 0:
-    #                 # Extract the content from the first choice
-    #                 content = data["choices"][0]["message"]["content"]
-    #                 logger.debug(f"Raw content: {content[:200]}...")
-                    
-    #                 # Parse the content to extract the list of lists
-    #                 try:
-    #                     # Try to safely evaluate the string representation of the list
-    #                     import ast
-    #                     topics = ast.literal_eval(content.strip())
-                        
-    #                     # Validate format
-    #                     if (isinstance(topics, list) and 
-    #                         all(isinstance(item, list) and len(item) == 2 and 
-    #                             isinstance(item[0], str) and isinstance(item[1], str) 
-    #                             for item in topics)):
-                            
-    #                         logger.info(f"Successfully parsed {len(topics)} topics from Grok API")
-                            
-    #                         # Limit to max_topics
-    #                         if len(topics) > max_topics:
-    #                             topics = topics[:max_topics]
-                            
-    #                         return topics
-    #                     else:
-    #                         logger.error(f"Invalid format in parsed content: {topics}")
-    #                 except (SyntaxError, ValueError) as e:
-    #                     logger.error(f"Failed to parse response content: {e}")
-                        
-    #                     # Attempt a more robust parsing approach for malformed responses
-    #                     try:
-    #                         # Look for list-like patterns in the text
-    #                         import re
-    #                         pattern = r"\[\s*['\"](.*?)['\"]\s*,\s*['\"](.*?)['\"]?\s*\]"
-    #                         matches = re.findall(pattern, content)
-                            
-    #                         if matches and len(matches) >= 1:
-    #                             parsed_topics = [[headline.strip(), keywords.strip()] for headline, keywords in matches]
-    #                             logger.info(f"Recovered {len(parsed_topics)} topics with regex")
-                                
-    #                             # Limit to max_topics
-    #                             if len(parsed_topics) > max_topics:
-    #                                 parsed_topics = parsed_topics[:max_topics]
-                                
-    #                             return parsed_topics
-    #                     except Exception as parse_e:
-    #                         logger.error(f"Secondary parsing also failed: {parse_e}")
-    #             else:
-    #                 logger.error(f"Unexpected response format: {data}")
-    #         except json.JSONDecodeError as e:
-    #             logger.error(f"Failed to parse JSON response: {e}")
-    #     else:
-    #         # Log error details
-    #         logger.error(f"Grok API error: {response.status_code}")
-    #         try:
-    #             error_data = response.json()
-    #             logger.error(f"Error details: {error_data}")
-                
-    #             # If we get an authentication error, try alternative formats
-    #             if response.status_code == 401 or response.status_code == 400:
-    #                 logger.info("Trying alternative authentication format...")
-                    
-    #                 # Try with original key including xai- prefix
-    #                 alt_headers = {
-    #                     "Authorization": f"Bearer {GROK_API_KEY}",
-    #                     "Content-Type": "application/json"
-    #                 }
-                    
-    #                 logger.info(f"Trying with full key including xai- prefix")
-    #                 alt_response = requests.post(
-    #                     url, 
-    #                     json=payload, 
-    #                     headers=alt_headers, 
-    #                     timeout=15,
-    #                     verify=certifi.where()
-    #                 )
-                    
-    #                 logger.info(f"Alternative auth response status: {alt_response.status_code}")
-                    
-    #                 if alt_response.status_code == 200:
-    #                     # Process successful response
-    #                     try:
-    #                         data = alt_response.json()
-    #                         content = data["choices"][0]["message"]["content"]
-    #                         import ast
-    #                         topics = ast.literal_eval(content.strip())
-    #                         return topics[:max_topics]
-    #                     except Exception as e:
-    #                         logger.error(f"Failed to process alternative auth response: {e}")
-    #         except:
-    #             logger.error(f"Raw error response: {response.text[:200]}")
-    # except requests.exceptions.RequestException as e:
-    #     logger.error(f"Request exception: {e}")
-    # except Exception as e:
-    #     logger.error(f"Unexpected error: {e}")
-    #     logger.exception("Exception details")
-    
-    # # If we got here, something failed, return the appropriate fallback topics
-    # logger.warning(f"Falling back to hardcoded {time_period} topics")
-    # return fallback_topics[:max_topics]
 
 def fetch_articles_for_topic(topic, max_articles=3, days_back=7):
     """
@@ -618,14 +434,14 @@ payload_formats = [
 ]
 
 def check_domain(domain):
-    """Check if a domain resolves correctly"""
+    """Check if domain exists and get its IP address"""
     try:
-        ip = socket.gethostbyname(domain)
-        print(f"Domain {domain} resolves to {ip}")
-        return True
+        ip_address = socket.gethostbyname(domain)
+        logger.info(f"Domain {domain} resolves to {ip_address}")
+        return ip_address
     except socket.gaierror:
-        print(f"Domain {domain} does not resolve")
-        return False
+        logger.error(f"Domain {domain} could not be resolved")
+        return None
 
 # Test domains
 check_domain("api.xai.com")
@@ -633,16 +449,20 @@ check_domain("api.x.ai")
 check_domain("x.ai")
 
 def verify_key_format(key):
-    """Check if key follows expected pattern"""
+    """Check if key follows expected pattern and log securely"""
     import re
     # Check if key has expected format (this is a guess based on the key you shared)
     if re.match(r'^xai-[a-zA-Z0-9]{64,}$', key):
-        print("Key format appears valid")
+        logger.info("Key format appears valid")
     else:
-        print("Key format may be incorrect")
+        logger.info("Key format may be incorrect")
     
-    # Check key length
-    print(f"Key length: {len(key)} characters")
+    # Check key length without exposing the key
+    logger.info(f"Key length: {len(key)} characters")
+    
+    # Only log a small masked portion of the key for verification
+    masked_key = secure_log_key(key, visible_chars=2)
+    logger.debug(f"Key format check complete for key: {masked_key}")
 
 # Verify the key
 verify_key_format(GROK_API_KEY)

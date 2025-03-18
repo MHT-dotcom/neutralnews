@@ -4,8 +4,9 @@ from PIL import Image
 import io
 import os
 import logging
-import requests  # Added this import
+import requests
 from flask import current_app
+import image_cache
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -74,48 +75,147 @@ def generate_with_openai(prompt, size=1024):
         logger.error(f"OpenAI generation failed: {str(e)}", exc_info=True)
         return None
 
-def generate_and_save_image(query, summary):
-    """Generate and save an image based on summary, return path and status"""
-    logger.info(f"=== Starting image generation for query: '{query}' ===")
-    clean_query = "".join(c if c.isalnum() else "-" for c in query.lower())
-    image_path = os.path.join(current_app.config["IMAGE_DIR"], f"{clean_query}.png")
-    logger.info(f"Image path: {image_path}")
+def generate_and_save_image(query, summary, force_regenerate=False):
+    """
+    Generate and save an image based on summary, using efficient caching strategy.
     
-    if os.path.exists(image_path):
+    Args:
+        query (str): The search query
+        summary (str): The article summary to base the image on
+        force_regenerate (bool): Whether to regenerate the image even if it exists
+        
+    Returns:
+        tuple: (image_path, status) where image_path is the path to the image and status is True if successful
+    """
+    logger.info(f"=== Starting image generation for query: '{query}' ===")
+    
+    # Clean the query for use as a filename
+    clean_query = "".join(c if c.isalnum() else "-" for c in query.lower())
+    image_dir = current_app.config["IMAGE_DIR"]
+    
+    # Get cache instance
+    cache = image_cache.get_instance(
+        db_path=current_app.config.get("DB_PATH"),
+        image_dir=image_dir
+    )
+    
+    # Check if the image is in our cache (unless force regenerate)
+    if not force_regenerate:
+        cached_path = cache.get_image_path(query)
+        if cached_path:
+            logger.info(f"Image found in cache: {cached_path}")
+            return cached_path, True
+    
+    # Standard path for the image
+    image_path = os.path.join(image_dir, f"{clean_query}.png")
+    
+    # Check if image already exists on disk (unless force regenerate)
+    if not force_regenerate and os.path.exists(image_path):
         logger.info(f"Image already exists at {image_path}")
+        # Add to cache for future fast access
+        cache.add_image(query, image_path)
         return image_path, True
     
+    # Ensure the images directory exists
     os.makedirs(os.path.dirname(image_path), exist_ok=True)
     logger.info(f"Images directory ensured: {os.path.dirname(image_path)}")
 
+    # Generate prompt from summary
     prompt = f"A digital illustration of: {summary}"
     logger.info(f"Generating image with prompt: {prompt}")
     
+    # Try Stability AI first
     image = generate_with_stability(prompt)
     if image:
         image.save(image_path)
         logger.info(f"Image saved to {image_path} via Stability AI")
-        logger.info(f"Generated image filename: '{clean_query}.png'")
         logger.info(f"File exists after save: {os.path.exists(image_path)}")
+        
+        # Add to cache
+        cache.add_image(query, image_path)
         return image_path, True
     
+    # Fallback to OpenAI
     image = generate_with_openai(prompt)
     if image:
         image.save(image_path)
         logger.info(f"Image saved to {image_path} via OpenAI")
-        logger.info(f"Generated image filename: '{clean_query}.png'")
         logger.info(f"File exists after save: {os.path.exists(image_path)}")
+        
+        # Add to cache
+        cache.add_image(query, image_path)
         return image_path, True
     
     logger.error(f"Failed to generate image for query: {query}")
     return None, False
 
+def pregenerate_trending_images(trending_topics):
+    """
+    Pre-generate images for trending topics in the background.
+    
+    Args:
+        trending_topics (list): List of [headline, keywords] pairs
+    """
+    try:
+        # Get cache instance
+        if current_app:
+            cache = image_cache.get_instance(
+                db_path=current_app.config.get("DB_PATH"),
+                image_dir=current_app.config.get("IMAGE_DIR")
+            )
+            
+            # Start pre-generation
+            cache.pregenerate_trending_images(trending_topics, generate_and_save_image)
+            logger.info(f"Started background image pre-generation for {len(trending_topics)} trending topics")
+        else:
+            logger.warning("Cannot pregenerate images: no Flask application context")
+    except Exception as e:
+        logger.error(f"Error starting image pre-generation: {str(e)}")
+
+def optimize_image_storage(max_age_days=30, target_size_mb=500):
+    """
+    Optimize storage by removing old/unused images and compressing large ones.
+    
+    Args:
+        max_age_days (int): Maximum age for unused images
+        target_size_mb (int): Target directory size in MB
+    """
+    try:
+        if current_app:
+            cache = image_cache.get_instance(
+                db_path=current_app.config.get("DB_PATH"),
+                image_dir=current_app.config.get("IMAGE_DIR")
+            )
+            
+            # Run optimization
+            cache.optimize_storage(max_age_days, target_size_mb)
+            logger.info("Completed image storage optimization")
+        else:
+            logger.warning("Cannot optimize images: no Flask application context")
+    except Exception as e:
+        logger.error(f"Error during image optimization: {str(e)}")
+
+def get_image_cache_stats():
+    """Get statistics about the image cache performance."""
+    try:
+        if current_app:
+            cache = image_cache.get_instance()
+            return cache.get_stats()
+        return {"error": "No Flask application context"}
+    except Exception as e:
+        logger.error(f"Error getting cache stats: {str(e)}")
+        return {"error": str(e)}
+
 if __name__ == "__main__":
     from flask import Flask
     app = Flask(__name__)
     app.config["IMAGE_DIR"] = os.path.join(os.path.dirname(__file__), "static", "images")
+    app.config["DB_PATH"] = os.path.join(os.path.dirname(__file__), "data", "search_db.sqlite")
     with app.app_context():
         test_query = "Test-Query"
         test_summary = "A futuristic cityscape glowing with neon lights under a starry sky."
         image_path, status = generate_and_save_image(test_query, test_summary)
         print(f"Image Path: {image_path}, Status: {status}")
+        
+        # Test cache stats
+        print(f"Cache Stats: {get_image_cache_stats()}")

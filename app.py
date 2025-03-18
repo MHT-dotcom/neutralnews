@@ -14,6 +14,9 @@ from fetchers import fetch_grok_trending_topics
 import requests
 import certifi
 from datetime import datetime
+from utils import secure_log_key  # Import the secure logging function
+import threading
+import time
 
 # Set up logging
 logger = logging.getLogger('neutralnews')
@@ -27,10 +30,12 @@ logger.setLevel(logging.DEBUG if os.getenv("FLASK_ENV") == "development" else lo
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)
 
-# Load environment variables
-logger.info("Before .env load: GROK_API_KEY: %s", os.getenv("GROK_API_KEY", "Not set"))
+# Load environment variables - Use secure logging to mask API keys
+grok_key = secure_log_key(os.getenv("GROK_API_KEY", "Not set"))
+logger.info("Before .env load: GROK_API_KEY: %s", grok_key)
 load_dotenv()  # Loads .env from current directory if present
-logger.info(".env loading attempted. GROK_API_KEY from os.environ: %s", os.getenv("GROK_API_KEY", "Not set"))
+grok_key = secure_log_key(os.getenv("GROK_API_KEY", "Not set"))
+logger.info(".env loading attempted. GROK_API_KEY from os.environ: %s", grok_key)
 
 # Determine base path for persistent storage
 BASE_PATH = os.getenv("BASE_PATH", os.path.join(os.path.dirname(__file__), "data"))
@@ -56,15 +61,26 @@ from config_prod import (
     NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, 
     NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
     NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
-    GROK_API_KEY
+    GROK_API_KEY, get_api_key_status
 )
+
+# Log API key availability securely
+logger.info(f"NEWSAPI_ORG_KEY: {get_api_key_status('NEWSAPI_ORG_KEY', NEWSAPI_ORG_KEY)}")
+logger.info(f"GUARDIAN_API_KEY: {get_api_key_status('GUARDIAN_API_KEY', GUARDIAN_API_KEY)}")
+logger.info(f"GNEWS_API_KEY: {get_api_key_status('GNEWS_API_KEY', GNEWS_API_KEY)}")
+logger.info(f"NYT_API_KEY: {get_api_key_status('NYT_API_KEY', NYT_API_KEY)}")
+logger.info(f"OPENAI_API_KEY: {get_api_key_status('OPENAI_API_KEY', OPENAI_API_KEY)}")
+logger.info(f"MEDIASTACK_API_KEY: {get_api_key_status('MEDIASTACK_API_KEY', MEDIASTACK_API_KEY)}")
+logger.info(f"NEWSDATA_API_KEY: {get_api_key_status('NEWSDATA_API_KEY', NEWSDATA_API_KEY)}")
+logger.info(f"AYLIEN keys: {get_api_key_status('AYLIEN', AYLIEN_APP_ID and AYLIEN_API_KEY)}")
+logger.info(f"GROK_API_KEY: {get_api_key_status('GROK_API_KEY', GROK_API_KEY)}")
 
 def init_db():
     conn = sqlite3.connect(app.config["DB_PATH"])
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS search_history
                  (id INTEGER PRIMARY KEY, query TEXT NOT NULL, timestamp DATETIME NOT NULL,
-                  summary TEXT, average_sentiment REAL, articles TEXT, source_distribution TEXT)''')
+                  summary TEXT, average_sentiment REAL, articles TEXT, source_distribution TEXT, image_path TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS hot_topics
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, topics TEXT NOT NULL, fetch_date DATE NOT NULL)''')
     try:
@@ -72,6 +88,14 @@ def init_db():
     except sqlite3.OperationalError:
         pass
     c.execute("UPDATE hot_topics SET period = 'today' WHERE period IS NULL")
+    
+    # Add search_count column for image caching if not exists
+    try:
+        c.execute("ALTER TABLE search_history ADD COLUMN search_count INTEGER DEFAULT 1")
+        logger.info("Added search_count column to search_history")
+    except sqlite3.OperationalError:
+        logger.info("search_count column already exists")
+    
     conn.commit()
     conn.close()
     logger.info("Database initialized at %s", app.config["DB_PATH"])
@@ -113,6 +137,54 @@ def get_hot_topics(period="today"):
     conn.close()
     return new_topics
 
+# Function to pregenerate images for trending topics
+def initialize_trending_images():
+    """Initialize image generation for trending topics."""
+    logger.info("Starting trending image pre-generation...")
+    try:
+        from get_img import pregenerate_trending_images
+        
+        # Get trending topics
+        today_topics = get_hot_topics("today")
+        last_week_topics = get_hot_topics("last_week")
+        
+        # Pre-generate images for both sets
+        with app.app_context():
+            pregenerate_trending_images(today_topics)
+            pregenerate_trending_images(last_week_topics)
+        
+        logger.info("Trending image pre-generation tasks started")
+    except Exception as e:
+        logger.error(f"Error initializing trending images: {str(e)}")
+
+# Background task to optimize image storage periodically
+def run_periodic_image_optimization(interval_hours=24):
+    """Run image storage optimization periodically."""
+    def optimization_worker():
+        logger.info("Starting periodic image optimization worker")
+        from get_img import optimize_image_storage
+        
+        while True:
+            try:
+                # Sleep first to avoid immediate optimization on startup
+                time.sleep(interval_hours * 3600)
+                
+                logger.info("Running scheduled image storage optimization")
+                with app.app_context():
+                    # Optimize with 30-day retention and 500MB target size
+                    optimize_image_storage(max_age_days=30, target_size_mb=500)
+                
+                logger.info(f"Image optimization complete, next run in {interval_hours} hours")
+            except Exception as e:
+                logger.error(f"Error in image optimization worker: {str(e)}")
+                # Continue loop even after error
+    
+    # Start background thread
+    thread = threading.Thread(target=optimization_worker)
+    thread.daemon = True
+    thread.start()
+    logger.info(f"Image optimization scheduler started (interval: {interval_hours} hours)")
+
 # Initialize the database
 with app.app_context():
     init_db()
@@ -133,6 +205,19 @@ logger.info("Cache cleared on startup")
 # Global trending topics
 today_topics = get_hot_topics("today")
 last_week_topics = get_hot_topics("last_week")
+
+# Start image cache system and optimization task
+if not DEBUG:
+    # Only run these in production to avoid consuming resources during development
+    run_periodic_image_optimization(interval_hours=12)  # Run every 12 hours
+    
+    # Delay the trending image initialization slightly to let app start up
+    def delayed_image_init():
+        time.sleep(30)  # 30 second delay
+        initialize_trending_images()
+    
+    threading.Thread(target=delayed_image_init, daemon=True).start()
+    logger.info("Scheduled delayed trending image initialization")
 
 # Log startup details
 logger.info(f"Python version: {sys.version}")

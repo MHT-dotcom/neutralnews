@@ -5,6 +5,7 @@ from flask_caching import Cache
 from dotenv import load_dotenv
 import random
 from datetime import datetime
+from utils import secure_log_key
 
 # Basic in-memory cache with init_app pattern
 cache = Cache()
@@ -24,6 +25,18 @@ AYLIEN_API_KEY = os.environ.get("AYLIEN_API_KEY", "")
 GROK_API_KEY = os.environ.get("GROK_API_KEY", "").replace("xai-", "")
 STABILITY_API_KEY = os.environ.get('STABILITY_API_KEY')
 GETIMG_API_KEY = os.environ.get('GETIMG_API_KEY')
+
+# Helper function to check API key status without exposing the actual key
+def get_api_key_status(key_name, key_value):
+    """Return the status of an API key for logging purposes without exposing the actual key"""
+    if not key_value:
+        return "Missing"
+    
+    if len(key_value) < 8:
+        return "Invalid (too short)"
+        
+    masked_key = secure_log_key(key_value, visible_chars=2)
+    return f"Available ({masked_key})"
 
 # api endpoints
 # NEWSAPI_URL = "https://newsapi.org/v2/everything"
@@ -76,7 +89,9 @@ WEIGHT_RELEVANCE = 0.8
 WEIGHT_POPULARITY = 0.2
 # MAX_ARTICLES_PER_SOURCE = 10  # Example value, adjust as needed
 
-print("Before .env load:", os.environ.get("GROK_API_KEY", "NOT SET"))
+# Use secure logging to protect API key before .env load
+grok_key_before = secure_log_key(os.environ.get("GROK_API_KEY", "NOT SET"), visible_chars=2)
+print(f"Before .env load: GROK_API_KEY status: {grok_key_before}")
 
 load_dotenv()
 
@@ -157,4 +172,11 @@ endpoints_to_test = [
     "https://api.x.ai/v1/completions",    # Common AI API path format
     "https://api.x.ai/v1/chat/completions" # Another common path
 ]
+
+# Securely log GROK API key status for debugging
+if 'GROK_API_KEY' in os.environ:
+    grok_key_status = secure_log_key(os.environ.get('GROK_API_KEY', ''), visible_chars=2)
+    print(f"GROK_API_KEY status: Available ({grok_key_status})")
+else:
+    print("GROK_API_KEY status: Not set in environment")
 
