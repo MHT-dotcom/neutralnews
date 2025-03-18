@@ -60,24 +60,84 @@ class DummyTextAPI:
 textapi = DummyTextAPI()
 
 # Centralized helper function for fetching with robust error handling, updated to support POST
-async def async_fetch_with_error_handling(url, params=None, headers=None, json=None):
-    """Asynchronous version of fetch_with_error_handling using aiohttp"""
+async def async_fetch_with_error_handling(url, params=None, headers=None, json=None, ssl_verify=None, retry_count=0, max_retries=2, backoff_factor=1.5):
+    """Asynchronous version of fetch_with_error_handling using aiohttp with retry mechanism"""
     method = "GET" if json is None else "POST"
     try:
-        logger.debug(f"Making {method} request to {url}")
+        logger.debug(f"Making {method} request to {url} (retry {retry_count}/{max_retries})")
         timeout = aiohttp.ClientTimeout(total=10)  # 10 second timeout
+        
+        # SSL context for bypassing verification if needed
+        ssl_context = None
+        if ssl_verify is False:
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+            logger.warning(f"SSL verification disabled for {url}")
         
         async with aiohttp.ClientSession(timeout=timeout) as session:
             if method == "GET":
-                async with session.get(url, params=params, headers=headers) as response:
-                    if response.status != 200:
+                async with session.get(url, params=params, headers=headers, ssl=ssl_context) as response:
+                    if response.status == 429:  # Rate limited
+                        if retry_count < max_retries:
+                            retry_delay = backoff_factor ** retry_count
+                            logger.warning(f"Rate limited for {url}, retrying after {retry_delay:.2f}s (retry {retry_count+1}/{max_retries})")
+                            await asyncio.sleep(retry_delay)
+                            return await async_fetch_with_error_handling(
+                                url, params, headers, json, ssl_verify, 
+                                retry_count + 1, max_retries, backoff_factor
+                            )
+                        else:
+                            error_msg = f"Rate limit exceeded for {url} after {max_retries} retries"
+                            logger.error(error_msg)
+                            return None, error_msg
+                    elif response.status == 503 or response.status == 502:  # Service unavailable or bad gateway
+                        if retry_count < max_retries:
+                            retry_delay = backoff_factor ** retry_count
+                            logger.warning(f"Service unavailable for {url}, retrying after {retry_delay:.2f}s (retry {retry_count+1}/{max_retries})")
+                            await asyncio.sleep(retry_delay)
+                            return await async_fetch_with_error_handling(
+                                url, params, headers, json, ssl_verify, 
+                                retry_count + 1, max_retries, backoff_factor
+                            )
+                        else:
+                            error_msg = f"Service unavailable for {url} after {max_retries} retries"
+                            logger.error(error_msg)
+                            return None, error_msg
+                    elif response.status != 200:
                         error_msg = f"HTTP error {response.status} for {url}"
                         logger.error(error_msg)
                         return None, error_msg
                     return await response.json(), None
             else:
-                async with session.post(url, params=params, headers=headers, json=json) as response:
-                    if response.status != 200:
+                async with session.post(url, params=params, headers=headers, json=json, ssl=ssl_context) as response:
+                    if response.status == 429:  # Rate limited
+                        if retry_count < max_retries:
+                            retry_delay = backoff_factor ** retry_count
+                            logger.warning(f"Rate limited for {url}, retrying after {retry_delay:.2f}s (retry {retry_count+1}/{max_retries})")
+                            await asyncio.sleep(retry_delay)
+                            return await async_fetch_with_error_handling(
+                                url, params, headers, json, ssl_verify, 
+                                retry_count + 1, max_retries, backoff_factor
+                            )
+                        else:
+                            error_msg = f"Rate limit exceeded for {url} after {max_retries} retries"
+                            logger.error(error_msg)
+                            return None, error_msg
+                    elif response.status == 503 or response.status == 502:  # Service unavailable or bad gateway
+                        if retry_count < max_retries:
+                            retry_delay = backoff_factor ** retry_count
+                            logger.warning(f"Service unavailable for {url}, retrying after {retry_delay:.2f}s (retry {retry_count+1}/{max_retries})")
+                            await asyncio.sleep(retry_delay)
+                            return await async_fetch_with_error_handling(
+                                url, params, headers, json, ssl_verify, 
+                                retry_count + 1, max_retries, backoff_factor
+                            )
+                        else:
+                            error_msg = f"Service unavailable for {url} after {max_retries} retries"
+                            logger.error(error_msg)
+                            return None, error_msg
+                    elif response.status != 200:
                         error_msg = f"HTTP error {response.status} for {url}"
                         logger.error(error_msg)
                         return None, error_msg
@@ -85,10 +145,32 @@ async def async_fetch_with_error_handling(url, params=None, headers=None, json=N
     except aiohttp.ClientError as e:
         error_msg = f"{method} request error for {url}: {e}"
         logger.error(error_msg)
+        # If we got an SSL error and haven't tried disabling verification yet, retry with verification disabled
+        if "SSL" in str(e) and ssl_verify is None:
+            logger.warning(f"SSL error encountered for {url}, retrying with verification disabled")
+            return await async_fetch_with_error_handling(url, params, headers, json, ssl_verify=False)
+        # For connection errors, retry with backoff if we haven't exceeded max retries
+        if retry_count < max_retries and isinstance(e, (aiohttp.ClientConnectorError, aiohttp.ServerDisconnectedError)):
+            retry_delay = backoff_factor ** retry_count
+            logger.warning(f"Connection error for {url}, retrying after {retry_delay:.2f}s (retry {retry_count+1}/{max_retries})")
+            await asyncio.sleep(retry_delay)
+            return await async_fetch_with_error_handling(
+                url, params, headers, json, ssl_verify, 
+                retry_count + 1, max_retries, backoff_factor
+            )
         return None, error_msg
     except asyncio.TimeoutError:
         error_msg = f"{method} request timeout for {url}"
         logger.error(error_msg)
+        # Retry timeouts with backoff if we haven't exceeded max retries
+        if retry_count < max_retries:
+            retry_delay = backoff_factor ** retry_count
+            logger.warning(f"Timeout for {url}, retrying after {retry_delay:.2f}s (retry {retry_count+1}/{max_retries})")
+            await asyncio.sleep(retry_delay)
+            return await async_fetch_with_error_handling(
+                url, params, headers, json, ssl_verify, 
+                retry_count + 1, max_retries, backoff_factor
+            )
         return None, error_msg
     except Exception as e:
         error_msg = f"Unexpected {method} error for {url}: {e}"
@@ -546,17 +628,17 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     logger.info(f"Starting async fetching of articles for '{event}'")
     
     fetch_functions = [
-        (async_fetch_newsapi_org, USE_NEWSAPI_ORG),
-        (async_fetch_guardian, USE_GUARDIAN),
-        (async_fetch_aylien_articles, USE_AYLIEN),
-        (async_fetch_gnews_articles, USE_GNEWS),
-        (async_fetch_nyt_articles, USE_NYT),
-        (async_fetch_mediastack_articles, USE_MEDIASTACK),
-        (async_fetch_newsapi_ai_articles, USE_NEWSDATA)
+        (async_fetch_newsapi_org, "NewsAPI.org", USE_NEWSAPI_ORG),
+        (async_fetch_guardian, "Guardian", USE_GUARDIAN),
+        (async_fetch_aylien_articles, "Aylien", USE_AYLIEN),
+        (async_fetch_gnews_articles, "GNews", USE_GNEWS),
+        (async_fetch_nyt_articles, "NYT", USE_NYT),
+        (async_fetch_mediastack_articles, "Mediastack", USE_MEDIASTACK),
+        (async_fetch_newsapi_ai_articles, "NewsAPI.ai", USE_NEWSDATA)
     ]
     
     # Filter out disabled sources
-    enabled_functions = [func for func, enabled in fetch_functions if enabled]
+    enabled_functions = [(func, name) for func, name, enabled in fetch_functions if enabled]
     
     if not enabled_functions:
         logger.warning("No news sources are enabled. Check your configuration.")
@@ -564,32 +646,56 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
         
     # Execute all enabled fetchers concurrently
     try:
-        results = await asyncio.gather(
-            *[func(event, days_back=days_back) for func in enabled_functions],
-            return_exceptions=True
-        )
+        tasks = [func(event, days_back=days_back) for func, name in enabled_functions]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         
         # Process results and handle exceptions
         processed_results = []
+        successful_sources = []
+        failed_sources = []
+        
         for i, result in enumerate(results):
+            func, name = enabled_functions[i]
             if isinstance(result, Exception):
-                logger.error(f"Error in async fetcher {enabled_functions[i].__name__}: {result}")
+                logger.error(f"Error in {name} fetcher: {result}")
                 processed_results.append([])
+                failed_sources.append(name)
             else:
                 processed_results.append(result)
+                if not result:  # Empty result list
+                    logger.warning(f"No articles found from {name} for '{event}'")
+                    failed_sources.append(name)
+                else:
+                    logger.info(f"{name}: Fetched {len(result)} articles for '{event}'")
+                    successful_sources.append(name)
                 
         # Fill in gaps for disabled fetchers
         final_results = []
         result_index = 0
+        disabled_sources = []
         
-        for _, enabled in fetch_functions:
+        for func, name, enabled in fetch_functions:
             if enabled:
                 final_results.append(processed_results[result_index])
                 result_index += 1
             else:
                 final_results.append([])
-                
-        logger.info(f"Async fetching complete for '{event}'")
+                disabled_sources.append(name)
+        
+        success_rate = len(successful_sources) / len(enabled_functions) if enabled_functions else 0
+        logger.info(f"Async fetching complete for '{event}' - Success rate: {success_rate:.2%}")
+        
+        if successful_sources:
+            logger.info(f"Successful sources ({len(successful_sources)}): {', '.join(successful_sources)}")
+        if failed_sources:
+            logger.warning(f"Failed sources ({len(failed_sources)}): {', '.join(failed_sources)}")
+        if disabled_sources:
+            logger.info(f"Disabled sources ({len(disabled_sources)}): {', '.join(disabled_sources)}")
+        
+        # Check if we have at least some minimum success rate
+        if success_rate < 0.3 and len(enabled_functions) > 2:
+            logger.error(f"Critical failure rate in news fetching for '{event}' - Only {len(successful_sources)}/{len(enabled_functions)} sources succeeded")
+            
         return tuple(final_results)
         
     except Exception as e:

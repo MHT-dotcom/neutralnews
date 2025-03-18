@@ -544,6 +544,48 @@ def process_news_request(event):
                   f"Mediastack: {len(mediastack_articles)}, "
                   f"NewsAPI.ai: {len(newsapi_ai_articles)}")
 
+        # Identify failed sources
+        failed_sources = []
+        if not newsapi_org_articles and USE_NEWSAPI_ORG:
+            failed_sources.append("NewsAPI.org")
+        if not guardian_articles and USE_GUARDIAN:
+            failed_sources.append("Guardian")
+        if not aylien_articles and USE_AYLIEN:
+            failed_sources.append("Aylien")
+        if not gnews_articles and USE_GNEWS:
+            failed_sources.append("GNews")
+        if not nyt_articles and USE_NYT:
+            failed_sources.append("NYT")
+        if not mediastack_articles and USE_MEDIASTACK:
+            failed_sources.append("Mediastack")
+        if not newsapi_ai_articles and USE_NEWSDATA:
+            failed_sources.append("NewsAPI.ai")
+        
+        # Calculate success rate
+        enabled_sources = sum([USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, 
+                              USE_NYT, USE_MEDIASTACK, USE_NEWSDATA])
+        successful_sources = enabled_sources - len(failed_sources)
+        success_rate = successful_sources / enabled_sources if enabled_sources > 0 else 0
+        
+        if failed_sources:
+            logger.warning(f"The following sources failed to return results: {', '.join(failed_sources)}")
+            logger.warning(f"Source success rate: {success_rate:.2%}")
+        
+        # Handle critical failure scenario - almost all sources failed
+        if success_rate < 0.25 and enabled_sources > 2:
+            logger.error(f"Critical failure rate: {success_rate:.2%}")
+            # If we have an extremely low success rate, we should inform the user
+            # But we'll still try to proceed with what we have
+            if success_rate == 0:
+                logger.error("All news sources failed to return results")
+                return {
+                    'error': "We're experiencing technical difficulties reaching our news sources. Please try again later.",
+                    'technical_details': {
+                        'failed_sources': failed_sources,
+                        'enabled_sources': enabled_sources
+                    }
+                }, 503  # Service Unavailable
+
         total_fetched = (len(newsapi_org_articles) + len(guardian_articles) + 
                         len(aylien_articles) + len(gnews_articles) +
                         len(nyt_articles) + len(mediastack_articles) + 
@@ -567,6 +609,13 @@ def process_news_request(event):
         
         all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
                         std_nyt + std_mediastack + std_newsapi_ai)
+        
+        # If we got this far but have some failed sources, add a note to the response
+        warning_message = None
+        if failed_sources:
+            warning_message = "Some news sources were unavailable. Showing results from available sources."
+            if success_rate < 0.5:
+                warning_message = "Several news sources were unavailable. Results may be limited."
         
         logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles to avoid crashes")
         sentiment_start = time.time()
@@ -687,77 +736,6 @@ def process_news_request(event):
 
         articles = final_articles
         logger.info(f"Capped articles count for event '{event}': {len(articles)}")
-
-        failed_sources = []
-        if not newsapi_org_articles:
-            failed_sources.append("NewsAPI")
-        if not guardian_articles:
-            failed_sources.append("Guardian")
-        if not aylien_articles:
-            failed_sources.append("Aylien")
-        if not gnews_articles:
-            failed_sources.append("GNews")
-        if not nyt_articles:
-            failed_sources.append("NYT")
-        if not mediastack_articles:
-            failed_sources.append("Mediastack")
-        if not newsapi_ai_articles:
-            failed_sources.append("NewsAPI.ai")
-        
-        if failed_sources:
-            error_message = "Showing results from available sources"
-            logger.warning(f"Partial API failure for event '{event}': {failed_sources}")
-            total_time = time.time() - start_time
-
-            filter_start = time.time()
-            logger.info(f"Starting filtering for event '{event}' at {filter_start}")
-            relevant_articles = filter_relevant_articles(articles, event)
-            filter_time = time.time() - filter_start
-            logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
-
-            if not relevant_articles:
-                total_time = time.time() - start_time
-                logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
-                return {'warning': error_message}, 200
-
-            logger.info(f"Starting summarization for event '{event}'")
-            summarize_start = time.time()
-            try:
-                summary = summarize_articles(relevant_articles, event)
-                if not summary or "Error generating summary" in summary:
-                    summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
-            except Exception as e:
-                logger.error(f"Error during summarization: {e}")
-                summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
-            summarize_time = time.time() - summarize_start
-            logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
-            
-            total_time = time.time() - start_time
-            logger.info(f"Total request time (partial failure): {total_time:.2f} seconds, ending at {time.time()}")
-            return {'warning': error_message}, 200
-
-        source_counts = {}
-        for article in articles:
-            source = article.get('source', 'Unknown')
-            source_counts[source] = source_counts.get(source, 0) + 1
-        logger.info(f"Source distribution for event '{event}' after capping: {source_counts}")
-
-        duplicate_start = time.time()
-        logger.info(f"Starting duplicate removal for event '{event}' at {duplicate_start}")
-        unique_articles = remove_duplicates(articles)
-        duplicate_time = time.time() - duplicate_start
-        logger.info(f"Duplicate removal took {duplicate_time:.2f} seconds for event '{event}'")
-
-        filter_start = time.time()
-        logger.info(f"Starting filtering for event '{event}' at {filter_start}")
-        relevant_articles = filter_relevant_articles(unique_articles, event)
-        filter_time = time.time() - filter_start
-        logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
-        
-        if not relevant_articles:
-            total_time = time.time() - start_time
-            logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
-            return {'warning': f"No relevant articles found for '{event}' after filtering. Try a broader topic."}, 200
         
         logger.info(f"Starting summarization for event '{event}'")
         summarize_start = time.time()
@@ -771,19 +749,73 @@ def process_news_request(event):
         summarize_time = time.time() - summarize_start
         logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
         
+        # Generate image for the event
+        logger.info(f"Generating image for event '{event}'")
+        image_path, image_status = generate_and_save_image(event, summary)
+        if image_status:
+            logger.info(f"Image generation successful: {image_path}")
+            image_filename = os.path.basename(image_path)
+            image_path = f"/images/{image_filename}"  # Convert to relative URL
+        else:
+            logger.warning(f"Image generation failed for event '{event}'")
+            image_path = None
+        
+        # Store in database for caching
+        try:
+            avg_sentiment = sum(article.get('sentiment_score', 0) for article in articles) / len(articles) if articles else 0
+            logger.info(f"Storing result in database for '{event}'")
+            c.execute("""INSERT INTO search_history 
+                         (query, timestamp, summary, average_sentiment, 
+                          articles, source_distribution, image_path) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                      (event, datetime.now().isoformat(), summary, 
+                       avg_sentiment, json.dumps(articles), 
+                       json.dumps(final_source_counts), image_path))
+            conn.commit()
+        except Exception as db_error:
+            logger.error(f"Error storing results in database: {db_error}")
+        finally:
+            conn.close()
+        
+        # Return response with appropriate warning if sources failed
         total_time = time.time() - start_time
         logger.info(f"Total request time: {total_time:.2f} seconds, ending at {time.time()}")
-        return {'success': True, 'summary': summary, 'articles': articles, 'metadata': {
-            'average_sentiment': sum(article.get('sentiment_score', 0) for article in articles) / len(articles),
-            'source_distribution': source_counts,
-            'image': {
-                'path': image_path,
-                'generated': True
-            }
-        }}, 200
+        
+        if warning_message:
+            return {
+                'success': True, 
+                'summary': summary, 
+                'articles': articles,
+                'warning': warning_message,
+                'metadata': {
+                    'average_sentiment': avg_sentiment,
+                    'source_distribution': final_source_counts,
+                    'image': {
+                        'path': image_path,
+                        'generated': bool(image_path)
+                    },
+                    'source_health': {
+                        'success_rate': success_rate,
+                        'failed_sources': failed_sources,
+                        'successful_sources': successful_sources
+                    }
+                }
+            }, 200
+        else:
+            return {'success': True, 'summary': summary, 'articles': articles, 'metadata': {
+                'average_sentiment': avg_sentiment,
+                'source_distribution': final_source_counts,
+                'image': {
+                    'path': image_path,
+                    'generated': bool(image_path)
+                }
+            }}, 200
     except Exception as e:
-        logger.error(f"Error processing request: {str(e)}")
-        return {'error': f"An error occurred: {str(e)}"}, 500
+        logger.error(f"Error processing request: {str(e)}", exc_info=True)
+        return {
+            'error': f"An error occurred while processing your request.",
+            'details': str(e) if current_app.config.get("DEBUG", False) else "Please try again later."
+        }, 500
 
 @routes.route('/data', methods=['POST'])
 def get_news_data():

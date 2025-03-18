@@ -1,6 +1,6 @@
 # app.py
 import flask
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, g
 from dotenv import load_dotenv
 import os
 import logging
@@ -17,6 +17,7 @@ from datetime import datetime
 from utils import secure_log_key  # Import the secure logging function
 import threading
 import time
+import random
 
 # Set up logging
 logger = logging.getLogger('neutralnews')
@@ -303,10 +304,142 @@ def check_topics():
     html += "<p><a href='/'>Return to Homepage</a></p>"
     return html
 
+# Create a Flask app middleware for monitoring API health and performance
+def setup_request_monitoring(app):
+    @app.before_request
+    def before_request():
+        # Store start time for request duration tracking
+        g = flask.g
+        g.start_time = time.time()
+        g.request_id = f"{int(time.time())}-{random.randint(1000, 9999)}"
+        logger.info(f"[Request {g.request_id}] Starting {request.method} request to {request.path}")
+        
+        # Log request details in debug mode
+        if app.debug:
+            logger.debug(f"[Request {g.request_id}] Headers: {dict(request.headers)}")
+            logger.debug(f"[Request {g.request_id}] Args: {dict(request.args)}")
+            if request.form:
+                logger.debug(f"[Request {g.request_id}] Form: {dict(request.form)}")
+    
+    @app.after_request
+    def after_request(response):
+        # Calculate request duration
+        g = flask.g
+        if hasattr(g, 'start_time'):
+            elapsed_time = time.time() - g.start_time
+            response.headers['X-Request-Time'] = f"{elapsed_time:.3f}s"
+            
+            # Log response details
+            log_level = logging.WARNING if response.status_code >= 400 else logging.INFO
+            log_message = f"[Request {g.request_id}] Completed {request.method} {request.path} - Status: {response.status_code}, Time: {elapsed_time:.3f}s"
+            logger.log(log_level, log_message)
+            
+            # Log slow requests
+            if elapsed_time > 5.0:  # More than 5 seconds is considered slow
+                logger.warning(f"[Slow Request] {request.method} {request.path} took {elapsed_time:.3f}s")
+                
+        return response
+    
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
+        return jsonify({
+            'error': 'An unexpected error occurred',
+            'message': str(e) if app.debug else 'Please try again later'
+        }), 500
+    
+    @app.route('/api/healthcheck')
+    def api_healthcheck():
+        """An expanded health check endpoint with more detailed status"""
+        status = {'status': 'healthy'}
+        
+        # Check database connection
+        try:
+            conn = sqlite3.connect(app.config["DB_PATH"])
+            c = conn.cursor()
+            c.execute("SELECT COUNT(*) FROM search_history")
+            row_count = c.fetchone()[0]
+            conn.close()
+            status['database'] = {
+                'connected': True,
+                'rows': row_count
+            }
+        except Exception as e:
+            status['database'] = {
+                'connected': False,
+                'error': str(e)
+            }
+            status['status'] = 'degraded'
+        
+        # Check image directory
+        try:
+            img_dir = app.config["IMAGE_DIR"]
+            if os.path.exists(img_dir) and os.path.isdir(img_dir):
+                image_count = len([f for f in os.listdir(img_dir) if f.endswith('.png')])
+                status['images'] = {
+                    'available': True,
+                    'directory': img_dir,
+                    'count': image_count
+                }
+            else:
+                status['images'] = {
+                    'available': False,
+                    'error': 'Directory not found'
+                }
+                status['status'] = 'degraded'
+        except Exception as e:
+            status['images'] = {
+                'available': False,
+                'error': str(e)
+            }
+            status['status'] = 'degraded'
+        
+        # Add system info
+        status['system'] = {
+            'uptime': time.time() - app.start_time,
+            'python_version': sys.version,
+        }
+        
+        return jsonify(status)
+
+def create_app():
+    """App factory function"""
+    app = Flask(__name__,
+                static_folder='static',
+                template_folder='templates')
+    
+    # Store app start time for uptime tracking
+    app.start_time = time.time()
+    
+    # Load configuration
+    try:
+        import config_prod
+        app.config.from_object(config_prod)
+    except ImportError:
+        logger.error("Could not import config_prod, using default values")
+    
+    # Setup cross-origin resource sharing
+    CORS(app)
+    
+    # Register the blueprint
+    from routes import routes
+    app.register_blueprint(routes)
+    
+    # Setup request monitoring
+    setup_request_monitoring(app)
+    
+    logger.info(f"Application initialized at {app.start_time}")
+    return app
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
-    logger.info(f"Application configuration complete, starting server on port {port}")
-    try:
-        app.run(host="0.0.0.0", port=port, debug=DEBUG)
-    except Exception as e:
-        logger.error(f"Failed to start server: {str(e)}")
+    logger.info(f"Starting server on port {port}")
+    
+    # Create the application
+    app = create_app()
+    
+    # Run the server
+    app.run(host="0.0.0.0", port=port, debug=False)
+else:
+    # For gunicorn and other WSGI servers
+    app = create_app()
