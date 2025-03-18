@@ -1,9 +1,10 @@
-import stability_sdk.interfaces.gooseai.generation.generation_pb2 as generation_pb2  # Updated import
+import stability_sdk.interfaces.gooseai.generation.generation_pb2 as generation_pb2
 from stability_sdk import client
 from PIL import Image
 import io
 import os
 import logging
+from flask import current_app
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -18,11 +19,11 @@ if not logger.handlers:
 def generate_with_stability(prompt, size=1024):
     """Generate image using Stability AI SDK v0.8.6 and return PIL Image"""
     logger.info("=== Starting Stability AI generation ===")
-    logger.info(f"Prompt used for OpenAI: '{prompt}'")  # Log the prompt
+    logger.info(f"Prompt used for Stability AI: '{prompt}'")  # Updated log message
     try:
         logger.info(f"Stability API key: {'Set' if os.getenv('STABILITY_API_KEY') else 'Not set'}")
         stability_api = client.StabilityInference(
-            key=os.getenv('STABILITY_API_KEY'),
+            key=os.getenv('STABILITY_API_KEY', ""),
             verbose=True,
         )
         answers = stability_api.generate(
@@ -46,10 +47,11 @@ def generate_with_stability(prompt, size=1024):
 def generate_with_openai(prompt, size=1024):
     """Generate image using OpenAI v1.0.0+ and return PIL Image"""
     logger.info("=== Starting OpenAI generation ===")
-    logger.info(f"Prompt used for OpenAI: '{prompt}'")  # Log the prompt
+    logger.info(f"Prompt used for OpenAI: '{prompt}'")
     try:
+        from openai import OpenAI  # Moved import here since it’s optional
         logger.info(f"OpenAI API key: {'Set' if os.getenv('OPENAI_API_KEY') else 'Not set'}")
-        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY', ""))
         response = client.images.generate(
             prompt=prompt,
             n=1,
@@ -57,12 +59,15 @@ def generate_with_openai(prompt, size=1024):
         )
         
         image_url = response.data[0].url
-        response = requests.get(image_url) 
-        logger.info(f"OpenAI response: {response.data[0].url[:50]}...")
+        response = requests.get(image_url)
+        logger.info(f"OpenAI image URL: {image_url[:50]}...")
         if response.status_code == 200:
             logger.info("Image generated successfully with OpenAI")
             return Image.open(io.BytesIO(response.content))
         logger.error(f"Failed to download image: HTTP {response.status_code}")
+        return None
+    except ImportError:
+        logger.error("OpenAI library not installed; skipping OpenAI generation")
         return None
     except Exception as e:
         logger.error(f"OpenAI generation failed: {str(e)}", exc_info=True)
@@ -70,11 +75,12 @@ def generate_with_openai(prompt, size=1024):
 
 def generate_and_save_image(query, summary):
     """Generate and save an image based on summary, return path and status"""
-    # Clean query for filename
     logger.info(f"=== Starting image generation for query: '{query}' ===")
+    # Clean query for filename
     clean_query = "".join(c if c.isalnum() else "-" for c in query.lower())
-    image_path = os.path.join('static', 'images', f"{clean_query}.png")
+    image_path = os.path.join(current_app.config["IMAGE_DIR"], f"{clean_query}.png")
     logger.info(f"Image path: {image_path}")
+    
     # Check if image already exists
     if os.path.exists(image_path):
         logger.info(f"Image already exists at {image_path}")
@@ -110,8 +116,12 @@ def generate_and_save_image(query, summary):
     return None, False
 
 if __name__ == "__main__":
-    # Test the function
-    test_query = "Test-Query"
-    test_summary = "A futuristic cityscape glowing with neon lights under a starry sky."
-    image_path, status = generate_and_save_image(test_query, test_summary)
-    print(f"Image Path: {image_path}, Status: {status}")
+    # Test the function locally (won’t work without Flask app context unless mocked)
+    from flask import Flask
+    app = Flask(__name__)
+    app.config["IMAGE_DIR"] = os.path.join(os.path.dirname(__file__), "static", "images")
+    with app.app_context():
+        test_query = "Test-Query"
+        test_summary = "A futuristic cityscape glowing with neon lights under a starry sky."
+        image_path, status = generate_and_save_image(test_query, test_summary)
+        print(f"Image Path: {image_path}, Status: {status}")

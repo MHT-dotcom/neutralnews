@@ -269,15 +269,30 @@ $(document).ready(function() {
                 $results.find('.source-dashboard').hide();
             }
             
-            // Display image from metadata
+            // Display image from metadata with additional logging
             if (metadata.image && metadata.image.path) {
+                console.log("Full response from /data:", JSON.stringify(metadata, null, 2));  // Log full metadata
+                console.log("Raw image path received:", metadata.image.path);  // Log raw path
                 console.log('Displaying image from metadata:', metadata.image.path);
-                $imageContainer.html(`<img src="${metadata.image.path}" alt="Generated Image" style="max-width: 100%;">`)
-                    .show()
-                    .find('img').on('error', function() {
-                        console.error('Image load failed:', metadata.image.path);
+                console.log('Image container element:', $imageContainer[0]);
+                console.log('Image container visibility:', $imageContainer.is(':visible'));
+                console.log('Image container HTML before update:', $imageContainer.html());
+                
+                const imgElement = $('<img>')
+                    .attr('src', metadata.image.path)
+                    .attr('alt', 'Generated Image')
+                    .css('max-width', '100%')
+                    .on('error', function(e) {
+                        console.error('Image load failed:', metadata.image.path, 'Error details:', e);  // Enhanced error logging
+                        console.error('Image element state:', this);
                         $imageContainer.html('<p>Image failed to load.</p>');
+                    })
+                    .on('load', function() {
+                        console.log('Image loaded successfully:', metadata.image.path);  // Success log
                     });
+                
+                $imageContainer.html(imgElement).show();
+                console.log('Image container HTML after update:', $imageContainer.html());
             } else {
                 console.log('No image path in metadata');
                 $imageContainer.html('<p>No image available.</p>').show();

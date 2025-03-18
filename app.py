@@ -23,11 +23,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Initialize Flask app
+app = Flask(__name__, static_url_path='/static', static_folder='static')
+CORS(app)
+
 # Load environment variables
-env_path = '/Users/maxteeuwen/neutralnews/.env'
-logger.info(f"Loading .env from: {env_path}")
-load_dotenv(env_path)
-logger.info(f".env loaded. GROK_API_KEY from os.environ: {os.environ.get('GROK_API_KEY', 'Not found')}")
+logger.info("Before .env load: GROK_API_KEY: %s", os.getenv("GROK_API_KEY", "Not set"))
+load_dotenv()  # Loads .env from current directory if present, does nothing if absent
+logger.info(".env loading attempted. GROK_API_KEY from os.environ: %s", os.getenv("GROK_API_KEY", "Not set"))
+
+# Determine base path for persistent storage
+BASE_PATH = os.getenv("BASE_PATH", os.path.join(os.path.dirname(__file__), "data"))
+DB_PATH = os.path.join(BASE_PATH, "search_db.sqlite")
+IMAGE_DIR = os.path.join(BASE_PATH, "images")
+
+# Ensure directories exist (locally and on Render)
+os.makedirs(BASE_PATH, exist_ok=True)
+os.makedirs(IMAGE_DIR, exist_ok=True)
+
+# Export paths as app config for use in routes.py
+app.config["DB_PATH"] = DB_PATH
+app.config["IMAGE_DIR"] = IMAGE_DIR
+
+# Log paths for debugging
+logger.info("Using BASE_PATH: %s", BASE_PATH)
+logger.info("Database path: %s", DB_PATH)
+logger.info("Image directory: %s", IMAGE_DIR)
 
 # Check environment variables
 logger.info("Checking API key availability:")
@@ -38,13 +59,8 @@ from config_prod import (
     GROK_API_KEY
 )
 
-# Initialize Flask app
-app = Flask(__name__, static_url_path='/static', static_folder='static')
-CORS(app)
-load_dotenv()
-
 def init_db():
-    conn = sqlite3.connect('search_db.sqlite')
+    conn = sqlite3.connect(app.config["DB_PATH"])
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS search_history
                  (id INTEGER PRIMARY KEY, query TEXT NOT NULL, timestamp DATETIME NOT NULL,
@@ -58,10 +74,11 @@ def init_db():
     c.execute("UPDATE hot_topics SET period = 'today' WHERE period IS NULL")
     conn.commit()
     conn.close()
+    logger.info("Database initialized at %s", app.config["DB_PATH"])
 
 def get_hot_topics(period="today"):
     """Fetch trending topics from Grok API or retrieve from cache for a given period."""
-    conn = sqlite3.connect('search_db.sqlite')
+    conn = sqlite3.connect(app.config["DB_PATH"])
     cursor = conn.cursor()
     
     today = date.today()
@@ -126,7 +143,6 @@ logger.info(f"Cache type: {CACHE_CONFIG.get('CACHE_TYPE', 'Not configured')}")
 logger.info("About to register routes blueprint")
 logger.info(f"Available routes before registration: {app.url_map}")
 logger.info("Starting app.py execution")
-# ... existing code ...
 logger.info("About to import routes module")
 from routes import routes
 logger.info("Successfully imported routes module")
@@ -137,12 +153,6 @@ logger.info(f"Registered blueprints: {list(app.blueprints.keys())}")
 
 # Application initialized
 logger.info("Application fully initialized")
-
-@app.route('/test-grok')
-def test_grok():
-    from fetchers import test_grok_api
-    result = test_grok_api()
-    return jsonify(result)
 
 @app.before_request
 def log_cache_usage():
@@ -159,195 +169,7 @@ def clear_cache():
     <h2>Cache cleared!</h2>
     <p>The application cache has been cleared. All data will be fetched fresh on next access.</p>
     <p><a href='/'>Return to Homepage</a></p>
-    <p><a href='/test-grok-key'>Test Grok API Key</a></p>
     """
-
-@app.route('/test-grok-key')
-def test_grok_key():
-    """Test endpoint to try different API key formats with the Grok API"""
-    # Get original key
-    api_key = os.environ.get("GROK_API_KEY", "")
-    if not api_key:
-        return "No API key found!"
-    
-    # Format 1: Original with xai- prefix
-    format1 = api_key
-    
-    # Format 2: Without xai- prefix
-    format2 = api_key[4:] if api_key.startswith("xai-") else api_key
-    
-    # Test URL
-    url = "https://api.x.ai/v1/chat/completions"
-    
-    formats = [
-        {"name": "Original with xai- prefix", "key": format1, "header": f"Bearer {format1}"},
-        {"name": "Without xai- prefix", "key": format2, "header": f"Bearer {format2}"},
-        {"name": "No Bearer, just raw key", "key": format2, "header": format2},
-        {"name": "X-API-Key header", "key": format1, "header": None, "x_api_key": format1}
-    ]
-    
-    # Simple request payload
-    payload = {
-        "model": "grok-1",
-        "messages": [{"role": "user", "content": "Hello, what's the current date?"}],
-        "max_tokens": 100
-    }
-    
-    # Test each format
-    results = []
-    for fmt in formats:
-        try:
-            headers = {"Content-Type": "application/json"}
-            
-            if fmt.get("header"):
-                headers["Authorization"] = fmt["header"]
-            
-            if fmt.get("x_api_key"):
-                headers["X-API-Key"] = fmt["x_api_key"]
-            
-            logger.info(f"Testing format: {fmt['name']}")
-            logger.info(f"Headers: {headers}")
-            
-            response = requests.post(
-                url, 
-                json=payload, 
-                headers=headers, 
-                timeout=10,
-                verify=certifi.where()
-            )
-            
-            results.append({
-                "format": fmt["name"],
-                "status_code": response.status_code,
-                "response": response.text[:200] + "..." if len(response.text) > 200 else response.text
-            })
-            
-            logger.info(f"Status code: {response.status_code}")
-            
-            # If successful, log the full response
-            if response.status_code == 200:
-                logger.info(f"SUCCESS with format: {fmt['name']}")
-                logger.info(f"Response: {response.text[:500]}...")
-        except Exception as e:
-            logger.error(f"Error testing format {fmt['name']}: {e}")
-            results.append({
-                "format": fmt["name"],
-                "error": str(e)
-            })
-    
-    # Format results as HTML
-    html = "<h1>Grok API Key Testing Results</h1>"
-    html += "<style>table {border-collapse: collapse; width: 100%;} th, td {padding: 8px; text-align: left; border: 1px solid #ddd;} tr:nth-child(even) {background-color: #f2f2f2;} pre {white-space: pre-wrap; word-wrap: break-word;}</style>"
-    html += "<table><tr><th>Format</th><th>Status</th><th>Response</th></tr>"
-    
-    for result in results:
-        html += f"<tr><td>{result['format']}</td>"
-        
-        if "error" in result:
-            html += f"<td colspan='2'>Error: {result['error']}</td>"
-        else:
-            status_color = "green" if result["status_code"] == 200 else "red"
-            html += f"<td style='color:{status_color}'>{result['status_code']}</td><td><pre>{result['response']}</pre></td>"
-        
-        html += "</tr>"
-    
-    html += "</table>"
-    html += "<p><a href='/'>Return to Homepage</a></p>"
-    return html
-
-@app.route('/test-models')
-def test_grok_models():
-    """Test endpoint to try different model names with the Grok API"""
-    import requests
-    import json
-    import certifi
-    
-    # Get original key with xai- prefix
-    api_key = os.environ.get("GROK_API_KEY", "")
-    if not api_key:
-        return "No API key found!"
-    
-    # Test URL
-    url = "https://api.x.ai/v1/chat/completions"
-    
-    # Models to test
-    models = [
-        "grok-1",
-        "grok-2", 
-        "grok",
-        "grok-lite",
-        "xai-grok",
-        "claude-3-opus-20240229",  # Try a common model name format
-        "gpt-4"  # Try a common model name
-    ]
-    
-    # Simple request payload
-    base_payload = {
-        "messages": [{"role": "user", "content": "Hello, what's the current date?"}],
-        "max_tokens": 100
-    }
-    
-    # Authentication headers - use full key with xai- prefix
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    
-    # Test each model
-    results = []
-    for model in models:
-        try:
-            payload = base_payload.copy()
-            payload["model"] = model
-            
-            logging.info(f"Testing model: {model}")
-            
-            response = requests.post(
-                url, 
-                json=payload, 
-                headers=headers, 
-                timeout=10,
-                verify=certifi.where()
-            )
-            
-            results.append({
-                "model": model,
-                "status_code": response.status_code,
-                "response": response.text[:300] + "..." if len(response.text) > 300 else response.text
-            })
-            
-            logging.info(f"Status code: {response.status_code}")
-            
-            # If successful, log the full response
-            if response.status_code == 200:
-                logging.info(f"SUCCESS with model: {model}")
-                logging.info(f"Response: {response.text[:500]}...")
-        except Exception as e:
-            logging.error(f"Error testing model {model}: {e}")
-            results.append({
-                "model": model,
-                "error": str(e)
-            })
-    
-    # Format results as HTML
-    html = "<h1>Grok API Model Testing Results</h1>"
-    html += "<style>table {border-collapse: collapse; width: 100%;} th, td {padding: 8px; text-align: left; border: 1px solid #ddd;} tr:nth-child(even) {background-color: #f2f2f2;} pre {white-space: pre-wrap; word-wrap: break-word;}</style>"
-    html += "<table><tr><th>Model</th><th>Status</th><th>Response</th></tr>"
-    
-    for result in results:
-        html += f"<tr><td>{result['model']}</td>"
-        
-        if "error" in result:
-            html += f"<td colspan='2'>Error: {result['error']}</td>"
-        else:
-            status_color = "green" if result["status_code"] == 200 else "red"
-            html += f"<td style='color:{status_color}'>{result['status_code']}</td><td><pre>{result['response']}</pre></td>"
-        
-        html += "</tr>"
-    
-    html += "</table>"
-    html += "<p><a href='/'>Return to Homepage</a></p>"
-    return html
 
 @app.route('/check-topics')
 def check_topics():

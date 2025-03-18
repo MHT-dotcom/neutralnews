@@ -1,20 +1,19 @@
-# routes.py
-from flask import Blueprint, render_template, request, jsonify, current_app
+from flask import Blueprint, render_template, request, jsonify, current_app, send_from_directory
 from concurrent.futures import ThreadPoolExecutor
 import time
 import logging
 import sqlite3
 import json
+import os
 from datetime import datetime, timedelta
 from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
-                     fetch_newsapi_ai_articles, fetch_grok_trending_topics)
+                     fetch_newsapi_ai_articles)
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
                        summarize_articles, ModelManager)
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
-                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N, GROK_API_KEY)
-import os
+                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N)
 from get_img import generate_and_save_image
 
 # Align blueprint name with app.py registration
@@ -28,6 +27,7 @@ def before_first_request():
     global _is_first_request
     if _is_first_request:
         _is_first_request = False
+        init_db()  # Initialize DB on first request
 
 def fetch_and_process_data(event):
     """Fetch data from multiple APIs, process it, and return articles and a summary."""
@@ -314,7 +314,7 @@ def fetch_and_process_data(event):
 
 def get_trending_topics(date_str, force_refresh=False, time_period="current"):
     """Get trending topics for a given date"""
-    logger.info("Grok API disabled, returning static topics")\
+    logger.info("Returning static trending topics")
     # Hardcoded fallback topics for CURRENT week
     current_fallback_topics = [
         ['Ukraine-Russia Peace Talks Stall After New Sanctions', 'Ukraine Russia sanctions'],
@@ -339,37 +339,13 @@ def get_trending_topics(date_str, force_refresh=False, time_period="current"):
         ['New Malaria Vaccine Shows 80% Efficacy in Trials', 'malaria vaccine WHO']
     ]
     if time_period == "last_week":
-        return current_fallback_topics[:8]
-    else:
         return last_week_fallback_topics[:8]
-    
-    # # Include time_period in the cache key to ensure different caching
-    # cache_key = f"trending_topics_{date_str}_{time_period}"
-    
-    # logger.info(f"Getting trending topics for {date_str} with time_period={time_period}")
-    
-    # # Skip cache if force_refresh is True
-    # if force_refresh or not cache.get(cache_key):
-    #     logger.info(f"Fetching fresh trending topics for {date_str} ({time_period})")
-    #     topics = fetch_grok_trending_topics(
-    #         max_topics=8, 
-    #         start_date=date_str, 
-    #         end_date=date_str,
-    #         time_period=time_period
-    #     )
-        
-    #     # Cache the results with the time_period-specific key
-    #     cache.set(cache_key, topics)
-    #     return topics
-    # else:
-    #     logger.info(f"Using cached {date_str} trending topics ({time_period})")
-    #     return cache.get(cache_key)
-    
+    else:
+        return current_fallback_topics[:8]
 
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for displaying trending topics and fetching custom summaries."""
-    # Existing template debugging (unchanged)
     logger.info("=== Template Debug Info ===")
     logger.info(f"Current working directory: {os.getcwd()}")
     template_folder = current_app.template_folder
@@ -393,7 +369,6 @@ def index():
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request form data: {request.form}")
 
-    # Force refresh trending topics (unchanged)
     today = datetime.now().strftime("%Y-%m-%d")
     last_week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
     
@@ -420,8 +395,7 @@ def index():
             logger.warning("No event provided")
         else:
             logger.info(f"Processing event: '{event}'")
-            # Check cache first
-            conn = sqlite3.connect('search_db.sqlite')
+            conn = sqlite3.connect(current_app.config["DB_PATH"])
             c = conn.cursor()
             c.execute("""SELECT * FROM search_history 
                         WHERE query = ? AND timestamp > ?""", 
@@ -435,11 +409,15 @@ def index():
                 image_path = result[7]
                 if image_path and os.path.exists(image_path):
                     logger.info(f"Existing image found at {image_path}")
+                    image_filename = os.path.basename(image_path)
+                    image_path = f"/images/{image_filename}"  # Convert to relative URL
                 else:
                     logger.info(f"No valid image in cache or on disk, generating for '{event}'")
                     image_path, image_status = generate_and_save_image(event, summary)
                     if image_status:
                         logger.info(f"Generated new image: {image_path}")
+                        image_filename = os.path.basename(image_path)
+                        image_path = f"/images/{image_filename}"  # Convert to relative URL
                         c.execute("UPDATE search_history SET image_path = ? WHERE query = ?", (image_path, event))
                         conn.commit()
                     else:
@@ -447,7 +425,6 @@ def index():
                         image_path = None
                 conn.close()
             else:
-                # New data
                 result = fetch_and_process_data(event)
                 if isinstance(result, tuple):
                     summary, articles, error = result
@@ -457,6 +434,9 @@ def index():
                 if summary and not error:
                     image_path, image_status = generate_and_save_image(event, summary)
                     logger.info(f"Image generation result - Path: {image_path}, Status: {image_status}")
+                    if image_status:
+                        image_filename = os.path.basename(image_path)
+                        image_path = f"/images/{image_filename}"  # Convert to relative URL
                 conn.close()
 
     logger.info(f"Rendering template with: summary={summary is not None}, articles={len(articles)}, event='{event}', error='{error}', image_path='{image_path}'")
@@ -468,7 +448,7 @@ def index():
         articles=articles,
         event=event,
         error=error,
-        image_path=f"/{image_path}" if image_path else None
+        image_path=image_path if image_path else None
     )
 
 @routes.route('/data', methods=['POST'])
@@ -482,9 +462,8 @@ def get_news_data():
             logger.warning("No event provided")
             return jsonify({'error': 'Please provide an event to search for.'}), 400
 
-        # Check cache
         logger.info(f"Checking cache for '{event}'")
-        conn = sqlite3.connect('search_db.sqlite')
+        conn = sqlite3.connect(current_app.config["DB_PATH"])
         c = conn.cursor()
         c.execute("""SELECT * FROM search_history 
                     WHERE query = ? AND timestamp > ?""", 
@@ -494,14 +473,17 @@ def get_news_data():
         if result:
             logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}..., Image Path: {result[7]}")
             image_path = result[7]
-            # Check if image exists on disk
             if image_path and os.path.exists(image_path):
                 logger.info(f"Existing image found at {image_path}")
+                image_filename = os.path.basename(image_path)
+                image_path = f"/images/{image_filename}"  # Convert to relative URL
             else:
                 logger.info(f"No valid image in cache or on disk, generating for '{event}'")
                 image_path, image_status = generate_and_save_image(event, result[3])
                 if image_status:
                     logger.info(f"Generated new image: {image_path}")
+                    image_filename = os.path.basename(image_path)
+                    image_path = f"/images/{image_filename}"  # Convert to relative URL
                     c.execute("UPDATE search_history SET image_path = ? WHERE query = ?", (image_path, event))
                     conn.commit()
                 else:
@@ -516,16 +498,19 @@ def get_news_data():
                     'average_sentiment': result[4],
                     'source_distribution': json.loads(result[6]),
                     'image': {
-                        'path': f"/{image_path}" if image_path else None,
+                        'path': image_path if image_path else None,
                         'generated': bool(image_path)
                     }
                 }
             }
             conn.close()
             logger.info(f"Returning cached response: {json.dumps(data, indent=2)[:200]}...")
+            logger.info(f"Static folder config: {current_app.static_folder}")
+            logger.info(f"Static URL path: {current_app.static_url_path}")
+            logger.info(f"Static file serving enabled: {current_app.send_static_file is not None}")
+            logger.info(f"Response image path sent to frontend: {data['metadata']['image']['path']}")
             return jsonify(data), 200
 
-        # Fetch and process new data
         logger.info(f"No cache hit, fetching data for '{event}'")
         summary, articles, warning = fetch_and_process_data(event)
         logger.info(f"Fetch result - Summary: {summary[:50] if summary else None}, Articles: {len(articles)}, Warning: {warning}")
@@ -535,16 +520,20 @@ def get_news_data():
             conn.close()
             return jsonify({'error': warning or 'No articles found'}), 404
 
-        # Generate image
         logger.info(f"Generating image for '{event}' with summary: {summary[:50]}...")
         image_path, image_status = generate_and_save_image(event, summary)
         logger.info(f"Image generation - Path: {image_path}, Status: {image_status}")
         if image_path:
             logger.info(f"Verifying image file exists: {os.path.exists(image_path)}")
+            logger.info(f"Exact image path used: {image_path}")
+            logger.info(f"Image file permissions: {oct(os.stat(image_path).st_mode)[-3:]}")
+            logger.info(f"Image file size: {os.path.getsize(image_path)} bytes")
+            image_filename = os.path.basename(image_path)
+            image_url = f"/images/{image_filename}"  # Convert to relative URL
         else:
             logger.warning(f"Image generation failed")
+            image_url = None
 
-        # Metadata
         sentiments = [article.get('sentiment_score', 0) for article in articles]
         avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
         source_counts = {article.get('source', 'Unknown'): 0 for article in articles}
@@ -553,7 +542,6 @@ def get_news_data():
             source_counts[source] = source_counts.get(source, 0) + 1
         logger.info(f"Metadata - Avg Sentiment: {avg_sentiment}, Sources: {source_counts}")
 
-        # Store in database
         logger.info(f"Storing result in database for '{event}'")
         c.execute("""INSERT INTO search_history 
                     (query, timestamp, summary, average_sentiment, 
@@ -565,7 +553,6 @@ def get_news_data():
         conn.commit()
         conn.close()
 
-        # Prepare response
         response_data = {
             'success': True,
             'summary': summary,
@@ -574,7 +561,7 @@ def get_news_data():
                 'average_sentiment': avg_sentiment,
                 'source_distribution': source_counts,
                 'image': {
-                    'path': f"/{image_path}" if image_path else None,
+                    'path': image_url if image_url else None,  # Use relative URL
                     'generated': image_status
                 }
             }
@@ -583,17 +570,41 @@ def get_news_data():
             response_data['warning'] = warning
             logger.warning(f"Partial API failure: {warning}")
         
+        logger.info(f"Static folder config: {current_app.static_folder}")
+        logger.info(f"Static URL path: {current_app.static_url_path}")
+        logger.info(f"Static file serving enabled: {current_app.send_static_file is not None}")
+        logger.info(f"Response image path sent to frontend: {response_data['metadata']['image']['path']}")
         logger.info(f"Response prepared: {json.dumps(response_data, indent=2)[:300]}...")
+        
         return jsonify(response_data), 200
 
     except Exception as e:
         logger.error(f"Error in get_news_data: {e}", exc_info=True)
         return jsonify({'error': 'An unexpected error occurred'}), 500
-    
+
+@routes.route('/images/<filename>')
+def serve_image(filename):
+    """Serve images from the IMAGE_DIR directory."""
+    logger.info(f"Serving image: {filename} from {current_app.config['IMAGE_DIR']}")
+    return send_from_directory(current_app.config["IMAGE_DIR"], filename)
+
+@routes.route('/health', methods=['GET'])
+def health_check():
+    """Return a simple health status for Render's health check."""
+    logger.info("Health check accessed")
+    return jsonify({'status': 'healthy'}), 200
+
 def init_db():
     """Initialize the SQLite database with image_path column."""
-    conn = sqlite3.connect('search_db.sqlite')
+    conn = sqlite3.connect(current_app.config["DB_PATH"])
     c = conn.cursor()
+    try:
+        c.execute('''CREATE TABLE IF NOT EXISTS search_history
+                     (query TEXT, timestamp TEXT, summary TEXT, average_sentiment REAL,
+                      articles TEXT, source_distribution TEXT, image_path TEXT)''')
+        logger.info("Created search_history table if it didn’t exist")
+    except sqlite3.OperationalError:
+        logger.info("search_history table already exists")
     try:
         c.execute('''ALTER TABLE search_history 
                      ADD COLUMN image_path TEXT''')
