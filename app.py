@@ -16,12 +16,12 @@ import certifi
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stdout
-)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('neutralnews')
+handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG if os.getenv("FLASK_ENV") == "development" else logging.INFO)
 
 # Initialize Flask app
 app = Flask(__name__, static_url_path='/static', static_folder='static')
@@ -29,7 +29,7 @@ CORS(app)
 
 # Load environment variables
 logger.info("Before .env load: GROK_API_KEY: %s", os.getenv("GROK_API_KEY", "Not set"))
-load_dotenv()  # Loads .env from current directory if present, does nothing if absent
+load_dotenv()  # Loads .env from current directory if present
 logger.info(".env loading attempted. GROK_API_KEY from os.environ: %s", os.getenv("GROK_API_KEY", "Not set"))
 
 # Determine base path for persistent storage

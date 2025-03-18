@@ -4,6 +4,7 @@ from PIL import Image
 import io
 import os
 import logging
+import requests  # Added this import
 from flask import current_app
 
 # Set up logging
@@ -19,7 +20,7 @@ if not logger.handlers:
 def generate_with_stability(prompt, size=1024):
     """Generate image using Stability AI SDK v0.8.6 and return PIL Image"""
     logger.info("=== Starting Stability AI generation ===")
-    logger.info(f"Prompt used for Stability AI: '{prompt}'")  # Updated log message
+    logger.info(f"Prompt used for Stability AI: '{prompt}'")
     try:
         logger.info(f"Stability API key: {'Set' if os.getenv('STABILITY_API_KEY') else 'Not set'}")
         stability_api = client.StabilityInference(
@@ -49,7 +50,7 @@ def generate_with_openai(prompt, size=1024):
     logger.info("=== Starting OpenAI generation ===")
     logger.info(f"Prompt used for OpenAI: '{prompt}'")
     try:
-        from openai import OpenAI  # Moved import here since it’s optional
+        from openai import OpenAI
         logger.info(f"OpenAI API key: {'Set' if os.getenv('OPENAI_API_KEY') else 'Not set'}")
         client = OpenAI(api_key=os.getenv('OPENAI_API_KEY', ""))
         response = client.images.generate(
@@ -76,25 +77,20 @@ def generate_with_openai(prompt, size=1024):
 def generate_and_save_image(query, summary):
     """Generate and save an image based on summary, return path and status"""
     logger.info(f"=== Starting image generation for query: '{query}' ===")
-    # Clean query for filename
     clean_query = "".join(c if c.isalnum() else "-" for c in query.lower())
     image_path = os.path.join(current_app.config["IMAGE_DIR"], f"{clean_query}.png")
     logger.info(f"Image path: {image_path}")
     
-    # Check if image already exists
     if os.path.exists(image_path):
         logger.info(f"Image already exists at {image_path}")
         return image_path, True
     
-    # Ensure images directory exists
     os.makedirs(os.path.dirname(image_path), exist_ok=True)
     logger.info(f"Images directory ensured: {os.path.dirname(image_path)}")
 
-    # Use summary as prompt for richer context
     prompt = f"A digital illustration of: {summary}"
     logger.info(f"Generating image with prompt: {prompt}")
     
-    # Try Stability AI first
     image = generate_with_stability(prompt)
     if image:
         image.save(image_path)
@@ -103,7 +99,6 @@ def generate_and_save_image(query, summary):
         logger.info(f"File exists after save: {os.path.exists(image_path)}")
         return image_path, True
     
-    # Fallback to OpenAI
     image = generate_with_openai(prompt)
     if image:
         image.save(image_path)
@@ -116,7 +111,6 @@ def generate_and_save_image(query, summary):
     return None, False
 
 if __name__ == "__main__":
-    # Test the function locally (won’t work without Flask app context unless mocked)
     from flask import Flask
     app = Flask(__name__)
     app.config["IMAGE_DIR"] = os.path.join(os.path.dirname(__file__), "static", "images")
