@@ -49,7 +49,7 @@ os.makedirs(IMAGE_DIR, exist_ok=True)
 
 # Export paths as app config for use in routes.py
 app.config["DB_PATH"] = DB_PATH
-app.config["IMAGE_DIR"] = IMAGE_DIR
+app.config["IMAGE_DIRECTORY"] = IMAGE_DIR
 
 # Log paths for debugging
 logger.info("Using BASE_PATH: %s", BASE_PATH)
@@ -373,7 +373,7 @@ def setup_request_monitoring(app):
         
         # Check image directory
         try:
-            img_dir = app.config["IMAGE_DIR"]
+            img_dir = app.config["IMAGE_DIRECTORY"]
             if os.path.exists(img_dir) and os.path.isdir(img_dir):
                 image_count = len([f for f in os.listdir(img_dir) if f.endswith('.png')])
                 status['images'] = {

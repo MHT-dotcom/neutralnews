@@ -833,14 +833,13 @@ def get_news_data():
 
 @routes.route('/images/<filename>')
 def serve_image(filename):
-    """Serve images from the IMAGE_DIR directory."""
-    # Security checks to prevent path traversal and restrict to PNG files
-    if not filename.endswith('.png') or '..' in filename or '/' in filename or '\\' in filename:
-        logger.warning(f"Blocked suspicious image request: {filename}")
-        return jsonify({'error': 'Invalid image filename'}), 403
-    
-    logger.info(f"Serving image: {filename} from {current_app.config['IMAGE_DIR']}")
-    return send_from_directory(current_app.config["IMAGE_DIR"], filename)
+    """Serve an image file from the image directory."""
+    try:
+        logger.info(f"Serving image: {filename} from {current_app.config['IMAGE_DIRECTORY']}")
+        return send_from_directory(current_app.config["IMAGE_DIRECTORY"], filename)
+    except Exception as e:
+        logger.error(f"Error serving image: {str(e)}")
+        return jsonify({"error": "Image not found"}), 404
 
 @routes.route('/health', methods=['GET'])
 def health_check():
@@ -850,10 +849,16 @@ def health_check():
 
 @routes.route('/admin/image-cache', methods=['GET', 'POST'])
 def image_cache_admin():
-    """Admin route for image cache statistics and management."""
+    """Admin endpoint for image cache management"""
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'optimize':
+            # Get the image cache instance
+            from image_cache import get_instance
+            cache = get_instance(
+                db_path=current_app.config.get("DB_PATH"),
+                image_dir=current_app.config["IMAGE_DIRECTORY"]
+            )
             # Run optimization with parameters from form
             max_age = int(request.form.get('max_age', 30))
             target_size = int(request.form.get('target_size', 500))
@@ -868,7 +873,7 @@ def image_cache_admin():
     stats = get_image_cache_stats()
     
     # Calculate directory size
-    image_dir = current_app.config["IMAGE_DIR"]
+    image_dir = current_app.config["IMAGE_DIRECTORY"]
     dir_size = 0
     file_count = 0
     

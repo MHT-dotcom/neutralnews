@@ -104,7 +104,34 @@
                         <span class="card-title-dot"></span> Topic Visualization
                     </div>
                     {% if image_path %}
-                        <img src="{{ image_path }}" alt="Generated Image" style="max-width: 100%; display: block;">
+                        {% set base_path = image_path.split('.')[0] %}
+                        {% set ext = image_path.split('.')[-1] %}
+                        <picture>
+                            <!-- WebP format with responsive sizes -->
+                            <source 
+                                type="image/webp"
+                                srcset="{{ base_path }}_400.webp 400w, 
+                                        {{ base_path }}_800.webp 800w, 
+                                        {{ image_path }} 1024w"
+                                sizes="(max-width: 600px) 400px, 
+                                       (max-width: 1200px) 800px, 
+                                       1024px">
+                            
+                            <!-- Fallback to original format with responsive sizes -->
+                            <source 
+                                srcset="{{ base_path }}_400.{{ ext }} 400w, 
+                                        {{ base_path }}_800.{{ ext }} 800w, 
+                                        {{ image_path }} 1024w"
+                                sizes="(max-width: 600px) 400px, 
+                                       (max-width: 1200px) 800px, 
+                                       1024px">
+                               
+                            <!-- Fallback for browsers that don't support picture/srcset -->
+                            <img src="{{ image_path }}" alt="News topic visualization" 
+                                 class="responsive-image"
+                                 loading="lazy" 
+                                 style="max-width: 100%; height: auto; display: block;">
+                        </picture>
                     {% endif %}
                 </div>
                 

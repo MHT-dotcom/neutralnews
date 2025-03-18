@@ -269,30 +269,57 @@ $(document).ready(function() {
                 $results.find('.source-dashboard').hide();
             }
             
-            // Display image from metadata with additional logging
-            if (metadata.image && metadata.image.path) {
-                console.log("Full response from /data:", JSON.stringify(metadata, null, 2));  // Log full metadata
-                console.log("Raw image path received:", metadata.image.path);  // Log raw path
+            // When image data is in the response
+            if (metadata && metadata.image && metadata.image.path) {
+                console.log("Raw image path received:", metadata.image.path);
                 console.log('Displaying image from metadata:', metadata.image.path);
-                console.log('Image container element:', $imageContainer[0]);
-                console.log('Image container visibility:', $imageContainer.is(':visible'));
-                console.log('Image container HTML before update:', $imageContainer.html());
                 
+                // Parse the image path to create responsive image paths
+                const imagePath = metadata.image.path;
+                const lastDotIndex = imagePath.lastIndexOf('.');
+                const imageBase = imagePath.substring(0, lastDotIndex);
+                const imageExt = imagePath.substring(lastDotIndex + 1);
+                
+                // Create picture element for responsive images
+                const pictureElement = $('<picture>');
+                
+                // Add WebP source with responsive sizes
+                const webpSource = $('<source>')
+                    .attr('type', 'image/webp')
+                    .attr('srcset', `${imageBase}_400.webp 400w, ${imageBase}_800.webp 800w, ${imagePath} 1024w`)
+                    .attr('sizes', '(max-width: 600px) 400px, (max-width: 1200px) 800px, 1024px');
+                
+                // Add fallback source with responsive sizes
+                const fallbackSource = $('<source>')
+                    .attr('srcset', `${imageBase}_400.${imageExt} 400w, ${imageBase}_800.${imageExt} 800w, ${imagePath} 1024w`)
+                    .attr('sizes', '(max-width: 600px) 400px, (max-width: 1200px) 800px, 1024px');
+                
+                // Create the image element (fallback)
                 const imgElement = $('<img>')
-                    .attr('src', metadata.image.path)
-                    .attr('alt', 'Generated Image')
-                    .css('max-width', '100%')
+                    .attr('src', imagePath)
+                    .attr('alt', 'News topic visualization')
+                    .attr('class', 'responsive-image')
+                    .attr('loading', 'lazy')
+                    .css({
+                        'max-width': '100%',
+                        'height': 'auto',
+                        'display': 'block'
+                    })
                     .on('error', function(e) {
-                        console.error('Image load failed:', metadata.image.path, 'Error details:', e);  // Enhanced error logging
+                        console.error('Image load failed:', imagePath, 'Error details:', e);
                         console.error('Image element state:', this);
                         $imageContainer.html('<p>Image failed to load.</p>');
                     })
                     .on('load', function() {
-                        console.log('Image loaded successfully:', metadata.image.path);  // Success log
+                        console.log('Image loaded successfully:', imagePath);
                     });
                 
-                $imageContainer.html(imgElement).show();
-                console.log('Image container HTML after update:', $imageContainer.html());
+                // Assemble the picture element
+                pictureElement.append(webpSource).append(fallbackSource).append(imgElement);
+                
+                // Update container and show it
+                $imageContainer.html(pictureElement).show();
+                console.log('Image container updated with responsive picture element');
             } else {
                 console.log('No image path in metadata');
                 $imageContainer.html('<p>No image available.</p>').show();

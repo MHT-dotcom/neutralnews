@@ -75,7 +75,7 @@ def generate_with_openai(prompt, size=1024):
         logger.error(f"OpenAI generation failed: {str(e)}", exc_info=True)
         return None
 
-def generate_and_save_image(query, summary, force_regenerate=False):
+def generate_and_save_image(query, summary, force_regenerate=False, quality=85, max_size=1024):
     """
     Generate and save an image based on summary, using efficient caching strategy.
     
@@ -83,6 +83,8 @@ def generate_and_save_image(query, summary, force_regenerate=False):
         query (str): The search query
         summary (str): The article summary to base the image on
         force_regenerate (bool): Whether to regenerate the image even if it exists
+        quality (int): JPEG quality for saved images (1-100)
+        max_size (int): Maximum dimension (width or height) for the image
         
     Returns:
         tuple: (image_path, status) where image_path is the path to the image and status is True if successful
@@ -91,7 +93,7 @@ def generate_and_save_image(query, summary, force_regenerate=False):
     
     # Clean the query for use as a filename
     clean_query = "".join(c if c.isalnum() else "-" for c in query.lower())
-    image_dir = current_app.config["IMAGE_DIR"]
+    image_dir = current_app.config["IMAGE_DIRECTORY"]
     
     # Get cache instance
     cache = image_cache.get_instance(
@@ -104,10 +106,38 @@ def generate_and_save_image(query, summary, force_regenerate=False):
         cached_path = cache.get_image_path(query)
         if cached_path:
             logger.info(f"Image found in cache: {cached_path}")
+            
+            # Check if we need to optimize an existing image
+            if cached_path.endswith('.png') and os.path.exists(cached_path):
+                # Get size in KB
+                file_size_kb = os.path.getsize(cached_path) / 1024
+                if file_size_kb > 500:  # If larger than 500KB, optimize it
+                    try:
+                        webp_path = cached_path.replace('.png', '.webp')
+                        img = Image.open(cached_path)
+                        
+                        # Resize if needed
+                        if img.width > max_size or img.height > max_size:
+                            img.thumbnail((max_size, max_size), Image.LANCZOS)
+                            
+                        # Save as WebP for better compression
+                        img.save(webp_path, 'WEBP', quality=quality)
+                        
+                        # If WebP file is smaller, update cache
+                        if os.path.getsize(webp_path) < os.path.getsize(cached_path):
+                            logger.info(f"Optimized image from {file_size_kb:.1f}KB to {os.path.getsize(webp_path) / 1024:.1f}KB")
+                            cache.add_image(query, webp_path)
+                            return webp_path, True
+                        else:
+                            # Remove WebP if it's not smaller
+                            os.remove(webp_path)
+                    except Exception as e:
+                        logger.warning(f"Error optimizing cached image: {str(e)}")
+            
             return cached_path, True
     
-    # Standard path for the image
-    image_path = os.path.join(image_dir, f"{clean_query}.png")
+    # Standard path for the image, using WebP instead of PNG for better compression
+    image_path = os.path.join(image_dir, f"{clean_query}.webp")
     
     # Check if image already exists on disk (unless force regenerate)
     if not force_regenerate and os.path.exists(image_path):
@@ -127,9 +157,15 @@ def generate_and_save_image(query, summary, force_regenerate=False):
     # Try Stability AI first
     image = generate_with_stability(prompt)
     if image:
-        image.save(image_path)
+        # Resize the image if needed
+        if image.width > max_size or image.height > max_size:
+            image.thumbnail((max_size, max_size), Image.LANCZOS)
+            
+        # Save as WebP for better compression
+        image.save(image_path, 'WEBP', quality=quality)
         logger.info(f"Image saved to {image_path} via Stability AI")
         logger.info(f"File exists after save: {os.path.exists(image_path)}")
+        logger.info(f"File size: {os.path.getsize(image_path) / 1024:.1f}KB")
         
         # Add to cache
         cache.add_image(query, image_path)
@@ -138,9 +174,15 @@ def generate_and_save_image(query, summary, force_regenerate=False):
     # Fallback to OpenAI
     image = generate_with_openai(prompt)
     if image:
-        image.save(image_path)
+        # Resize the image if needed
+        if image.width > max_size or image.height > max_size:
+            image.thumbnail((max_size, max_size), Image.LANCZOS)
+            
+        # Save as WebP for better compression
+        image.save(image_path, 'WEBP', quality=quality)
         logger.info(f"Image saved to {image_path} via OpenAI")
         logger.info(f"File exists after save: {os.path.exists(image_path)}")
+        logger.info(f"File size: {os.path.getsize(image_path) / 1024:.1f}KB")
         
         # Add to cache
         cache.add_image(query, image_path)
@@ -161,7 +203,7 @@ def pregenerate_trending_images(trending_topics):
         if current_app:
             cache = image_cache.get_instance(
                 db_path=current_app.config.get("DB_PATH"),
-                image_dir=current_app.config.get("IMAGE_DIR")
+                image_dir=current_app.config.get("IMAGE_DIRECTORY")
             )
             
             # Start pre-generation
@@ -184,7 +226,7 @@ def optimize_image_storage(max_age_days=30, target_size_mb=500):
         if current_app:
             cache = image_cache.get_instance(
                 db_path=current_app.config.get("DB_PATH"),
-                image_dir=current_app.config.get("IMAGE_DIR")
+                image_dir=current_app.config.get("IMAGE_DIRECTORY")
             )
             
             # Run optimization
@@ -209,7 +251,7 @@ def get_image_cache_stats():
 if __name__ == "__main__":
     from flask import Flask
     app = Flask(__name__)
-    app.config["IMAGE_DIR"] = os.path.join(os.path.dirname(__file__), "static", "images")
+    app.config["IMAGE_DIRECTORY"] = os.path.join(os.path.dirname(__file__), "static", "images")
     app.config["DB_PATH"] = os.path.join(os.path.dirname(__file__), "data", "search_db.sqlite")
     with app.app_context():
         test_query = "Test-Query"
