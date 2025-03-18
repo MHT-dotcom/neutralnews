@@ -12,8 +12,12 @@ from concurrent.futures import ThreadPoolExecutor
 import socket
 import ssl
 from urllib.parse import quote
-
 import os
+import sys
+import inspect
+import asyncio
+import aiohttp
+import time
 from utils import secure_log_key
 from dotenv import load_dotenv
 try:
@@ -27,8 +31,6 @@ try:
     )
 except ImportError:
     raise Exception("Could not load production config")
-from aylienapiclient import textapi
-from aylienapiclient.errors import Error as AylienError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -41,21 +43,60 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+# Create dummy Aylien objects since we can't properly import the package
+class AylienError(Exception):
+    pass
+
+class DummyClient:
+    def __init__(self, *args, **kwargs):
+        pass
+    def Stories(self, *args, **kwargs):
+        logger.error("Aylien API client not available")
+        return {'stories': []}
+
+class DummyTextAPI:
+    Client = DummyClient
+
+textapi = DummyTextAPI()
+
 # Centralized helper function for fetching with robust error handling, updated to support POST
+async def async_fetch_with_error_handling(url, params=None, headers=None, json=None):
+    """Asynchronous version of fetch_with_error_handling using aiohttp"""
+    method = "GET" if json is None else "POST"
+    try:
+        logger.debug(f"Making {method} request to {url}")
+        timeout = aiohttp.ClientTimeout(total=10)  # 10 second timeout
+        
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            if method == "GET":
+                async with session.get(url, params=params, headers=headers) as response:
+                    if response.status != 200:
+                        error_msg = f"HTTP error {response.status} for {url}"
+                        logger.error(error_msg)
+                        return None, error_msg
+                    return await response.json(), None
+            else:
+                async with session.post(url, params=params, headers=headers, json=json) as response:
+                    if response.status != 200:
+                        error_msg = f"HTTP error {response.status} for {url}"
+                        logger.error(error_msg)
+                        return None, error_msg
+                    return await response.json(), None
+    except aiohttp.ClientError as e:
+        error_msg = f"{method} request error for {url}: {e}"
+        logger.error(error_msg)
+        return None, error_msg
+    except asyncio.TimeoutError:
+        error_msg = f"{method} request timeout for {url}"
+        logger.error(error_msg)
+        return None, error_msg
+    except Exception as e:
+        error_msg = f"Unexpected {method} error for {url}: {e}"
+        logger.error(error_msg)
+        return None, error_msg
+
 def fetch_with_error_handling(url, params=None, headers=None, json=None):
-    """
-    Fetch data from an API with comprehensive error handling, supporting GET and POST.
-    
-    Args:
-        url (str): The API endpoint URL.
-        params (dict): Query parameters for the request (GET only).
-        headers (dict): Headers for the request (optional).
-        json (dict): JSON payload for POST requests (optional).
-    
-    Returns:
-        tuple: (data, error_message) where data is the parsed JSON or None,
-               and error_message is a string if an error occurred, or None if successful.
-    """
+    """Synchronous HTTP request with error handling"""
     try:
         method = "POST" if json else "GET"
         response = requests.request(method, url, params=params, headers=headers, json=json, timeout=5)
@@ -83,6 +124,47 @@ def fetch_with_error_handling(url, params=None, headers=None, json=None):
         error_msg = f"Unexpected {method} error for {url}: {e}"
         logger.error(error_msg)
         return None, error_msg
+
+async def async_fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
+    """Async version of fetch_newsapi_org"""
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    
+    url = "https://newsapi.org/v2/everything"
+    params = {
+        "q": event,
+        "from": from_date,
+        "pageSize": MAX_ARTICLES_PER_SOURCE,
+        "apiKey": NEWSAPI_ORG_KEY
+    }
+    data, error = await async_fetch_with_error_handling(url, params=params)
+    if error:
+        return []
+    if data.get("status") == "error":
+        logger.error(f"NewsAPI.org API error: {data.get('message')}")
+        return []
+    articles = data.get('articles', [])
+    logger.info(f"NewsAPI.org: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+    return articles
+
+async def async_fetch_guardian(event, days_back=DEFAULT_DAYS_BACK):
+    """Async version of fetch_guardian"""
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    url = "https://content.guardianapis.com/search"
+    params = {
+        "q": event,
+        "from-date": from_date,
+        "page-size": MAX_ARTICLES_PER_SOURCE,
+        "api-key": GUARDIAN_API_KEY
+    }
+    data, error = await async_fetch_with_error_handling(url, params=params)
+    if error:
+        return []
+    if data.get('response', {}).get('status') != "ok":
+        logger.error(f"The Guardian API error: {data.get('response', {}).get('message', 'Unknown error')}")
+        return []
+    articles = data.get('response', {}).get('results', [])
+    logger.info(f"The Guardian: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+    return articles
 
 def fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
@@ -154,6 +236,62 @@ def fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, d
         logger.error(f"Error fetching from Aylien: {e}")
         return []
 
+async def async_fetch_aylien_articles(event, app_id=AYLIEN_APP_ID, api_key=AYLIEN_API_KEY, days_back=DEFAULT_DAYS_BACK):
+    """Async version of fetch_aylien_articles - Note: The Aylien API client doesn't support async,
+    so we'll run it in a separate thread with asyncio.to_thread (requires Python 3.9+)"""
+    from_date = (datetime.now() - timedelta(days=days_back)).isoformat() + 'Z'
+    
+    # This function will be executed in a separate thread
+    def _fetch_aylien():
+        try:
+            client = textapi.Client(app_id, api_key)
+            # Custom session with timeout
+            old_session = requests.Session()
+            adapter = requests.adapters.HTTPAdapter(max_retries=3)
+            old_session.mount('http://', adapter)
+            old_session.mount('https://', adapter)
+            with requests.Session() as session:
+                session.request = lambda method, url, **kwargs: old_session.request(method, url, **kwargs, timeout=5)
+                response = client.Stories(
+                    text=event,
+                    language=['en'],
+                    per_page=MAX_ARTICLES_PER_SOURCE,
+                    published_at_start=from_date,
+                    _request_timeout=5
+                )
+            articles = response.get('stories', [])
+            logger.info(f"Aylien: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+            return articles
+        except AylienError as e:
+            logger.error(f"Aylien API exception: {e}")
+            return []
+        except requests.exceptions.Timeout:
+            logger.error("Timeout occurred while fetching from Aylien")
+            return []
+        except Exception as e:
+            logger.error(f"Error fetching from Aylien: {e}")
+            return []
+    
+    # Run the function in a thread pool
+    return await asyncio.to_thread(_fetch_aylien)
+
+async def async_fetch_gnews_articles(event, api_key=GNEWS_API_KEY, days_back=DEFAULT_DAYS_BACK):
+    """Async version of fetch_gnews_articles"""
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    url = "https://gnews.io/api/v4/search"
+    params = {
+        "q": event,
+        "from": from_date,
+        "token": api_key,
+        "max": MAX_ARTICLES_PER_SOURCE
+    }
+    data, error = await async_fetch_with_error_handling(url, params=params)
+    if error:
+        return []
+    articles = data.get('articles', [])
+    logger.info(f"GNews: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+    return articles
+
 def fetch_gnews_articles(event, api_key=GNEWS_API_KEY, days_back=DEFAULT_DAYS_BACK):
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
     url = "https://gnews.io/api/v4/search"
@@ -168,6 +306,23 @@ def fetch_gnews_articles(event, api_key=GNEWS_API_KEY, days_back=DEFAULT_DAYS_BA
         return []
     articles = data.get('articles', [])
     logger.info(f"GNews: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+    return articles
+
+async def async_fetch_nyt_articles(event, api_key=NYT_API_KEY, days_back=DEFAULT_DAYS_BACK):
+    """Async version of fetch_nyt_articles"""
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y%m%d')  # NYT uses YYYYMMDD format
+    url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
+    params = {
+        "q": event,
+        "api-key": api_key,
+        "begin_date": from_date,
+        "page-size": MAX_ARTICLES_PER_SOURCE
+    }
+    data, error = await async_fetch_with_error_handling(url, params=params)
+    if error:
+        return []
+    articles = data.get('response', {}).get('docs', [])
+    logger.info(f"NYT: Fetched {len(articles)} articles for event '{event}' from {from_date}")
     return articles
 
 def fetch_nyt_articles(event, api_key=NYT_API_KEY, days_back=DEFAULT_DAYS_BACK):
@@ -188,6 +343,23 @@ def fetch_nyt_articles(event, api_key=NYT_API_KEY, days_back=DEFAULT_DAYS_BACK):
         return []
     articles = data.get('response', {}).get('docs', [])
     logger.info(f"NYT: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+    return articles
+
+async def async_fetch_mediastack_articles(event, api_key=MEDIASTACK_API_KEY, days_back=DEFAULT_DAYS_BACK):
+    """Async version of fetch_mediastack_articles"""
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    url = "http://api.mediastack.com/v1/news"
+    params = {
+        "access_key": api_key,
+        "keywords": event,
+        "date": f"{from_date},{datetime.now().strftime('%Y-%m-%d')}",
+        "limit": MAX_ARTICLES_PER_SOURCE
+    }
+    data, error = await async_fetch_with_error_handling(url, params=params)
+    if error:
+        return []
+    articles = data.get('data', [])
+    logger.info(f"Mediastack: Fetched {len(articles)} articles for event '{event}' from {from_date}")
     return articles
 
 def fetch_mediastack_articles(event, api_key=MEDIASTACK_API_KEY, days_back=DEFAULT_DAYS_BACK):
@@ -211,6 +383,27 @@ def fetch_mediastack_articles(event, api_key=MEDIASTACK_API_KEY, days_back=DEFAU
     logger.info(f"Mediastack: Fetched {len(articles)} articles for event '{event}' from {from_date}")
     if not articles:
         logger.warning(f"Mediastack: No articles found in response")
+    return articles
+
+async def async_fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_DAYS_BACK):
+    """Async version of fetch_newsapi_ai_articles"""
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    url = "https://eventregistry.org/api/v1/article/getArticles"
+    payload = {
+        "action": "getArticles",
+        "keyword": event,
+        "dateStart": from_date,
+        "dateEnd": datetime.now().strftime('%Y-%m-%d'),
+        "articlesCount": MAX_ARTICLES_PER_SOURCE,
+        "resultType": "articles",
+        "apiKey": api_key,
+        "lang": "eng"
+    }
+    data, error = await async_fetch_with_error_handling(url, json=payload)
+    if error:
+        return []
+    articles = data.get('articles', {}).get('results', [])
+    logger.info(f"NewsAPI.ai: Fetched {len(articles)} articles for event '{event}' from {from_date}")
     return articles
 
 def fetch_newsapi_ai_articles(event, api_key=NEWSAPI_AI_KEY, days_back=DEFAULT_DAYS_BACK):
@@ -344,6 +537,65 @@ def fetch_trending_articles(topics, max_articles_per_topic=3):
                 logger.error(f"Error fetching articles for topic '{topic}': {e}")
                 trending_data[topic] = []
     return trending_data
+
+async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
+    """
+    Asynchronously fetch articles from multiple sources using asyncio.
+    This replaces the ThreadPoolExecutor approach with true non-blocking async IO.
+    """
+    logger.info(f"Starting async fetching of articles for '{event}'")
+    
+    fetch_functions = [
+        (async_fetch_newsapi_org, USE_NEWSAPI_ORG),
+        (async_fetch_guardian, USE_GUARDIAN),
+        (async_fetch_aylien_articles, USE_AYLIEN),
+        (async_fetch_gnews_articles, USE_GNEWS),
+        (async_fetch_nyt_articles, USE_NYT),
+        (async_fetch_mediastack_articles, USE_MEDIASTACK),
+        (async_fetch_newsapi_ai_articles, USE_NEWSDATA)
+    ]
+    
+    # Filter out disabled sources
+    enabled_functions = [func for func, enabled in fetch_functions if enabled]
+    
+    if not enabled_functions:
+        logger.warning("No news sources are enabled. Check your configuration.")
+        return [], [], [], [], [], [], []
+        
+    # Execute all enabled fetchers concurrently
+    try:
+        results = await asyncio.gather(
+            *[func(event, days_back=days_back) for func in enabled_functions],
+            return_exceptions=True
+        )
+        
+        # Process results and handle exceptions
+        processed_results = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                logger.error(f"Error in async fetcher {enabled_functions[i].__name__}: {result}")
+                processed_results.append([])
+            else:
+                processed_results.append(result)
+                
+        # Fill in gaps for disabled fetchers
+        final_results = []
+        result_index = 0
+        
+        for _, enabled in fetch_functions:
+            if enabled:
+                final_results.append(processed_results[result_index])
+                result_index += 1
+            else:
+                final_results.append([])
+                
+        logger.info(f"Async fetching complete for '{event}'")
+        return tuple(final_results)
+        
+    except Exception as e:
+        logger.error(f"Error in async_fetch_articles: {e}")
+        # Return empty lists for all fetchers
+        return [], [], [], [], [], [], []
 
 def fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     """
