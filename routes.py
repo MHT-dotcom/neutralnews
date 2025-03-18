@@ -585,6 +585,11 @@ def get_news_data():
 @routes.route('/images/<filename>')
 def serve_image(filename):
     """Serve images from the IMAGE_DIR directory."""
+    # Security checks to prevent path traversal and restrict to PNG files
+    if not filename.endswith('.png') or '..' in filename or '/' in filename or '\\' in filename:
+        logger.warning(f"Blocked suspicious image request: {filename}")
+        return jsonify({'error': 'Invalid image filename'}), 403
+    
     logger.info(f"Serving image: {filename} from {current_app.config['IMAGE_DIR']}")
     return send_from_directory(current_app.config["IMAGE_DIR"], filename)
 
@@ -602,7 +607,7 @@ def init_db():
         c.execute('''CREATE TABLE IF NOT EXISTS search_history
                      (query TEXT, timestamp TEXT, summary TEXT, average_sentiment REAL,
                       articles TEXT, source_distribution TEXT, image_path TEXT)''')
-        logger.info("Created search_history table if it didn’t exist")
+        logger.info("Created search_history table if it didn't exist")
     except sqlite3.OperationalError:
         logger.info("search_history table already exists")
     try:
