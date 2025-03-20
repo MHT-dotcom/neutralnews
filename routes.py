@@ -16,12 +16,41 @@ from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDI
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N)
 from get_img import generate_and_save_image, get_image_cache_stats, optimize_image_storage
+from topics import get_trending_topics
 
 # Align blueprint name with app.py registration
 routes = Blueprint('news_routes', __name__)
 logger = logging.getLogger(__name__)
 
 _is_first_request = True
+
+def get_db_path():
+    """Helper function to find DB_PATH from multiple sources with fallback."""
+    db_path = None
+    
+    # 1. Try Flask app config
+    if hasattr(current_app, 'config'):
+        db_path = current_app.config.get("DB_PATH")
+        logger.debug(f"DB_PATH from current_app.config: {db_path}")
+    
+    # 2. Try environment variable
+    if not db_path:
+        db_path = os.environ.get("DB_PATH")
+        logger.debug(f"DB_PATH from environment: {db_path}")
+    
+    # 3. Use fallback path as last resort
+    if not db_path:
+        db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "search_db.sqlite")
+        logger.warning(f"Using fallback DB_PATH: {db_path}")
+    
+    # Ensure directory exists
+    db_dir = os.path.dirname(db_path)
+    if not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
+        logger.info(f"Created database directory: {db_dir}")
+    
+    logger.debug(f"Using DB_PATH: {db_path}")
+    return db_path
 
 @routes.before_app_request
 def before_first_request():
@@ -314,37 +343,6 @@ def fetch_and_process_data(event):
             logger.warning(f"Failed to clear models after error: {clear_error}")
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
-def get_trending_topics(date_str, force_refresh=False, time_period="current"):
-    """Get trending topics for a given date"""
-    logger.info("Returning static trending topics")
-    # Hardcoded fallback topics for CURRENT week
-    current_fallback_topics = [
-        ['Ukraine-Russia Peace Talks Stall After New Sanctions', 'Ukraine Russia sanctions'],
-        ['Tesla Unveils Robotaxi Plans for 2026 Rollout', 'Tesla robotaxi autonomous'],
-        ['Federal Reserve Signals Potential Rate Cut', 'Fed interest rates economy'],
-        ['Meta AI Assistant Now Available in 40 Languages', 'Meta AI assistant languages'],
-        ['Record Temperatures Hit Mediterranean Countries', 'heatwave climate Mediterranean'],
-        ['SpaceX Launches First Commercial Lunar Lander', 'SpaceX lunar lander commercial'],
-        ['UN Report Warns of Critical Ocean Pollution Levels', 'ocean pollution plastic UN'],
-        ['China Unveils New Economic Stimulus Package', 'China economy stimulus package']
-    ]
-    
-    # Hardcoded fallback topics for LAST week
-    last_week_fallback_topics = [
-        ['US Passes Major Climate Legislation', 'climate bill emissions'],
-        ['Twitter Introduces New Content Moderation Tools', 'Twitter moderation content'],
-        ['Major Tech Companies Announce Layoffs', 'tech layoffs recession'],
-        ['Japan Reopens Borders to International Tourism', 'Japan tourism COVID'],
-        ['Breakthrough in Nuclear Fusion Energy Announced', 'fusion energy breakthrough'],
-        ['Amazon Acquires Healthcare Provider for $4 Billion', 'Amazon healthcare acquisition'],
-        ['Global Wheat Prices Stabilize After Recent Surge', 'wheat prices food'],
-        ['New Malaria Vaccine Shows 80% Efficacy in Trials', 'malaria vaccine WHO']
-    ]
-    if time_period == "last_week":
-        return last_week_fallback_topics[:8]
-    else:
-        return current_fallback_topics[:8]
-
 @routes.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the main route for displaying trending topics and fetching custom summaries."""
@@ -373,12 +371,16 @@ def index():
 
     today = datetime.now().strftime("%Y-%m-%d")
     last_week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    last_month = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
     
-    today_topics = get_trending_topics(today, force_refresh=False, time_period="current")
+    today_topics = get_trending_topics("today")
     logger.info(f"Today topics sample: {today_topics[0] if today_topics else 'None'}")
     
-    last_week_topics = get_trending_topics(last_week, force_refresh=False, time_period="last_week")
+    last_week_topics = get_trending_topics("last_week")
     logger.info(f"Last week topics sample: {last_week_topics[0] if last_week_topics else 'None'}")
+    
+    last_month_topics = get_trending_topics("last_month")
+    logger.info(f"Last month topics sample: {last_month_topics[0] if last_month_topics else 'None'}")
     
     are_same = today_topics[0][0] == last_week_topics[0][0] if today_topics and last_week_topics else False
     logger.info(f"Today and last week topics are the same: {are_same}")
@@ -397,7 +399,7 @@ def index():
             logger.warning("No event provided")
         else:
             logger.info(f"Processing event: '{event}'")
-            conn = sqlite3.connect(current_app.config["DB_PATH"])
+            conn = sqlite3.connect(get_db_path())
             c = conn.cursor()
             c.execute("""SELECT * FROM search_history 
                         WHERE query = ? AND timestamp > ?""", 
@@ -410,48 +412,47 @@ def index():
                 articles = json.loads(result[5])
                 image_path = result[7]
                 if image_path and os.path.exists(image_path):
-                    logger.info(f"Existing image found at {image_path}")
-                    image_filename = os.path.basename(image_path)
-                    image_path = f"/images/{image_filename}"  # Convert to relative URL
+                    logger.info(f"Using cached image: {image_path}")
                 else:
-                    logger.info(f"No valid image in cache or on disk, generating for '{event}'")
-                    image_path, image_status = generate_and_save_image(event, summary)
-                    if image_status:
-                        logger.info(f"Generated new image: {image_path}")
-                        image_filename = os.path.basename(image_path)
-                        image_path = f"/images/{image_filename}"  # Convert to relative URL
-                        c.execute("UPDATE search_history SET image_path = ? WHERE query = ?", (image_path, event))
-                        conn.commit()
-                    else:
-                        logger.warning(f"Image generation failed")
-                        image_path = None
-                conn.close()
+                    logger.warning(f"Cached image not found: {image_path}")
+                    image_path = None
             else:
-                result = fetch_and_process_data(event)
-                if isinstance(result, tuple):
-                    summary, articles, error = result
+                logger.info(f"No cache hit for '{event}', processing request")
+                summary, articles, error = process_news_request(event)
+                
+                if error:
+                    logger.error(f"Error processing '{event}': {error}")
                 else:
-                    summary = result.get('summary')
-                    articles = result.get('articles', [])
-                if summary and not error:
-                    image_path, image_status = generate_and_save_image(event, summary)
-                    logger.info(f"Image generation result - Path: {image_path}, Status: {image_status}")
-                    if image_status:
-                        image_filename = os.path.basename(image_path)
-                        image_path = f"/images/{image_filename}"  # Convert to relative URL
-                conn.close()
+                    logger.info(f"Success processing '{event}': {summary[:50]}..., {len(articles)} articles")
+                    
+                    # Generate or fetch image for the topic
+                    try:
+                        from get_img import generate_and_save_image
+                        image_path = generate_and_save_image(event)
+                        logger.info(f"Generated image: {image_path}")
+                    except Exception as img_error:
+                        logger.error(f"Failed to generate image: {img_error}")
+                        image_path = None
+                        
+            conn.close()
 
-    logger.info(f"Rendering template with: summary={summary is not None}, articles={len(articles)}, event='{event}', error='{error}', image_path='{image_path}'")
-    return render_template(
-        'index.html',
-        today_topics=today_topics,
-        last_week_topics=last_week_topics,
-        summary=summary,
-        articles=articles,
-        event=event,
-        error=error,
-        image_path=image_path if image_path else None
-    )
+    # Get trending topics for different time periods
+    today_topics = get_trending_topics("today")
+    last_week_topics = get_trending_topics("last_week")
+    last_month_topics = get_trending_topics("last_month")
+    
+    # Log the lengths of trending topics
+    logger.info(f"Rendering template with trending topics - Today: {len(today_topics)}, Last Week: {len(last_week_topics)}, Last Month: {len(last_month_topics)}")
+    
+    return render_template('index.html', 
+                          summary=summary, 
+                          articles=articles, 
+                          event=event,
+                          error=error,
+                          image_path=image_path,
+                          today_topics=today_topics,
+                          last_week_topics=last_week_topics,
+                          last_month_topics=last_month_topics)
 
 def process_news_request(event):
     """Process a news request for the given event, handling API calls and data formatting."""
@@ -460,7 +461,13 @@ def process_news_request(event):
         return {'error': 'Please provide an event to search for.'}, 400
 
     logger.info(f"Checking cache for '{event}'")
-    conn = sqlite3.connect(current_app.config["DB_PATH"])
+    
+    # Get DB_PATH from multiple sources
+    db_path = get_db_path()
+    
+    logger.info(f"Using DB_PATH: {db_path}")
+    
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute("""SELECT * FROM search_history 
                 WHERE query = ? AND timestamp > ?""", 
@@ -544,6 +551,32 @@ def process_news_request(event):
                   f"Mediastack: {len(mediastack_articles)}, "
                   f"NewsAPI.ai: {len(newsapi_ai_articles)}")
 
+        # Add debug logging for USE_* variables
+        try:
+            logger.info("Checking availability of API configuration flags:")
+            logger.info(f"USE_NEWSAPI_ORG defined: {'Yes' if 'USE_NEWSAPI_ORG' in globals() else 'No'}")
+            logger.info(f"USE_GUARDIAN defined: {'Yes' if 'USE_GUARDIAN' in globals() else 'No'}")
+            logger.info(f"USE_AYLIEN defined: {'Yes' if 'USE_AYLIEN' in globals() else 'No'}")
+            logger.info(f"USE_GNEWS defined: {'Yes' if 'USE_GNEWS' in globals() else 'No'}")
+            logger.info(f"USE_NYT defined: {'Yes' if 'USE_NYT' in globals() else 'No'}")
+            logger.info(f"USE_MEDIASTACK defined: {'Yes' if 'USE_MEDIASTACK' in globals() else 'No'}")
+            logger.info(f"USE_NEWSDATA defined: {'Yes' if 'USE_NEWSDATA' in globals() else 'No'}")
+            
+            # Try importing directly from config
+            from config_prod import USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, USE_NYT, USE_MEDIASTACK, USE_NEWSDATA
+            logger.info("Successfully imported USE_* flags from config_prod")
+        except Exception as e:
+            logger.error(f"Error importing USE_* flags: {str(e)}")
+            # Define fallback values if imports fail
+            USE_NEWSAPI_ORG = NEWSAPI_ORG_KEY is not None
+            USE_GUARDIAN = GUARDIAN_API_KEY is not None
+            USE_AYLIEN = AYLIEN_APP_ID is not None and AYLIEN_API_KEY is not None
+            USE_GNEWS = GNEWS_API_KEY is not None
+            USE_NYT = NYT_API_KEY is not None
+            USE_MEDIASTACK = MEDIASTACK_API_KEY is not None
+            USE_NEWSDATA = NEWSDATA_API_KEY is not None
+            logger.info("Using fallback values for USE_* flags based on API key availability")
+            
         # Identify failed sources
         failed_sources = []
         if not newsapi_org_articles and USE_NEWSAPI_ORG:
@@ -843,9 +876,113 @@ def serve_image(filename):
 
 @routes.route('/health', methods=['GET'])
 def health_check():
-    """Return a simple health status for Render's health check."""
-    logger.info("Health check accessed")
-    return jsonify({'status': 'healthy'}), 200
+    """
+    Enhanced health check endpoint for monitoring application health in production.
+    Tests database connectivity, API access, and returns version and uptime information.
+    """
+    start_time = time.time()
+    health_status = {
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'version': os.environ.get('APP_VERSION', 'dev'),
+        'checks': {},
+        'uptime': time.time() - current_app.start_time if hasattr(current_app, 'start_time') else None
+    }
+    
+    # Check database connectivity
+    try:
+        db_path = get_db_path()
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM searches")
+        search_count = cursor.fetchone()[0]
+        health_status['checks']['database'] = {
+            'status': 'pass',
+            'message': f"Connected to database, {search_count} searches"
+        }
+        conn.close()
+    except Exception as e:
+        health_status['checks']['database'] = {
+            'status': 'fail',
+            'message': str(e)
+        }
+        health_status['status'] = 'degraded'
+    
+    # Check image directory
+    try:
+        img_dir = os.path.join(os.path.dirname(get_db_path()), "images")
+        if os.path.exists(img_dir) and os.access(img_dir, os.W_OK):
+            stats = get_image_cache_stats()
+            health_status['checks']['image_cache'] = {
+                'status': 'pass',
+                'message': f"{stats['count']} images, {stats['size_mb']:.1f}MB"
+            }
+        else:
+            health_status['checks']['image_cache'] = {
+                'status': 'fail',
+                'message': "Image directory missing or not writable"
+            }
+            health_status['status'] = 'degraded'
+    except Exception as e:
+        health_status['checks']['image_cache'] = {
+            'status': 'fail',
+            'message': str(e)
+        }
+        health_status['status'] = 'degraded'
+    
+    # Check API keys
+    api_keys = {
+        'NEWSAPI_ORG_KEY': NEWSAPI_ORG_KEY,
+        'GUARDIAN_API_KEY': GUARDIAN_API_KEY,
+        'GNEWS_API_KEY': GNEWS_API_KEY,
+        'NYT_API_KEY': NYT_API_KEY,
+        'MEDIASTACK_API_KEY': MEDIASTACK_API_KEY,
+        'NEWSDATA_API_KEY': NEWSDATA_API_KEY
+    }
+    
+    missing_keys = [name for name, key in api_keys.items() if not key]
+    if missing_keys:
+        health_status['checks']['api_keys'] = {
+            'status': 'warn',
+            'message': f"Missing keys: {', '.join(missing_keys)}"
+        }
+        if len(missing_keys) > 3:  # If more than half of the keys are missing
+            health_status['status'] = 'degraded'
+    else:
+        health_status['checks']['api_keys'] = {
+            'status': 'pass',
+            'message': "All API keys present"
+        }
+    
+    # Check memory usage (if psutil is available)
+    try:
+        import psutil
+        process = psutil.Process(os.getpid())
+        memory_info = process.memory_info()
+        memory_mb = memory_info.rss / (1024 * 1024)
+        health_status['checks']['memory'] = {
+            'status': 'pass',
+            'message': f"{memory_mb:.1f}MB in use"
+        }
+    except ImportError:
+        # psutil not installed, skip this check
+        pass
+    except Exception as e:
+        health_status['checks']['memory'] = {
+            'status': 'warn',
+            'message': str(e)
+        }
+    
+    # Add response time
+    health_status['response_time_ms'] = (time.time() - start_time) * 1000
+    
+    # Set appropriate status code
+    status_code = 200 if health_status['status'] == 'healthy' else 207  # 207 Multi-Status
+    
+    # Log health check
+    logger.info(f"Health check: {health_status['status']} in {health_status['response_time_ms']:.1f}ms")
+    
+    return jsonify(health_status), status_code
 
 @routes.route('/admin/image-cache', methods=['GET', 'POST'])
 def image_cache_admin():
@@ -856,7 +993,7 @@ def image_cache_admin():
             # Get the image cache instance
             from image_cache import get_instance
             cache = get_instance(
-                db_path=current_app.config.get("DB_PATH"),
+                db_path=get_db_path(),
                 image_dir=current_app.config["IMAGE_DIRECTORY"]
             )
             # Run optimization with parameters from form
@@ -888,7 +1025,7 @@ def image_cache_admin():
     stats['file_count'] = file_count
     
     # Get some sample entries from cache sorted by search count
-    conn = sqlite3.connect(current_app.config["DB_PATH"])
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
     c.execute("""
         SELECT query, image_path, search_count FROM search_history 
@@ -907,20 +1044,37 @@ def image_cache_admin():
 
 def init_db():
     """Initialize the SQLite database with image_path column."""
-    conn = sqlite3.connect(current_app.config["DB_PATH"])
-    c = conn.cursor()
+    logger.info("Starting init_db function in routes.py")
+    
     try:
-        c.execute('''CREATE TABLE IF NOT EXISTS search_history
-                     (query TEXT, timestamp TEXT, summary TEXT, average_sentiment REAL,
-                      articles TEXT, source_distribution TEXT, image_path TEXT)''')
-        logger.info("Created search_history table if it didn't exist")
-    except sqlite3.OperationalError:
-        logger.info("search_history table already exists")
-    try:
-        c.execute('''ALTER TABLE search_history 
-                     ADD COLUMN image_path TEXT''')
-        logger.info("Added image_path column to search_history")
-    except sqlite3.OperationalError:
-        logger.info("image_path column already exists")
-    conn.commit()
-    conn.close()
+        # Try multiple sources for DB_PATH, in order of preference
+        db_path = get_db_path()
+        
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        try:
+            c.execute('''CREATE TABLE IF NOT EXISTS search_history
+                         (query TEXT, timestamp TEXT, summary TEXT, average_sentiment REAL,
+                          articles TEXT, source_distribution TEXT, image_path TEXT)''')
+            logger.info("Created search_history table if it didn't exist")
+        except sqlite3.OperationalError:
+            logger.info("search_history table already exists")
+        try:
+            c.execute('''ALTER TABLE search_history 
+                         ADD COLUMN image_path TEXT''')
+            logger.info("Added image_path column to search_history")
+        except sqlite3.OperationalError:
+            logger.info("image_path column already exists")
+        try:
+            c.execute('''ALTER TABLE search_history 
+                         ADD COLUMN search_count INTEGER DEFAULT 1''')
+            logger.info("Added search_count column to search_history")
+        except sqlite3.OperationalError:
+            logger.info("search_count column already exists")
+            
+        conn.commit()
+        conn.close()
+        logger.info("Database initialization completed successfully")
+    except Exception as e:
+        logger.error(f"Error in init_db: {str(e)}")
+        raise

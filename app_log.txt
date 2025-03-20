@@ -1,0 +1,431 @@
+2025-03-20 10:11:15,950 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:11:15,955 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:11:15,955 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-20 10:11:15,955 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-20 10:11:15,956 - neutralnews - INFO - search_count column already exists
+2025-03-20 10:11:15,956 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-20 10:11:15,956 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-20 10:11:16,177 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-20 10:11:16,178 - neutralnews - INFO - Cache cleared on startup
+2025-03-20 10:11:16,178 - neutralnews - INFO - Would fetch today topics from API, using fallbacks for 'today' instead
+2025-03-20 10:11:16,178 - neutralnews - INFO - Using TODAY fallback topics list with 8 topics
+2025-03-20 10:11:16,179 - neutralnews - INFO - Cached today trending topics for 2025-03-20
+2025-03-20 10:11:16,179 - neutralnews - INFO - Would fetch last_week topics from API, using fallbacks for 'last_week' instead
+2025-03-20 10:11:16,179 - neutralnews - INFO - Using LAST_WEEK fallback topics list with 8 topics
+2025-03-20 10:11:16,180 - neutralnews - INFO - Cached last_week trending topics for 2025-03-13
+2025-03-20 10:11:16,180 - neutralnews - INFO - Would fetch last_month topics from API, using fallbacks for 'last_month' instead
+2025-03-20 10:11:16,180 - neutralnews - INFO - Using LAST_MONTH fallback topics list with 8 topics
+2025-03-20 10:11:16,181 - neutralnews - INFO - Cached last_month trending topics for 2025-02-18
+2025-03-20 10:11:16,227 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-20 10:11:16,227 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-20 10:11:16,228 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-20 10:11:16,228 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-20 10:11:16,228 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-20 10:11:16,228 - neutralnews - INFO - Cache type: simple
+2025-03-20 10:11:16,228 - neutralnews - INFO - About to register routes blueprint
+2025-03-20 10:11:16,229 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>])
+2025-03-20 10:11:16,229 - neutralnews - INFO - Starting app.py execution
+2025-03-20 10:11:16,229 - neutralnews - INFO - About to import routes module
+2025-03-20 10:11:16,307 - neutralnews - INFO - Successfully imported routes module
+2025-03-20 10:11:16,309 - neutralnews - INFO - Routes blueprint registered
+2025-03-20 10:11:16,309 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>,
+ <Rule '/' (HEAD, OPTIONS, GET, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (HEAD, OPTIONS, GET) -> news_routes.serve_image>,
+ <Rule '/health' (HEAD, OPTIONS, GET) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (HEAD, OPTIONS, GET, POST) -> news_routes.image_cache_admin>])
+2025-03-20 10:11:16,309 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-20 10:11:16,309 - neutralnews - INFO - Application fully initialized
+2025-03-20 10:11:16,309 - neutralnews - INFO - Starting server on port 5005
+2025-03-20 10:11:16,309 - neutralnews - INFO - Application initialized at 1742461875.9495099
+2025-03-20 10:11:16,309 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-20 10:11:16,309 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-20 10:11:16,310 - neutralnews - INFO - Cache type: simple
+2025-03-20 10:11:16,310 - neutralnews - INFO - Application fully initialized
+2025-03-20 10:15:02,342 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:15:02,343 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:15:02,343 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-20 10:15:02,343 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-20 10:15:02,344 - neutralnews - INFO - search_count column already exists
+2025-03-20 10:15:02,344 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-20 10:15:02,344 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-20 10:15:02,574 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-20 10:15:02,575 - neutralnews - INFO - Cache cleared on startup
+2025-03-20 10:15:02,575 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:15:02,575 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:15:02,576 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:15:02,614 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-20 10:15:02,614 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-20 10:15:02,614 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-20 10:15:02,614 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-20 10:15:02,615 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-20 10:15:02,615 - neutralnews - INFO - Cache type: simple
+2025-03-20 10:15:02,615 - neutralnews - INFO - About to register routes blueprint
+2025-03-20 10:15:02,615 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, HEAD, OPTIONS) -> static>])
+2025-03-20 10:15:02,615 - neutralnews - INFO - Starting app.py execution
+2025-03-20 10:15:02,615 - neutralnews - INFO - About to import routes module
+2025-03-20 10:15:02,697 - neutralnews - INFO - Successfully imported routes module
+2025-03-20 10:15:02,699 - neutralnews - INFO - Routes blueprint registered
+2025-03-20 10:15:02,699 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, HEAD, OPTIONS) -> static>,
+ <Rule '/' (GET, HEAD, OPTIONS, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, HEAD, OPTIONS) -> news_routes.serve_image>,
+ <Rule '/health' (GET, HEAD, OPTIONS) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, HEAD, OPTIONS, POST) -> news_routes.image_cache_admin>])
+2025-03-20 10:15:02,699 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-20 10:15:02,699 - neutralnews - INFO - Application fully initialized
+2025-03-20 10:15:02,699 - neutralnews - INFO - Starting server on port 5000
+2025-03-20 10:15:02,699 - neutralnews - INFO - Application initialized at 1742462102.342016
+2025-03-20 10:15:02,699 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-20 10:15:02,699 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-20 10:15:02,699 - neutralnews - INFO - Cache type: simple
+2025-03-20 10:15:02,699 - neutralnews - INFO - Application fully initialized
+2025-03-20 10:15:31,043 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:15:31,044 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:15:31,044 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:15:31,044 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:15:31,044 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:15:31,044 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:15:32,520 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-20 10:15:32,521 - neutralnews.image_cache - INFO - Cache miss for query: 'JFK assassination files CIA'
+2025-03-20 10:15:32,635 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-20 10:15:32,636 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:15:32,636 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:15:32,637 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:15:32,637 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:15:32,638 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:15:32,638 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:15:32,638 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-20 10:15:32,662 - neutralnews.image_cache - INFO - Added image to cache for query: 'JFK assassination files CIA'
+2025-03-20 10:15:34,586 - neutralnews.image_cache - INFO - Cache miss for query: 'measles Sydney outbreak'
+2025-03-20 10:15:34,590 - neutralnews.image_cache - INFO - Added image to cache for query: 'measles Sydney outbreak'
+2025-03-20 10:15:49,152 - neutralnews - INFO - Removing duplicates from 12 articles
+2025-03-20 10:15:49,152 - neutralnews - INFO - Removed 0 duplicates
+2025-03-20 10:15:49,152 - neutralnews - INFO - Starting detailed filtering for 'Nasdaq Tesla recovery' with 12 articles
+2025-03-20 10:15:49,152 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-20 10:15:49,152 - neutralnews - INFO - Articles before filtering for 'Nasdaq Tesla recovery':
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 1: 'Futures rise after volatile week; consumer data on...' - Source: Yahoo Entertainment
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 2: 'Stock market today: US stocks fall as Wall Street ...' - Source: Boston Herald
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 3: 'Dow Jones Today: Stocks Tumble After Two-Day Rally...' - Source: Biztoc.com
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 4: 'TRADING DAY-Flickering recovery snuffed out...' - Source: The Times of India
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 5: 'Why is Elon Musk still CEO of Tesla?...' - Source: Guardian
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 6: 'Digested week: Just enjoy Tesla shares tumbling as...' - Source: Guardian
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 7: 'FBI investigates blazes at Las Vegas Tesla showroo...' - Source: Guardian
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 8: 'Tesla tells US government Trump trade war could ‘h...' - Source: Guardian
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 9: 'Tesla: Don’t Bet Your House On Recovery (NASDAQ:TS...' - Source: Seeking Alpha
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 10: 'Apple gets closer to $3 trillion market value afte...' - Source: Devdiscourse
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 11: 'US STOCKS-Wall St climbs on positive economic data...' - Source: Devdiscourse
+2025-03-20 10:15:49,152 - neutralnews - INFO - Article 12: 'US STOCKS-S&P 500, Nasdaq set to hit record highs ...' - Source: Devdiscourse
+2025-03-20 10:15:49,160 - neutralnews - INFO - Relevance threshold for 'Nasdaq Tesla recovery': 0.01
+2025-03-20 10:15:49,160 - neutralnews - INFO - Article filtering details for 'Nasdaq Tesla recovery':
+2025-03-20 10:15:49,160 - neutralnews - INFO - FILTERED OUT: Article 1 - Title: 'Futures rise after volatile we...' - Source: Yahoo Entertainment - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 10:15:49,160 - neutralnews - INFO - FILTERED OUT: Article 2 - Title: 'Stock market today: US stocks ...' - Source: Boston Herald - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 10:15:49,160 - neutralnews - INFO - KEPT: Article 3 - Title: 'Dow Jones Today: Stocks Tumble...' - Source: Biztoc.com - Similarity: 0.1181
+2025-03-20 10:15:49,160 - neutralnews - INFO - FILTERED OUT: Article 4 - Title: 'TRADING DAY-Flickering recover...' - Source: The Times of India - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 10:15:49,160 - neutralnews - INFO - KEPT: Article 5 - Title: 'Why is Elon Musk still CEO of ...' - Source: Guardian - Similarity: 0.0970
+2025-03-20 10:15:49,160 - neutralnews - INFO - KEPT: Article 6 - Title: 'Digested week: Just enjoy Tesl...' - Source: Guardian - Similarity: 0.0775
+2025-03-20 10:15:49,160 - neutralnews - INFO - KEPT: Article 7 - Title: 'FBI investigates blazes at Las...' - Source: Guardian - Similarity: 0.0804
+2025-03-20 10:15:49,160 - neutralnews - INFO - KEPT: Article 8 - Title: 'Tesla tells US government Trum...' - Source: Guardian - Similarity: 0.0813
+2025-03-20 10:15:49,160 - neutralnews - INFO - KEPT: Article 9 - Title: 'Tesla: Don’t Bet Your House On...' - Source: Seeking Alpha - Similarity: 0.1112
+2025-03-20 10:15:49,160 - neutralnews - INFO - FILTERED OUT: Article 10 - Title: 'Apple gets closer to $3 trilli...' - Source: Devdiscourse - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 10:15:49,160 - neutralnews - INFO - KEPT: Article 11 - Title: 'US STOCKS-Wall St climbs on po...' - Source: Devdiscourse - Similarity: 0.2146
+2025-03-20 10:15:49,160 - neutralnews - INFO - KEPT: Article 12 - Title: 'US STOCKS-S&P 500, Nasdaq set ...' - Source: Devdiscourse - Similarity: 0.0776
+2025-03-20 10:15:49,160 - neutralnews - INFO - Articles filtered out for 'Nasdaq Tesla recovery': 4/12
+2025-03-20 10:15:49,160 - neutralnews - INFO - Final article count for 'Nasdaq Tesla recovery' after filtering: 8
+2025-03-20 10:15:49,160 - neutralnews - INFO - Starting GPT-based summarization for 8 articles about 'Nasdaq Tesla recovery'
+2025-03-20 10:15:49,160 - neutralnews - INFO - GPT prompt length: 1495 characters
+2025-03-20 10:15:49,194 - neutralnews - INFO - Starting OpenAI API call for 'Nasdaq Tesla recovery' at 1742462149.19421
+2025-03-20 10:15:50,966 - neutralnews - INFO - OpenAI API call completed in 1.77s
+2025-03-20 10:15:50,966 - neutralnews - INFO - Generated summary for 'Nasdaq Tesla recovery': The Nasdaq and S&P 500 climbed on positive economic data and an update on the Omicron variant, with Tesla shares providing a boost. However, Tesla's recovery is uncertain as its shares have depreciated at the start of the year. The FBI is investigating potential terrorism at a Las Vegas Tesla showroom, while the market remains volatile due to concerns about a trade war and taper fears.
+2025-03-20 10:15:50,966 - neutralnews.image_cache - INFO - Cache miss for query: 'Nasdaq Tesla recovery'
+2025-03-20 10:15:56,823 - neutralnews.image_cache - INFO - Added image to cache for query: 'Nasdaq Tesla recovery'
+2025-03-20 10:16:32,558 - neutralnews.image_cache - INFO - Cache miss for query: 'Trump Zelensky Putin'
+2025-03-20 10:16:32,560 - neutralnews.image_cache - INFO - Added image to cache for query: 'Trump Zelensky Putin'
+2025-03-20 10:23:04,360 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:23:04,360 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:23:04,360 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:23:04,360 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:23:04,362 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:23:04,362 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:23:04,362 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:23:04,362 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-20 10:23:04,363 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-20 10:23:04,363 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-20 10:23:04,363 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-20 10:23:04,363 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-20 10:23:04,364 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-20 10:23:04,364 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-20 10:23:04,364 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-20 10:23:04,364 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-20 10:23:04,365 - neutralnews - INFO - search_count column already exists
+2025-03-20 10:23:04,366 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-20 10:23:04,367 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-20 10:23:04,367 - neutralnews - INFO - search_count column already exists
+2025-03-20 10:23:04,367 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-20 10:23:04,368 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-20 10:23:04,369 - neutralnews - INFO - search_count column already exists
+2025-03-20 10:23:04,370 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-20 10:23:04,370 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-20 10:23:04,375 - neutralnews - INFO - search_count column already exists
+2025-03-20 10:23:04,375 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-20 10:23:04,376 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-20 10:23:04,758 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-20 10:23:04,758 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-20 10:23:04,758 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-20 10:23:04,758 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-20 10:23:04,759 - neutralnews - INFO - Cache cleared on startup
+2025-03-20 10:23:04,759 - neutralnews - INFO - Cache cleared on startup
+2025-03-20 10:23:04,759 - neutralnews - INFO - Cache cleared on startup
+2025-03-20 10:23:04,759 - neutralnews - INFO - Cache cleared on startup
+2025-03-20 10:23:04,761 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:04,761 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:04,761 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:04,761 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:04,762 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:04,763 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:04,763 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:04,763 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:04,763 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:04,764 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:04,764 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:04,764 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:04,847 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-20 10:23:04,847 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-20 10:23:04,847 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-20 10:23:04,847 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-20 10:23:04,848 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-20 10:23:04,848 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-20 10:23:04,848 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-20 10:23:04,848 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-20 10:23:04,849 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-20 10:23:04,849 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-20 10:23:04,849 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-20 10:23:04,849 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-20 10:23:04,850 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-20 10:23:04,850 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-20 10:23:04,850 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-20 10:23:04,850 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-20 10:23:04,851 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-20 10:23:04,851 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-20 10:23:04,851 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-20 10:23:04,851 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-20 10:23:04,852 - neutralnews - INFO - Cache type: simple
+2025-03-20 10:23:04,852 - neutralnews - INFO - Cache type: simple
+2025-03-20 10:23:04,852 - neutralnews - INFO - Cache type: simple
+2025-03-20 10:23:04,853 - neutralnews - INFO - Cache type: simple
+2025-03-20 10:23:04,853 - neutralnews - INFO - About to register routes blueprint
+2025-03-20 10:23:04,853 - neutralnews - INFO - About to register routes blueprint
+2025-03-20 10:23:04,853 - neutralnews - INFO - About to register routes blueprint
+2025-03-20 10:23:04,853 - neutralnews - INFO - About to register routes blueprint
+2025-03-20 10:23:04,854 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-20 10:23:04,854 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-20 10:23:04,854 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-20 10:23:04,854 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-20 10:23:04,854 - neutralnews - INFO - Starting app.py execution
+2025-03-20 10:23:04,855 - neutralnews - INFO - Starting app.py execution
+2025-03-20 10:23:04,855 - neutralnews - INFO - Starting app.py execution
+2025-03-20 10:23:04,855 - neutralnews - INFO - Starting app.py execution
+2025-03-20 10:23:04,855 - neutralnews - INFO - About to import routes module
+2025-03-20 10:23:04,855 - neutralnews - INFO - About to import routes module
+2025-03-20 10:23:04,856 - neutralnews - INFO - About to import routes module
+2025-03-20 10:23:04,856 - neutralnews - INFO - About to import routes module
+2025-03-20 10:23:04,953 - neutralnews - INFO - Successfully imported routes module
+2025-03-20 10:23:04,954 - neutralnews - INFO - Successfully imported routes module
+2025-03-20 10:23:04,954 - neutralnews - INFO - Successfully imported routes module
+2025-03-20 10:23:04,954 - neutralnews - INFO - Successfully imported routes module
+2025-03-20 10:23:04,955 - neutralnews - INFO - Routes blueprint registered
+2025-03-20 10:23:04,955 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (POST, OPTIONS, GET, HEAD) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, GET, HEAD) -> news_routes.image_cache_admin>])
+2025-03-20 10:23:04,955 - neutralnews - INFO - Routes blueprint registered
+2025-03-20 10:23:04,955 - neutralnews - INFO - Routes blueprint registered
+2025-03-20 10:23:04,956 - neutralnews - INFO - Routes blueprint registered
+2025-03-20 10:23:04,956 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-20 10:23:04,957 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (POST, OPTIONS, GET, HEAD) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, GET, HEAD) -> news_routes.image_cache_admin>])
+2025-03-20 10:23:04,957 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (POST, OPTIONS, GET, HEAD) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, GET, HEAD) -> news_routes.image_cache_admin>])
+2025-03-20 10:23:04,957 - neutralnews - INFO - Application fully initialized
+2025-03-20 10:23:04,957 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (POST, OPTIONS, GET, HEAD) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, GET, HEAD) -> news_routes.image_cache_admin>])
+2025-03-20 10:23:04,957 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-20 10:23:04,958 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-20 10:23:04,958 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-20 10:23:04,958 - neutralnews - INFO - Application fully initialized
+2025-03-20 10:23:04,959 - neutralnews - INFO - Application fully initialized
+2025-03-20 10:23:04,959 - neutralnews - INFO - Application fully initialized
+2025-03-20 10:23:18,902 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-20 10:23:34,854 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-20 10:23:34,855 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:34,856 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:34,857 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:34,857 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,859 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,860 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,860 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-20 10:23:34,877 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-20 10:23:34,877 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-20 10:23:34,877 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-20 10:23:34,878 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-20 10:23:34,878 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-20 10:23:34,878 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-20 10:23:34,879 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:34,879 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:34,879 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:34,880 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:34,880 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:34,880 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:34,881 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:34,881 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:34,881 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:34,881 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,882 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,882 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,882 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,883 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,883 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,883 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,884 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-20 10:23:34,884 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,884 - neutralnews - INFO - Started background task for trending image generation
+2025-03-20 10:23:34,885 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-20 10:23:34,885 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-20 10:23:38,271 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:38,272 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:38,272 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:38,273 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:38,274 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:38,274 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:52,983 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:52,984 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:52,985 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:23:52,986 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 10:23:52,987 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 10:23:52,987 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 10:24:16,506 - neutralnews.image_cache - INFO - Cache miss for query: 'climate change'
+2025-03-20 10:24:16,533 - neutralnews.image_cache - INFO - Added image to cache for query: 'climate change'
+2025-03-20 11:30:04,834 - neutralnews - INFO - Removing duplicates from 22 articles
+2025-03-20 11:30:04,836 - neutralnews - INFO - Removed 0 duplicates
+2025-03-20 11:30:04,837 - neutralnews - INFO - Starting detailed filtering for 'Ukraine war' with 22 articles
+2025-03-20 11:30:04,837 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-20 11:30:04,838 - neutralnews - INFO - Articles before filtering for 'Ukraine war':
+2025-03-20 11:30:04,838 - neutralnews - INFO - Article 1: 'Peace deal must bar Ukraine from Nato, Russian off...' - Source: BBC News
+2025-03-20 11:30:04,839 - neutralnews - INFO - Article 2: 'Prospect of Ukraine ceasefire still uncertain desp...' - Source: BBC News
+2025-03-20 11:30:04,839 - neutralnews - INFO - Article 3: 'Trump and Putin agree to start talks for a ceasefi...' - Source: NPR
+2025-03-20 11:30:04,840 - neutralnews - INFO - Article 4: 'Weekly quiz: Who joined Kylie on the King's person...' - Source: BBC News
+2025-03-20 11:30:04,840 - neutralnews - INFO - Article 5: 'Ukraine war briefing: Trump ‘wants Zaporizhzhia po...' - Source: Guardian
+2025-03-20 11:30:04,841 - neutralnews - INFO - Article 6: 'Ukraine war briefing: Zelenskyy accuses Putin of s...' - Source: Guardian
+2025-03-20 11:30:04,842 - neutralnews - INFO - Article 7: 'Ukraine war briefing: Russian drone strikes immedi...' - Source: Guardian
+2025-03-20 11:30:04,842 - neutralnews - INFO - Article 8: 'Ukraine war briefing: Zelenskyy says ‘good chance ...' - Source: Guardian
+2025-03-20 11:30:04,843 - neutralnews - INFO - Article 9: 'Ukraine war latest: Zelenskyy blasts Putin - strik...' - Source: Sky News
+2025-03-20 11:30:04,843 - neutralnews - INFO - Article 10: 'What will Trump do if Putin breaks any deal? Is Ge...' - Source: Sky News
+2025-03-20 11:30:04,843 - neutralnews - INFO - Article 11: 'Ukraine war latest: Trump says US could run Ukrain...' - Source: Sky News
+2025-03-20 11:30:04,844 - neutralnews - INFO - Article 12: 'Ukraine war latest: Trump suggests US can run Ukra...' - Source: Sky News
+2025-03-20 11:30:04,844 - neutralnews - INFO - Article 13: 'U.S. to Withdraw From Group Investigating Responsi...' - Source: New York Times
+2025-03-20 11:30:04,845 - neutralnews - INFO - Article 14: 'Slowly, Ukrainian Women Are Beginning to Talk Abou...' - Source: New York Times
+2025-03-20 11:30:04,845 - neutralnews - INFO - Article 15: 'Russian Mercenary Found Guilty of War Crimes in Uk...' - Source: New York Times
+2025-03-20 11:30:04,846 - neutralnews - INFO - Article 16: 'Putin Won’t End the War. He Can’t Afford To....' - Source: New York Times
+2025-03-20 11:30:04,846 - neutralnews - INFO - Article 17: 'What to Know About Kursk, the Russian Territory Sl...' - Source: New York Times
+2025-03-20 11:30:04,846 - neutralnews - INFO - Article 18: 'Deadly New Strikes in Gaza, and Abortion Arrests i...' - Source: New York Times
+2025-03-20 11:30:04,847 - neutralnews - INFO - Article 19: 'Putin Demands Ukrainian Troops in Kursk Region of ...' - Source: New York Times
+2025-03-20 11:30:04,848 - neutralnews - INFO - Article 20: 'Trump and Putin Discuss Ukraine: What to Know...' - Source: New York Times
+2025-03-20 11:30:04,848 - neutralnews - INFO - Article 21: 'Trump Discussion With Putin to Focus on What Ukrai...' - Source: New York Times
+2025-03-20 11:30:04,848 - neutralnews - INFO - Article 22: 'In No Hurry for Cease-Fire, Putin Demands Numerous...' - Source: New York Times
+2025-03-20 11:30:04,864 - neutralnews - INFO - Relevance threshold for 'Ukraine war': 0.01
+2025-03-20 11:30:04,864 - neutralnews - INFO - Article filtering details for 'Ukraine war':
+2025-03-20 11:30:04,865 - neutralnews - INFO - KEPT: Article 1 - Title: 'Peace deal must bar Ukraine fr...' - Source: BBC News - Similarity: 0.0759
+2025-03-20 11:30:04,865 - neutralnews - INFO - KEPT: Article 2 - Title: 'Prospect of Ukraine ceasefire ...' - Source: BBC News - Similarity: 0.0459
+2025-03-20 11:30:04,866 - neutralnews - INFO - KEPT: Article 3 - Title: 'Trump and Putin agree to start...' - Source: NPR - Similarity: 0.0469
+2025-03-20 11:30:04,866 - neutralnews - INFO - KEPT: Article 4 - Title: 'Weekly quiz: Who joined Kylie ...' - Source: BBC News - Similarity: 0.1323
+2025-03-20 11:30:04,867 - neutralnews - INFO - KEPT: Article 5 - Title: 'Ukraine war briefing: Trump ‘w...' - Source: Guardian - Similarity: 0.3081
+2025-03-20 11:30:04,868 - neutralnews - INFO - KEPT: Article 6 - Title: 'Ukraine war briefing: Zelensky...' - Source: Guardian - Similarity: 0.4040
+2025-03-20 11:30:04,868 - neutralnews - INFO - KEPT: Article 7 - Title: 'Ukraine war briefing: Russian ...' - Source: Guardian - Similarity: 0.3047
+2025-03-20 11:30:04,869 - neutralnews - INFO - KEPT: Article 8 - Title: 'Ukraine war briefing: Zelensky...' - Source: Guardian - Similarity: 0.3826
+2025-03-20 11:30:04,869 - neutralnews - INFO - KEPT: Article 9 - Title: 'Ukraine war latest: Zelenskyy ...' - Source: Sky News - Similarity: 0.0401
+2025-03-20 11:30:04,870 - neutralnews - INFO - FILTERED OUT: Article 10 - Title: 'What will Trump do if Putin br...' - Source: Sky News - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:30:04,870 - neutralnews - INFO - KEPT: Article 11 - Title: 'Ukraine war latest: Trump says...' - Source: Sky News - Similarity: 0.0802
+2025-03-20 11:30:04,871 - neutralnews - INFO - KEPT: Article 12 - Title: 'Ukraine war latest: Trump sugg...' - Source: Sky News - Similarity: 0.0802
+2025-03-20 11:30:04,871 - neutralnews - INFO - FILTERED OUT: Article 13 - Title: 'U.S. to Withdraw From Group In...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:30:04,872 - neutralnews - INFO - FILTERED OUT: Article 14 - Title: 'Slowly, Ukrainian Women Are Be...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:30:04,872 - neutralnews - INFO - FILTERED OUT: Article 15 - Title: 'Russian Mercenary Found Guilty...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:30:04,873 - neutralnews - INFO - FILTERED OUT: Article 16 - Title: 'Putin Won’t End the War. He Ca...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:30:04,873 - neutralnews - INFO - FILTERED OUT: Article 17 - Title: 'What to Know About Kursk, the ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:30:04,874 - neutralnews - INFO - FILTERED OUT: Article 18 - Title: 'Deadly New Strikes in Gaza, an...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:30:04,874 - neutralnews - INFO - KEPT: Article 19 - Title: 'Putin Demands Ukrainian Troops...' - Source: New York Times - Similarity: 0.0598
+2025-03-20 11:30:04,875 - neutralnews - INFO - FILTERED OUT: Article 20 - Title: 'Trump and Putin Discuss Ukrain...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:30:04,875 - neutralnews - INFO - KEPT: Article 21 - Title: 'Trump Discussion With Putin to...' - Source: New York Times - Similarity: 0.1582
+2025-03-20 11:30:04,876 - neutralnews - INFO - KEPT: Article 22 - Title: 'In No Hurry for Cease-Fire, Pu...' - Source: New York Times - Similarity: 0.0464
+2025-03-20 11:30:04,876 - neutralnews - INFO - Articles filtered out for 'Ukraine war': 8/22
+2025-03-20 11:30:04,876 - neutralnews - INFO - Final article count for 'Ukraine war' after filtering: 10
+2025-03-20 11:30:04,877 - neutralnews - INFO - Starting GPT-based summarization for 10 articles about 'Ukraine war'
+2025-03-20 11:30:04,877 - neutralnews - INFO - GPT prompt length: 2069 characters
+2025-03-20 11:30:04,921 - neutralnews - INFO - Starting OpenAI API call for 'Ukraine war' at 1742466604.9213219
+2025-03-20 11:30:07,580 - neutralnews - INFO - OpenAI API call completed in 2.66s
+2025-03-20 11:30:07,581 - neutralnews - INFO - Generated summary for 'Ukraine war': Ukraine's President Zelenskyy accuses Putin of prolonging the war, while also expressing hope for a quick end to the conflict. Trump's interest in Ukraine's power plant and discussions with Putin have led to drone strikes in the region. Russian officials demand Ukraine be barred from joining NATO, while Putin demands Ukrainian troops in Russia surrender.
+2025-03-20 11:30:07,582 - neutralnews.image_cache - INFO - Cache miss for query: 'Ukraine war'
+2025-03-20 11:30:13,553 - neutralnews.image_cache - INFO - Added image to cache for query: 'Ukraine war'
+2025-03-20 11:31:48,637 - neutralnews - INFO - Removing duplicates from 14 articles
+2025-03-20 11:31:48,639 - neutralnews - INFO - Removed 0 duplicates
+2025-03-20 11:31:48,640 - neutralnews - INFO - Starting detailed filtering for 'bitcoin' with 14 articles
+2025-03-20 11:31:48,640 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-20 11:31:48,640 - neutralnews - INFO - Articles before filtering for 'bitcoin':
+2025-03-20 11:31:48,641 - neutralnews - INFO - Article 1: 'Cathie Wood says people are going to learn the har...' - Source: Business Insider
+2025-03-20 11:31:48,642 - neutralnews - INFO - Article 2: 'Think You Know Bitcoin? Here's 1 Little-Known Fact...' - Source: Yahoo Entertainment
+2025-03-20 11:31:48,642 - neutralnews - INFO - Article 3: 'Tesla stock bleeds, recession fears — and Bitcoin ...' - Source: Yahoo Entertainment
+2025-03-20 11:31:48,642 - neutralnews - INFO - Article 4: '8,000 BTC in the trash: Court rejects search for B...' - Source: Golem.de
+2025-03-20 11:31:48,643 - neutralnews - INFO - Article 5: 'What links doorbell, Bath bun and nice-looking? Th...' - Source: Guardian
+2025-03-20 11:31:48,643 - neutralnews - INFO - Article 6: 'Crypto reaps political rewards after spending big ...' - Source: Guardian
+2025-03-20 11:31:48,644 - neutralnews - INFO - Article 7: '"Here's how Bitcoin is communicated to the general...' - Source: 20 minuti Ticino
+2025-03-20 11:31:48,644 - neutralnews - INFO - Article 8: 'Krypto News: Ethereum Knapp, Bitcoin Known - what ...' - Source: finanzen.net
+2025-03-20 11:31:48,645 - neutralnews - INFO - Article 9: 'NFTS vs. cryptocurrencies: What are the difference...' - Source: finanzen.net
+2025-03-20 11:31:48,645 - neutralnews - INFO - Article 10: 'Blockchain and cryptocurrencies: The most importan...' - Source: finanzen.net
+2025-03-20 11:31:48,645 - neutralnews - INFO - Article 11: 'The Company Testing Wall Street’s Appetite for A.I...' - Source: New York Times
+2025-03-20 11:31:48,646 - neutralnews - INFO - Article 12: 'El Salvador’s President Sees Opportunity in Trump’...' - Source: New York Times
+2025-03-20 11:31:48,646 - neutralnews - INFO - Article 13: '‘Welcome to Hell’: Five Months in a Venezuelan Pri...' - Source: New York Times
+2025-03-20 11:31:48,647 - neutralnews - INFO - Article 14: '‘Will I Lose My Job?’ Federal Workers Flock to Red...' - Source: New York Times
+2025-03-20 11:31:48,652 - neutralnews - INFO - Relevance threshold for 'bitcoin': 0.01
+2025-03-20 11:31:48,653 - neutralnews - INFO - Article filtering details for 'bitcoin':
+2025-03-20 11:31:48,654 - neutralnews - INFO - KEPT: Article 1 - Title: 'Cathie Wood says people are go...' - Source: Business Insider - Similarity: 0.1075
+2025-03-20 11:31:48,654 - neutralnews - INFO - FILTERED OUT: Article 2 - Title: 'Think You Know Bitcoin? Here's...' - Source: Yahoo Entertainment - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,654 - neutralnews - INFO - FILTERED OUT: Article 3 - Title: 'Tesla stock bleeds, recession ...' - Source: Yahoo Entertainment - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,655 - neutralnews - INFO - FILTERED OUT: Article 4 - Title: '8,000 BTC in the trash: Court ...' - Source: Golem.de - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,655 - neutralnews - INFO - FILTERED OUT: Article 5 - Title: 'What links doorbell, Bath bun ...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,656 - neutralnews - INFO - FILTERED OUT: Article 6 - Title: 'Crypto reaps political rewards...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,656 - neutralnews - INFO - KEPT: Article 7 - Title: '"Here's how Bitcoin is communi...' - Source: 20 minuti Ticino - Similarity: 0.1088
+2025-03-20 11:31:48,657 - neutralnews - INFO - FILTERED OUT: Article 8 - Title: 'Krypto News: Ethereum Knapp, B...' - Source: finanzen.net - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,657 - neutralnews - INFO - KEPT: Article 9 - Title: 'NFTS vs. cryptocurrencies: Wha...' - Source: finanzen.net - Similarity: 0.1127
+2025-03-20 11:31:48,658 - neutralnews - INFO - KEPT: Article 10 - Title: 'Blockchain and cryptocurrencie...' - Source: finanzen.net - Similarity: 0.1089
+2025-03-20 11:31:48,659 - neutralnews - INFO - KEPT: Article 11 - Title: 'The Company Testing Wall Stree...' - Source: New York Times - Similarity: 0.1418
+2025-03-20 11:31:48,659 - neutralnews - INFO - FILTERED OUT: Article 12 - Title: 'El Salvador’s President Sees O...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,660 - neutralnews - INFO - FILTERED OUT: Article 13 - Title: '‘Welcome to Hell’: Five Months...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,660 - neutralnews - INFO - FILTERED OUT: Article 14 - Title: '‘Will I Lose My Job?’ Federal ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-20 11:31:48,661 - neutralnews - INFO - Articles filtered out for 'bitcoin': 9/14
+2025-03-20 11:31:48,661 - neutralnews - INFO - Final article count for 'bitcoin' after filtering: 5
+2025-03-20 11:31:48,662 - neutralnews - INFO - Starting GPT-based summarization for 5 articles about 'bitcoin'
+2025-03-20 11:31:48,662 - neutralnews - INFO - GPT prompt length: 1016 characters
+2025-03-20 11:31:48,671 - neutralnews - INFO - Starting OpenAI API call for 'bitcoin' at 1742466708.6711261
+2025-03-20 11:31:49,561 - neutralnews - INFO - OpenAI API call completed in 0.89s
+2025-03-20 11:31:49,562 - neutralnews - INFO - Generated summary for 'bitcoin': investment firm is staying away from meme coins like Dogecoin. Wood believes that people will eventually realize the risks associated with meme coins and learn the hard way.
+2025-03-20 11:31:49,563 - neutralnews.image_cache - INFO - Cache miss for query: 'bitcoin'
+2025-03-20 11:31:55,875 - neutralnews.image_cache - INFO - Added image to cache for query: 'bitcoin'
+2025-03-20 11:36:30,578 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 11:36:30,579 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 11:36:30,580 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-20 11:36:30,581 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
+2025-03-20 11:36:30,582 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
+2025-03-20 11:36:30,582 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18

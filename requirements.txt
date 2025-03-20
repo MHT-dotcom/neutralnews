@@ -64,6 +64,24 @@ Werkzeug==3.1.3
 python-dotenv>=1.0.0
 Pillow>=10.0.0  # For image handling
 
+# Production dependencies
+gunicorn>=23.0.0  # WSGI server for production
+psutil>=7.0.0     # System monitoring
+newrelic>=10.0.0  # Performance monitoring
+sentry-sdk>=1.39.1  # Error tracking
+
+# Logging and monitoring
+structlog>=24.1.0  # Structured logging
+python-json-logger>=2.0.7  # JSON logging for cloud environments
+
+# Reliability
+tenacity>=8.2.3  # Retry library
+circuit-breaker-python>=0.4.1  # Circuit breaker pattern
+
+# Security
+cryptography>=42.0.5  # For secure operations
+python-dotenv>=1.0.0  # Environment variable management
+
 # Image Generation
 openai>=1.3.0
 requests>=2.31.0

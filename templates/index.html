@@ -61,7 +61,18 @@
                     <div style="display: none;" id="debug-last-week-count">{{ last_week_topics|length }}</div> 
                 </div>
                 
-                <div style="display: none;" id="debug-trending-count">{{ today_topics|length + last_week_topics|length }}</div> 
+                <!-- Last Month's Topics -->
+                <div class="trending-topics">
+                    <h3>Last Month</h3>
+                    {% for item in last_month_topics %}
+                        <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 + 16 }}">
+                            <h4>{{ item[0] if item|length >= 1 else 'No topic' }}</h4>
+                        </div>
+                    {% endfor %}
+                    <div style="display: none;" id="debug-last-month-count">{{ last_month_topics|length }}</div> 
+                </div>
+                
+                <div style="display: none;" id="debug-trending-count">{{ today_topics|length + last_week_topics|length + last_month_topics|length }}</div> 
             </div>
             
             <div class="pull-indicator">Pull down to refresh</div>

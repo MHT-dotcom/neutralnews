@@ -1,36 +1,45 @@
 services:
+  # A web service for the news application
   - type: web
-    name: neutral-news
-    runtime: python
+    name: neutralnews
+    env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --workers 1 --timeout 120
+    startCommand: gunicorn app:app --workers=3 --timeout=120
+    healthCheckPath: /health
     envVars:
+      - key: APP_VERSION
+        value: 1.0.0
+      - key: FLASK_ENV
+        value: production
+      - key: CACHE_TYPE
+        value: simple
+      - key: PORT
+        value: 5005
+      - key: DB_PATH
+        sync: false
+        value: /data/search_db.sqlite
       - key: NEWSAPI_ORG_KEY
         sync: false
       - key: GUARDIAN_API_KEY
         sync: false
-      - key: AYLIEN_APP_ID
-        sync: false
-      - key: AYLIEN_API_KEY
-        sync: false
       - key: GNEWS_API_KEY
-        sync: false
-      - key: NEWSAPI_AI_KEY
-        sync: false
-      - key: MEDIASTACK_API_KEY
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: SHARECOUNT_API_KEY
         sync: false
       - key: NYT_API_KEY
         sync: false
-    autoDeploy: true
-    healthCheckPath: /health
-    scaling:
-      minInstances: 1
-      maxInstances: 1
-    resources:
-      cpu: 1x
-      memory: 1024
-      storage: 512 
+      - key: MEDIASTACK_API_KEY
+        sync: false
+      - key: NEWSDATA_API_KEY
+        sync: false
+      - key: GROK_API_KEY
+        sync: false
+    disks:
+      - name: data
+        mountPath: /data
+        sizeGB: 10
+    autoDeploy: false  # Don't auto-deploy on push, require manual deployment
+
+# Specify disk persistence
+disks:
+  - name: data
+    mountPath: /data
+    sizeGB: 10 

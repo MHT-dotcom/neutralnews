@@ -32,6 +32,11 @@ try:
 except ImportError:
     raise Exception("Could not load production config")
 
+# Add timeout constants at the top after imports
+REQUEST_TIMEOUT = 10  # seconds
+MAX_RETRIES = 2
+BACKOFF_FACTOR = 1.5
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -42,6 +47,10 @@ if not logger.handlers:
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
+def log_request_timeout_settings():
+    """Log the current request timeout settings for diagnostics"""
+    logger.info(f"Request timeout settings: TIMEOUT={REQUEST_TIMEOUT}s, MAX_RETRIES={MAX_RETRIES}, BACKOFF_FACTOR={BACKOFF_FACTOR}")
 
 # Create dummy Aylien objects since we can't properly import the package
 class AylienError(Exception):
@@ -60,12 +69,16 @@ class DummyTextAPI:
 textapi = DummyTextAPI()
 
 # Centralized helper function for fetching with robust error handling, updated to support POST
-async def async_fetch_with_error_handling(url, params=None, headers=None, json=None, ssl_verify=None, retry_count=0, max_retries=2, backoff_factor=1.5):
+async def async_fetch_with_error_handling(url, params=None, headers=None, json=None, ssl_verify=None, retry_count=0, max_retries=None, backoff_factor=None):
     """Asynchronous version of fetch_with_error_handling using aiohttp with retry mechanism"""
+    # Use global constants if not specified
+    max_retries = max_retries if max_retries is not None else MAX_RETRIES
+    backoff_factor = backoff_factor if backoff_factor is not None else BACKOFF_FACTOR
+    
     method = "GET" if json is None else "POST"
     try:
         logger.debug(f"Making {method} request to {url} (retry {retry_count}/{max_retries})")
-        timeout = aiohttp.ClientTimeout(total=10)  # 10 second timeout
+        timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)  # Use global timeout constant
         
         # SSL context for bypassing verification if needed
         ssl_context = None
@@ -177,11 +190,20 @@ async def async_fetch_with_error_handling(url, params=None, headers=None, json=N
         logger.error(error_msg)
         return None, error_msg
 
-def fetch_with_error_handling(url, params=None, headers=None, json=None):
-    """Synchronous HTTP request with error handling"""
+def fetch_with_error_handling(url, params=None, headers=None, json=None, retry_count=0):
+    """Synchronous HTTP request with error handling and retries"""
     try:
         method = "POST" if json else "GET"
-        response = requests.request(method, url, params=params, headers=headers, json=json, timeout=5)
+        logger.debug(f"Making {method} request to {url} (retry {retry_count}/{MAX_RETRIES})")
+        
+        response = requests.request(
+            method, 
+            url, 
+            params=params, 
+            headers=headers, 
+            json=json, 
+            timeout=REQUEST_TIMEOUT
+        )
         response.raise_for_status()  # Raises an HTTPError for bad status codes
         data = response.json()  # Parse JSON response
         logger.debug(f"Successfully fetched from {url}, status: {response.status_code}")
@@ -189,6 +211,12 @@ def fetch_with_error_handling(url, params=None, headers=None, json=None):
     except requests.exceptions.Timeout as e:
         error_msg = f"{method} Timeout error for {url}: {e}"
         logger.error(error_msg)
+        # Retry timeouts with backoff if we haven't exceeded max retries
+        if retry_count < MAX_RETRIES:
+            retry_delay = BACKOFF_FACTOR ** retry_count
+            logger.warning(f"Timeout for {url}, retrying after {retry_delay:.2f}s (retry {retry_count+1}/{MAX_RETRIES})")
+            time.sleep(retry_delay)
+            return fetch_with_error_handling(url, params, headers, json, retry_count + 1)
         return None, error_msg
     except requests.exceptions.TooManyRedirects as e:
         error_msg = f"{method} Too many redirects for {url}: {e}"
@@ -197,6 +225,12 @@ def fetch_with_error_handling(url, params=None, headers=None, json=None):
     except requests.exceptions.RequestException as e:
         error_msg = f"{method} Request exception for {url}: {e}"
         logger.error(error_msg)
+        # Retry connection errors with backoff if we haven't exceeded max retries
+        if retry_count < MAX_RETRIES and isinstance(e, (requests.exceptions.ConnectionError, requests.exceptions.SSLError)):
+            retry_delay = BACKOFF_FACTOR ** retry_count
+            logger.warning(f"Connection error for {url}, retrying after {retry_delay:.2f}s (retry {retry_count+1}/{MAX_RETRIES})")
+            time.sleep(retry_delay)
+            return fetch_with_error_handling(url, params, headers, json, retry_count + 1)
         return None, error_msg
     except json.decoder.JSONDecodeError as e:
         error_msg = f"JSON decoding error for {url}: {e}"
@@ -626,6 +660,8 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     This replaces the ThreadPoolExecutor approach with true non-blocking async IO.
     """
     logger.info(f"Starting async fetching of articles for '{event}'")
+    # Log the current timeout settings
+    log_request_timeout_settings()
     
     fetch_functions = [
         (async_fetch_newsapi_org, "NewsAPI.org", USE_NEWSAPI_ORG),
@@ -714,6 +750,9 @@ def fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     Returns:
         list: Combined list of articles from all sources.
     """
+    # Log the current timeout settings
+    log_request_timeout_settings()
+    
     try:
         fetch_functions = [
             (fetch_newsapi_org, USE_NEWSAPI_ORG),

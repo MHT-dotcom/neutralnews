@@ -93,13 +93,35 @@ def generate_and_save_image(query, summary, force_regenerate=False, quality=85, 
     
     # Clean the query for use as a filename
     clean_query = "".join(c if c.isalnum() else "-" for c in query.lower())
-    image_dir = current_app.config["IMAGE_DIRECTORY"]
+    
+    # Get image directory from app config with fallback
+    try:
+        image_dir = current_app.config["IMAGE_DIRECTORY"]
+    except (KeyError, RuntimeError):
+        # Fallback to a default path
+        image_dir = os.path.join(os.path.dirname(__file__), "data", "images")
+        os.makedirs(image_dir, exist_ok=True)
+        logger.warning(f"IMAGE_DIRECTORY not in app config, using fallback: {image_dir}")
     
     # Get cache instance
-    cache = image_cache.get_instance(
-        db_path=current_app.config.get("DB_PATH"),
-        image_dir=image_dir
-    )
+    try:
+        # Try to get the DB path from app config
+        db_path = current_app.config.get("DB_PATH")
+        if not db_path:
+            # Fallback to environment variable
+            db_path = os.environ.get("DB_PATH")
+            if not db_path:
+                # Last resort fallback
+                db_path = os.path.join(os.path.dirname(__file__), "data", "search_db.sqlite")
+        
+        cache = image_cache.get_instance(
+            db_path=db_path,
+            image_dir=image_dir
+        )
+    except Exception as e:
+        logger.error(f"Error initializing image cache: {str(e)}")
+        # If cache fails, continue without it
+        cache = None
     
     # Check if the image is in our cache (unless force regenerate)
     if not force_regenerate:
@@ -199,20 +221,23 @@ def pregenerate_trending_images(trending_topics):
         trending_topics (list): List of [headline, keywords] pairs
     """
     try:
+        # Use imported Flask app when no current app context
+        from flask import current_app
+        
         # Get cache instance
-        if current_app:
-            cache = image_cache.get_instance(
-                db_path=current_app.config.get("DB_PATH"),
-                image_dir=current_app.config.get("IMAGE_DIRECTORY")
-            )
-            
-            # Start pre-generation
-            cache.pregenerate_trending_images(trending_topics, generate_and_save_image)
-            logger.info(f"Started background image pre-generation for {len(trending_topics)} trending topics")
-        else:
-            logger.warning("Cannot pregenerate images: no Flask application context")
+        cache = image_cache.get_instance(
+            db_path=current_app.config.get("DB_PATH"),
+            image_dir=current_app.config.get("IMAGE_DIRECTORY")
+        )
+        
+        # Start pre-generation
+        cache.pregenerate_trending_images(trending_topics, generate_and_save_image)
+        logger.info(f"Started background image pre-generation for {len(trending_topics)} trending topics")
     except Exception as e:
         logger.error(f"Error starting image pre-generation: {str(e)}")
+        # Log full traceback for debugging
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
 
 def optimize_image_storage(max_age_days=30, target_size_mb=500):
     """

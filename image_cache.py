@@ -281,39 +281,54 @@ class ImageCache:
             generate_callback (callable): Callback function to generate images
         """
         import threading
+        from flask import current_app
         
         def pregeneration_worker(topics):
             logger.info(f"Starting background image pre-generation for {len(topics)} trending topics")
-            for headline, keywords in topics:
-                clean_query = self._clean_query(headline)
+            
+            # Store reference to current app to use in worker thread
+            app = current_app._get_current_object() if current_app else None
+            
+            if not app:
+                logger.error("No Flask application context available for background worker")
+                return
                 
-                # Skip if already in cache
-                if self.get_image_path(clean_query):
-                    logger.info(f"Image for '{headline}' already in cache, skipping pre-generation")
-                    continue
-                
-                # Create standard image path
-                standard_path = os.path.join(self.image_dir, f"{clean_query}.png")
-                
-                # Skip if file already exists
-                if os.path.exists(standard_path):
-                    logger.info(f"Image file for '{headline}' already exists at {standard_path}")
-                    self.add_image(clean_query, standard_path)
-                    continue
-                
-                # Generate the image
-                try:
-                    logger.info(f"Pre-generating image for trending topic: '{headline}'")
-                    image_path, status = generate_callback(headline, keywords)
-                    if status and image_path:
-                        logger.info(f"Successfully pre-generated image for '{headline}'")
-                        self.add_image(clean_query, image_path)
-                    else:
-                        logger.warning(f"Failed to pre-generate image for '{headline}'")
-                except Exception as e:
-                    logger.error(f"Error pre-generating image for '{headline}': {str(e)}")
+            # Create a single app context for the entire worker thread
+            with app.app_context():
+                for headline, keywords in topics:
+                    try:
+                        clean_query = self._clean_query(headline)
+                        
+                        # Skip if already in cache
+                        if self.get_image_path(clean_query):
+                            logger.info(f"Image for '{headline}' already in cache, skipping pre-generation")
+                            continue
+                        
+                        # Create standard image path
+                        standard_path = os.path.join(self.image_dir, f"{clean_query}.png")
+                        
+                        # Skip if file already exists
+                        if os.path.exists(standard_path):
+                            logger.info(f"Image file for '{headline}' already exists, skipping pre-generation")
+                            self.add_image(clean_query, standard_path)
+                            continue
+                            
+                        # Generate image
+                        logger.info(f"Pre-generating image for trending topic: '{headline}'")
+                        image_path, status = generate_callback(headline, keywords)
+                        
+                        if status and image_path:
+                            logger.info(f"Successfully pre-generated image for trending topic: '{headline}'")
+                            self.add_image(clean_query, image_path)
+                        else:
+                            logger.warning(f"Failed to pre-generate image for trending topic: '{headline}'")
+                        
+                    except Exception as e:
+                        logger.error(f"Error pre-generating image for '{headline}': {str(e)}")
+            
+            logger.info(f"Completed background image pre-generation for trending topics")
         
-        # Start background thread for pre-generation
+        # Start worker thread
         thread = threading.Thread(target=pregeneration_worker, args=(trending_topics,))
         thread.daemon = True
         thread.start()
@@ -324,11 +339,20 @@ class ImageCache:
         Also converts PNGs to WebP format for better compression.
         
         Args:
-            max_age_days (int): Maximum age for unused images
-            target_size_mb (int): Target directory size in MB
+            max_age_days (int): Images older than this will be considered for removal
+            target_size_mb (int): Target size for the image directory in MB
         """
-        if not self.image_dir:
-            logger.warning("Image directory not configured, skipping optimization")
+        from flask import current_app
+        
+        # Ensure we have proper paths
+        if not self.db_path and current_app:
+            self.db_path = current_app.config.get("DB_PATH")
+        
+        if not self.image_dir and current_app:
+            self.image_dir = current_app.config.get("IMAGE_DIRECTORY")
+            
+        if not self.db_path or not self.image_dir:
+            logger.error("Cannot optimize storage: database or image directory not configured")
             return
         
         try:
