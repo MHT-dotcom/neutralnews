@@ -76,7 +76,7 @@ python-json-logger>=2.0.7  # JSON logging for cloud environments
 
 # Reliability
 tenacity>=8.2.3  # Retry library
-circuit-breaker-python>=0.4.1  # Circuit breaker pattern
+# circuit-breaker-python>=0.4.1  # Circuit breaker pattern
 
 # Security
 cryptography>=42.0.5  # For secure operations
