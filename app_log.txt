@@ -429,3 +429,623 @@
 2025-03-20 11:36:30,581 - neutralnews - INFO - Using cached today trending topics from 2025-03-20
 2025-03-20 11:36:30,582 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-13
 2025-03-20 11:36:30,582 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-18
+2025-03-24 12:51:32,963 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 12:51:32,965 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 12:51:32,965 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 12:51:32,965 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 12:51:32,965 - neutralnews - INFO - search_count column already exists
+2025-03-24 12:51:32,965 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 12:51:32,966 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 12:51:33,257 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 12:51:33,257 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 12:51:33,258 - neutralnews - INFO - Would fetch today topics from API, using fallbacks for 'today' instead
+2025-03-24 12:51:33,258 - neutralnews - INFO - Using TODAY fallback topics list with 8 topics
+2025-03-24 12:51:33,277 - neutralnews - INFO - Cached today trending topics for 2025-03-24
+2025-03-24 12:51:33,278 - neutralnews - INFO - Would fetch last_week topics from API, using fallbacks for 'last_week' instead
+2025-03-24 12:51:33,278 - neutralnews - INFO - Using LAST_WEEK fallback topics list with 8 topics
+2025-03-24 12:51:33,279 - neutralnews - INFO - Cached last_week trending topics for 2025-03-17
+2025-03-24 12:51:33,279 - neutralnews - INFO - Would fetch last_month topics from API, using fallbacks for 'last_month' instead
+2025-03-24 12:51:33,280 - neutralnews - INFO - Using LAST_MONTH fallback topics list with 8 topics
+2025-03-24 12:51:33,281 - neutralnews - INFO - Cached last_month trending topics for 2025-02-22
+2025-03-24 12:51:33,372 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 12:51:33,372 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 12:51:33,372 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 12:51:33,372 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 12:51:33,373 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 12:51:33,373 - neutralnews - INFO - Cache type: simple
+2025-03-24 12:51:33,373 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 12:51:33,373 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>])
+2025-03-24 12:51:33,373 - neutralnews - INFO - Starting app.py execution
+2025-03-24 12:51:33,373 - neutralnews - INFO - About to import routes module
+2025-03-24 12:51:33,502 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 12:51:33,504 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 12:51:33,505 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>,
+ <Rule '/' (POST, HEAD, OPTIONS, GET) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (HEAD, OPTIONS, GET) -> news_routes.serve_image>,
+ <Rule '/health' (HEAD, OPTIONS, GET) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, HEAD, OPTIONS, GET) -> news_routes.image_cache_admin>])
+2025-03-24 12:51:33,505 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 12:51:33,505 - neutralnews - INFO - Application fully initialized
+2025-03-24 12:51:33,505 - neutralnews - INFO - Starting server on port 5000
+2025-03-24 12:51:33,505 - neutralnews - INFO - Application initialized at 1742817092.962771
+2025-03-24 12:51:33,505 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 12:51:33,505 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 12:51:33,505 - neutralnews - INFO - Cache type: simple
+2025-03-24 12:51:33,506 - neutralnews - INFO - Application fully initialized
+2025-03-24 12:51:37,186 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 12:51:37,187 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 12:51:37,188 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 12:51:37,188 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 12:51:37,189 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 12:51:37,190 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 12:52:03,399 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-24 12:52:03,399 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-24 12:52:03,399 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 12:52:03,400 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 12:52:03,400 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 12:52:03,401 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 12:52:03,401 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 12:52:03,402 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 12:52:03,402 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-24 12:52:13,677 - neutralnews - INFO - Removing duplicates from 12 articles
+2025-03-24 12:52:13,678 - neutralnews - INFO - Removed 0 duplicates
+2025-03-24 12:52:13,678 - neutralnews - INFO - Starting detailed filtering for 'Tesla robotaxi autonomous' with 12 articles
+2025-03-24 12:52:13,678 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-24 12:52:13,678 - neutralnews - INFO - Articles before filtering for 'Tesla robotaxi autonomous':
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 1: 'Tesla Got a Permit to Operate a Taxi Service in Ca...' - Source: Wired
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 2: 'Elon Musk made more promises about Optimus and Cyb...' - Source: The Verge
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 3: 'Tesla's challenges run deeper than 'toxic' controv...' - Source: BBC News
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 4: 'Elon Musk's surprise all-hands brings Tesla's bigg...' - Source: Business Insider
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 5: 'Why is Elon Musk still CEO of Tesla?...' - Source: Guardian
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 6: 'FBI investigates blazes at Las Vegas Tesla showroo...' - Source: Guardian
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 7: 'US attorney general to bring charges for Tesla dam...' - Source: Guardian
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 8: 'Tesla backer says Musk must reduce Trump work, as ...' - Source: Guardian
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 9: 'I Hitched a Ride in San Francisco’s Newest Robotax...' - Source: Yahoo Finance
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 10: 'The next big robotaxi push is nearly here...' - Source: Quartz India
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 11: 'Needham Thinks Tesla's Growth Levers Around FSD, R...' - Source: Wccftech
+2025-03-24 12:52:13,678 - neutralnews - INFO - Article 12: 'Elon Musk says Tesla will launch a self-driving ca...' - Source: TechSpot
+2025-03-24 12:52:13,687 - neutralnews - INFO - Relevance threshold for 'Tesla robotaxi autonomous': 0.01
+2025-03-24 12:52:13,688 - neutralnews - INFO - Article filtering details for 'Tesla robotaxi autonomous':
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 1 - Title: 'Tesla Got a Permit to Operate ...' - Source: Wired - Similarity: 0.0190
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 2 - Title: 'Elon Musk made more promises a...' - Source: The Verge - Similarity: 0.0278
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 3 - Title: 'Tesla's challenges run deeper ...' - Source: BBC News - Similarity: 0.0153
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 4 - Title: 'Elon Musk's surprise all-hands...' - Source: Business Insider - Similarity: 0.0353
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 5 - Title: 'Why is Elon Musk still CEO of ...' - Source: Guardian - Similarity: 0.0460
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 6 - Title: 'FBI investigates blazes at Las...' - Source: Guardian - Similarity: 0.0322
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 7 - Title: 'US attorney general to bring c...' - Source: Guardian - Similarity: 0.0310
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 8 - Title: 'Tesla backer says Musk must re...' - Source: Guardian - Similarity: 0.0306
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 9 - Title: 'I Hitched a Ride in San Franci...' - Source: Yahoo Finance - Similarity: 0.2098
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 10 - Title: 'The next big robotaxi push is ...' - Source: Quartz India - Similarity: 0.0147
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 11 - Title: 'Needham Thinks Tesla's Growth ...' - Source: Wccftech - Similarity: 0.0156
+2025-03-24 12:52:13,688 - neutralnews - INFO - KEPT: Article 12 - Title: 'Elon Musk says Tesla will laun...' - Source: TechSpot - Similarity: 0.0329
+2025-03-24 12:52:13,688 - neutralnews - INFO - Articles filtered out for 'Tesla robotaxi autonomous': 0/12
+2025-03-24 12:52:13,688 - neutralnews - INFO - Final article count for 'Tesla robotaxi autonomous' after filtering: 10
+2025-03-24 12:52:13,688 - neutralnews - INFO - Starting GPT-based summarization for 10 articles about 'Tesla robotaxi autonomous'
+2025-03-24 12:52:13,688 - neutralnews - INFO - GPT prompt length: 1979 characters
+2025-03-24 12:52:13,729 - neutralnews - INFO - Starting OpenAI API call for 'Tesla robotaxi autonomous' at 1742817133.7296052
+2025-03-24 12:52:15,054 - neutralnews - INFO - OpenAI API call completed in 1.33s
+2025-03-24 12:52:15,054 - neutralnews - INFO - Generated summary for 'Tesla robotaxi autonomous': Tesla is preparing to launch a self-driving cab service in Texas in June. The company has also been granted a permit to operate a taxi service in California, with a focus on autonomous vehicles. However, there are concerns about Elon Musk's involvement in other projects and potential terrorism-related incidents at Tesla showrooms.
+2025-03-24 12:52:15,055 - neutralnews.image_cache - INFO - Cache miss for query: 'Tesla robotaxi autonomous'
+2025-03-24 12:52:21,612 - neutralnews.image_cache - INFO - Added image to cache for query: 'Tesla robotaxi autonomous'
+2025-03-24 12:52:36,947 - neutralnews - INFO - Removing duplicates from 12 articles
+2025-03-24 12:52:36,947 - neutralnews - INFO - Removed 0 duplicates
+2025-03-24 12:52:36,947 - neutralnews - INFO - Starting detailed filtering for 'Nasdaq Tesla recovery' with 12 articles
+2025-03-24 12:52:36,947 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-24 12:52:36,947 - neutralnews - INFO - Articles before filtering for 'Nasdaq Tesla recovery':
+2025-03-24 12:52:36,947 - neutralnews - INFO - Article 1: 'Stock market today: US stocks fall as Wall Street ...' - Source: Boston Herald
+2025-03-24 12:52:36,947 - neutralnews - INFO - Article 2: 'Dow Jones Today: Stocks Tumble After Two-Day Rally...' - Source: Biztoc.com
+2025-03-24 12:52:36,947 - neutralnews - INFO - Article 3: 'TRADING DAY-Flickering recovery snuffed out...' - Source: The Times of India
+2025-03-24 12:52:36,947 - neutralnews - INFO - Article 4: 'Why Apple Stock Could Be Stuck in the Penalty Box:...' - Source: Biztoc.com
+2025-03-24 12:52:36,947 - neutralnews - INFO - Article 5: 'Why is Elon Musk still CEO of Tesla?...' - Source: Guardian
+2025-03-24 12:52:36,948 - neutralnews - INFO - Article 6: 'FBI investigates blazes at Las Vegas Tesla showroo...' - Source: Guardian
+2025-03-24 12:52:36,948 - neutralnews - INFO - Article 7: 'US attorney general to bring charges for Tesla dam...' - Source: Guardian
+2025-03-24 12:52:36,948 - neutralnews - INFO - Article 8: 'Tesla backer says Musk must reduce Trump work, as ...' - Source: Guardian
+2025-03-24 12:52:36,948 - neutralnews - INFO - Article 9: 'Tesla: Don’t Bet Your House On Recovery (NASDAQ:TS...' - Source: Seeking Alpha
+2025-03-24 12:52:36,948 - neutralnews - INFO - Article 10: 'Apple gets closer to $3 trillion market value afte...' - Source: Devdiscourse
+2025-03-24 12:52:36,948 - neutralnews - INFO - Article 11: 'US STOCKS-Wall St climbs on positive economic data...' - Source: Devdiscourse
+2025-03-24 12:52:36,948 - neutralnews - INFO - Article 12: 'US STOCKS-S&P 500, Nasdaq set to hit record highs ...' - Source: Devdiscourse
+2025-03-24 12:52:36,950 - neutralnews - INFO - Relevance threshold for 'Nasdaq Tesla recovery': 0.01
+2025-03-24 12:52:36,950 - neutralnews - INFO - Article filtering details for 'Nasdaq Tesla recovery':
+2025-03-24 12:52:36,950 - neutralnews - INFO - FILTERED OUT: Article 1 - Title: 'Stock market today: US stocks ...' - Source: Boston Herald - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:36,950 - neutralnews - INFO - KEPT: Article 2 - Title: 'Dow Jones Today: Stocks Tumble...' - Source: Biztoc.com - Similarity: 0.1158
+2025-03-24 12:52:36,950 - neutralnews - INFO - FILTERED OUT: Article 3 - Title: 'TRADING DAY-Flickering recover...' - Source: The Times of India - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:36,950 - neutralnews - INFO - KEPT: Article 4 - Title: 'Why Apple Stock Could Be Stuck...' - Source: Biztoc.com - Similarity: 0.0623
+2025-03-24 12:52:36,951 - neutralnews - INFO - KEPT: Article 5 - Title: 'Why is Elon Musk still CEO of ...' - Source: Guardian - Similarity: 0.0865
+2025-03-24 12:52:36,951 - neutralnews - INFO - KEPT: Article 6 - Title: 'FBI investigates blazes at Las...' - Source: Guardian - Similarity: 0.0699
+2025-03-24 12:52:36,951 - neutralnews - INFO - KEPT: Article 7 - Title: 'US attorney general to bring c...' - Source: Guardian - Similarity: 0.0673
+2025-03-24 12:52:36,951 - neutralnews - INFO - KEPT: Article 8 - Title: 'Tesla backer says Musk must re...' - Source: Guardian - Similarity: 0.0634
+2025-03-24 12:52:36,951 - neutralnews - INFO - KEPT: Article 9 - Title: 'Tesla: Don’t Bet Your House On...' - Source: Seeking Alpha - Similarity: 0.1049
+2025-03-24 12:52:36,951 - neutralnews - INFO - FILTERED OUT: Article 10 - Title: 'Apple gets closer to $3 trilli...' - Source: Devdiscourse - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:36,951 - neutralnews - INFO - KEPT: Article 11 - Title: 'US STOCKS-Wall St climbs on po...' - Source: Devdiscourse - Similarity: 0.1993
+2025-03-24 12:52:36,951 - neutralnews - INFO - KEPT: Article 12 - Title: 'US STOCKS-S&P 500, Nasdaq set ...' - Source: Devdiscourse - Similarity: 0.0771
+2025-03-24 12:52:36,951 - neutralnews - INFO - Articles filtered out for 'Nasdaq Tesla recovery': 3/12
+2025-03-24 12:52:36,951 - neutralnews - INFO - Final article count for 'Nasdaq Tesla recovery' after filtering: 9
+2025-03-24 12:52:36,951 - neutralnews - INFO - Starting GPT-based summarization for 9 articles about 'Nasdaq Tesla recovery'
+2025-03-24 12:52:36,951 - neutralnews - INFO - GPT prompt length: 1686 characters
+2025-03-24 12:52:36,957 - neutralnews - INFO - Starting OpenAI API call for 'Nasdaq Tesla recovery' at 1742817156.957376
+2025-03-24 12:52:38,172 - neutralnews - INFO - OpenAI API call completed in 1.21s
+2025-03-24 12:52:38,172 - neutralnews - INFO - Generated summary for 'Nasdaq Tesla recovery': The Nasdaq and S&P 500 climbed with a boost from Tesla shares, leading to record highs and positive economic data. However, Tesla's recovery is uncertain as its shares have depreciated and faced challenges such as a selloff and recalls. The FBI is investigating potential terrorism at a Las Vegas Tesla showroom, while the US attorney general plans to bring charges for Tesla damage citing 'domestic terrorism'.
+2025-03-24 12:52:38,172 - neutralnews.image_cache - INFO - Cache miss for query: 'Nasdaq Tesla recovery'
+2025-03-24 12:52:38,175 - neutralnews.image_cache - INFO - Added image to cache for query: 'Nasdaq Tesla recovery'
+2025-03-24 12:52:56,928 - neutralnews - INFO - Removing duplicates from 22 articles
+2025-03-24 12:52:56,929 - neutralnews - INFO - Removed 0 duplicates
+2025-03-24 12:52:56,929 - neutralnews - INFO - Starting detailed filtering for 'election 2025' with 22 articles
+2025-03-24 12:52:56,929 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-24 12:52:56,929 - neutralnews - INFO - Articles before filtering for 'election 2025':
+2025-03-24 12:52:56,929 - neutralnews - INFO - Article 1: 'Handmaid’s Tale‘s First Season Still Feels Uncomfo...' - Source: Gizmodo.com
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 2: 'A business owner lost a year's income in one day a...' - Source: Business Insider
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 3: 'Trump's chaos could spook the ad business...' - Source: Business Insider
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 4: 'How Meta is Preparing for Canada’s 2025 Federal El...' - Source: Fb.com
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 5: 'Australian election 2025 polls tracker: Labor v Co...' - Source: Guardian
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 6: 'Six Nations 2025 awards: our writers pick their to...' - Source: Guardian
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 7: 'Women’s Six Nations 2025: team-by-team guide to th...' - Source: Guardian
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 8: 'Deloitte predicts global revenues in women’s sport...' - Source: Guardian
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 9: 'By-election Q&A: Meet Aaron Baisarowicz, one of se...' - Source: Castanet.net
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 10: 'Canada federal election 2025: Where the leaders ar...' - Source: Toronto Star
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 11: 'Federal election 2025: A look at some key business...' - Source: Toronto Star
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 12: 'Elodie, Téa, Stéphanie, Léna… Who are the six cand...' - Source: LaDepeche.fr
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 13: 'This Election Will Be a Crucial Test of Musk’s Pow...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 14: 'Kansas Voters Will Decide Whether to Hold Open Ele...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 15: 'Canada’s Leader Calls Snap Federal Elections Amid ...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 16: 'Workers Say They Were Pressured to Pay for N.Y.C. ...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 17: 'New York City Can’t Allow Noncitizens to Vote, Top...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 18: 'Eric Adams’s Fund-Raising in Last Two Months Plumm...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 19: 'The Claim Trump Is Making That ‘Could Break the Am...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 20: 'Introducing a New Project to Track Polls...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 21: 'Musk Offers $100 to Wisconsin Voters, Bringing Bac...' - Source: New York Times
+2025-03-24 12:52:56,930 - neutralnews - INFO - Article 22: 'Vance to Lead G.O.P. Fund-Raising, an Apparent Fir...' - Source: New York Times
+2025-03-24 12:52:56,931 - neutralnews - INFO - Relevance threshold for 'election 2025': 0.01
+2025-03-24 12:52:56,932 - neutralnews - INFO - Article filtering details for 'election 2025':
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 1 - Title: 'Handmaid’s Tale‘s First Season...' - Source: Gizmodo.com - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 2 - Title: 'A business owner lost a year's...' - Source: Business Insider - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 3 - Title: 'Trump's chaos could spook the ...' - Source: Business Insider - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - KEPT: Article 4 - Title: 'How Meta is Preparing for Cana...' - Source: Fb.com - Similarity: 0.1924
+2025-03-24 12:52:56,932 - neutralnews - INFO - KEPT: Article 5 - Title: 'Australian election 2025 polls...' - Source: Guardian - Similarity: 0.3188
+2025-03-24 12:52:56,932 - neutralnews - INFO - KEPT: Article 6 - Title: 'Six Nations 2025 awards: our w...' - Source: Guardian - Similarity: 0.1658
+2025-03-24 12:52:56,932 - neutralnews - INFO - KEPT: Article 7 - Title: 'Women’s Six Nations 2025: team...' - Source: Guardian - Similarity: 0.1561
+2025-03-24 12:52:56,932 - neutralnews - INFO - KEPT: Article 8 - Title: 'Deloitte predicts global reven...' - Source: Guardian - Similarity: 0.1500
+2025-03-24 12:52:56,932 - neutralnews - INFO - KEPT: Article 9 - Title: 'By-election Q&A: Meet Aaron Ba...' - Source: Castanet.net - Similarity: 0.0828
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 10 - Title: 'Canada federal election 2025: ...' - Source: Toronto Star - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 11 - Title: 'Federal election 2025: A look ...' - Source: Toronto Star - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - KEPT: Article 12 - Title: 'Elodie, Téa, Stéphanie, Léna… ...' - Source: LaDepeche.fr - Similarity: 0.1512
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 13 - Title: 'This Election Will Be a Crucia...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 14 - Title: 'Kansas Voters Will Decide Whet...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - KEPT: Article 15 - Title: 'Canada’s Leader Calls Snap Fed...' - Source: New York Times - Similarity: 0.1061
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 16 - Title: 'Workers Say They Were Pressure...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 17 - Title: 'New York City Can’t Allow Nonc...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 18 - Title: 'Eric Adams’s Fund-Raising in L...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 19 - Title: 'The Claim Trump Is Making That...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 20 - Title: 'Introducing a New Project to T...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 21 - Title: 'Musk Offers $100 to Wisconsin ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - FILTERED OUT: Article 22 - Title: 'Vance to Lead G.O.P. Fund-Rais...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 12:52:56,932 - neutralnews - INFO - Articles filtered out for 'election 2025': 14/22
+2025-03-24 12:52:56,932 - neutralnews - INFO - Final article count for 'election 2025' after filtering: 8
+2025-03-24 12:52:56,932 - neutralnews - INFO - Starting GPT-based summarization for 8 articles about 'election 2025'
+2025-03-24 12:52:56,932 - neutralnews - INFO - GPT prompt length: 1530 characters
+2025-03-24 12:52:56,938 - neutralnews - INFO - Starting OpenAI API call for 'election 2025' at 1742817176.9380128
+2025-03-24 12:52:57,965 - neutralnews - INFO - OpenAI API call completed in 1.03s
+2025-03-24 12:52:57,966 - neutralnews - INFO - Generated summary for 'election 2025': ticton city council by-election. Aaron Baisarowicz is one of seven candidates vying for a seat on the council.
+2025-03-24 12:52:57,966 - neutralnews.image_cache - INFO - Cache miss for query: 'election 2025'
+2025-03-24 12:53:03,631 - neutralnews.image_cache - INFO - Added image to cache for query: 'election 2025'
+2025-03-24 13:03:12,336 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:03:12,337 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:03:12,337 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:03:12,337 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:03:12,338 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:03:12,338 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:03:12,338 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:03:12,591 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:03:12,592 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:03:12,593 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:03:12,593 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:03:12,593 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:03:12,661 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:03:12,661 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:03:12,661 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:03:12,661 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:03:12,662 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:03:12,662 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:03:12,662 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:03:12,662 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, HEAD, GET) -> static>])
+2025-03-24 13:03:12,662 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:03:12,662 - neutralnews - INFO - About to import routes module
+2025-03-24 13:03:12,923 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:03:12,925 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:03:12,925 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, HEAD, GET) -> static>,
+ <Rule '/' (HEAD, OPTIONS, POST, GET) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, HEAD, GET) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, HEAD, GET) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (HEAD, OPTIONS, POST, GET) -> news_routes.image_cache_admin>])
+2025-03-24 13:03:12,925 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:03:12,925 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:03:12,925 - neutralnews - INFO - Starting server on port 5000
+2025-03-24 13:03:12,925 - neutralnews - INFO - Application initialized at 1742817792.335315
+2025-03-24 13:03:12,925 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:03:12,926 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:03:12,926 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:03:12,926 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:03:15,640 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:03:15,640 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:03:15,641 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:03:15,643 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:03:15,644 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:03:15,646 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:03:16,606 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:03:16,607 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:03:16,607 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:03:16,607 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:03:16,608 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:03:16,608 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:03:16,608 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:03:16,820 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:03:16,821 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:03:16,821 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:03:16,821 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:03:16,821 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:03:16,850 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:03:16,850 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:03:16,850 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:03:16,850 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:03:16,850 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:03:16,850 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:03:16,850 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:03:16,851 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>])
+2025-03-24 13:03:16,851 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:03:16,851 - neutralnews - INFO - About to import routes module
+2025-03-24 13:03:16,899 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:03:16,900 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:03:16,900 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>,
+ <Rule '/' (HEAD, OPTIONS, POST, GET) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (HEAD, OPTIONS, GET) -> news_routes.serve_image>,
+ <Rule '/health' (HEAD, OPTIONS, GET) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (HEAD, OPTIONS, POST, GET) -> news_routes.image_cache_admin>])
+2025-03-24 13:03:16,900 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:03:16,900 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:03:16,900 - neutralnews - INFO - Starting server on port 5000
+2025-03-24 13:03:16,900 - neutralnews - INFO - Application initialized at 1742817796.605773
+2025-03-24 13:03:16,900 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:03:16,901 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:03:16,901 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:03:16,901 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:03:32,545 - neutralnews - INFO - Removing duplicates from 13 articles
+2025-03-24 13:03:32,545 - neutralnews - INFO - Removed 0 duplicates
+2025-03-24 13:03:32,546 - neutralnews - INFO - Starting detailed filtering for 'bitcoin price' with 13 articles
+2025-03-24 13:03:32,546 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-24 13:03:32,546 - neutralnews - INFO - Articles before filtering for 'bitcoin price':
+2025-03-24 13:03:32,546 - neutralnews - INFO - Article 1: 'Czech central banker Kubicek 'sceptical' of bitcoi...' - Source: Yahoo Entertainment
+2025-03-24 13:03:32,546 - neutralnews - INFO - Article 2: 'Bitcoin, BNB, XRP, and more cryptocurrencies to wa...' - Source: Quartz India
+2025-03-24 13:03:32,546 - neutralnews - INFO - Article 3: 'Leak Fuels Wild Speculation Of A ‘Big’ Trump Crypt...' - Source: Forbes
+2025-03-24 13:03:32,546 - neutralnews - INFO - Article 4: '‘Big Catalyst’—Serious Fed Warning Spurs Huge Blac...' - Source: Forbes
+2025-03-24 13:03:32,546 - neutralnews - INFO - Article 5: 'Value of Elon Musk’s X ‘rebounds to $44bn purchase...' - Source: Guardian
+2025-03-24 13:03:32,547 - neutralnews - INFO - Article 6: 'Manchester United insist season-ticket price incre...' - Source: Guardian
+2025-03-24 13:03:32,547 - neutralnews - INFO - Article 7: 'Tesco, Sainsbury’s and M&S shares take £4bn hit am...' - Source: Guardian
+2025-03-24 13:03:32,547 - neutralnews - INFO - Article 8: 'Asda cuts prices on 1,500 products in effort to ha...' - Source: Guardian
+2025-03-24 13:03:32,547 - neutralnews - INFO - Article 9: 'Strategy buys more Bitcoin after announcing prefer...' - Source: The Mercury News
+2025-03-24 13:03:32,547 - neutralnews - INFO - Article 10: 'Asset manager VanEck files for Avalanche ETF as al...' - Source: Yahoo Finance
+2025-03-24 13:03:32,547 - neutralnews - INFO - Article 11: 'Here's What's Driving Bitcoin in 2025...' - Source: Yahoo Finance
+2025-03-24 13:03:32,547 - neutralnews - INFO - Article 12: 'Bitcoin Price Surges as U.S. Inflation Falls to 2....' - Source: Yahoo Finance
+2025-03-24 13:03:32,547 - neutralnews - INFO - Article 13: 'The Company Testing Wall Street’s Appetite for A.I...' - Source: New York Times
+2025-03-24 13:03:32,551 - neutralnews - INFO - Relevance threshold for 'bitcoin price': 0.01
+2025-03-24 13:03:32,551 - neutralnews - INFO - Article filtering details for 'bitcoin price':
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 1 - Title: 'Czech central banker Kubicek '...' - Source: Yahoo Entertainment - Similarity: 0.0537
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 2 - Title: 'Bitcoin, BNB, XRP, and more cr...' - Source: Quartz India - Similarity: 0.0535
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 3 - Title: 'Leak Fuels Wild Speculation Of...' - Source: Forbes - Similarity: 0.0530
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 4 - Title: '‘Big Catalyst’—Serious Fed War...' - Source: Forbes - Similarity: 0.2027
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 5 - Title: 'Value of Elon Musk’s X ‘reboun...' - Source: Guardian - Similarity: 0.1728
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 6 - Title: 'Manchester United insist seaso...' - Source: Guardian - Similarity: 0.1484
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 7 - Title: 'Tesco, Sainsbury’s and M&S sha...' - Source: Guardian - Similarity: 0.1416
+2025-03-24 13:03:32,551 - neutralnews - INFO - FILTERED OUT: Article 8 - Title: 'Asda cuts prices on 1,500 prod...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 9 - Title: 'Strategy buys more Bitcoin aft...' - Source: The Mercury News - Similarity: 0.0477
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 10 - Title: 'Asset manager VanEck files for...' - Source: Yahoo Finance - Similarity: 0.1278
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 11 - Title: 'Here's What's Driving Bitcoin ...' - Source: Yahoo Finance - Similarity: 0.0972
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 12 - Title: 'Bitcoin Price Surges as U.S. I...' - Source: Yahoo Finance - Similarity: 0.1699
+2025-03-24 13:03:32,551 - neutralnews - INFO - KEPT: Article 13 - Title: 'The Company Testing Wall Stree...' - Source: New York Times - Similarity: 0.0611
+2025-03-24 13:03:32,551 - neutralnews - INFO - Articles filtered out for 'bitcoin price': 1/13
+2025-03-24 13:03:32,551 - neutralnews - INFO - Final article count for 'bitcoin price' after filtering: 10
+2025-03-24 13:03:32,551 - neutralnews - INFO - Starting GPT-based summarization for 10 articles about 'bitcoin price'
+2025-03-24 13:03:32,551 - neutralnews - INFO - GPT prompt length: 1877 characters
+2025-03-24 13:03:32,588 - neutralnews - INFO - Starting OpenAI API call for 'bitcoin price' at 1742817812.588088
+2025-03-24 13:03:33,257 - neutralnews - INFO - OpenAI API call completed in 0.67s
+2025-03-24 13:03:33,257 - neutralnews - INFO - Generated summary for 'bitcoin price': ryptocurrencies to watch this week include Bitcoin, BNB, and XRP as market volatility continues.
+2025-03-24 13:03:33,272 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-24 13:03:33,272 - neutralnews.image_cache - INFO - Cache miss for query: 'bitcoin price'
+2025-03-24 13:03:33,300 - neutralnews.image_cache - INFO - Added image to cache for query: 'bitcoin price'
+2025-03-24 13:03:42,666 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-24 13:03:42,666 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:03:42,667 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:03:42,667 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:03:42,667 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:03:42,668 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:03:42,668 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:03:42,669 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-24 13:03:49,499 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:03:49,500 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:03:49,500 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:03:49,500 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:03:49,501 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:03:49,501 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:03:49,501 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:03:49,725 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:03:49,725 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:03:49,726 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:03:49,726 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:03:49,726 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:03:49,776 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:03:49,776 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:03:49,777 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:03:49,777 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:03:49,777 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:03:49,777 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:03:49,777 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:03:49,778 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (HEAD, GET, OPTIONS) -> static>])
+2025-03-24 13:03:49,778 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:03:49,778 - neutralnews - INFO - About to import routes module
+2025-03-24 13:03:49,842 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:03:49,843 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:03:49,843 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (HEAD, GET, OPTIONS) -> static>,
+ <Rule '/' (HEAD, POST, GET, OPTIONS) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (HEAD, GET, OPTIONS) -> news_routes.serve_image>,
+ <Rule '/health' (HEAD, GET, OPTIONS) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (HEAD, POST, GET, OPTIONS) -> news_routes.image_cache_admin>])
+2025-03-24 13:03:49,843 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:03:49,843 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:03:49,843 - neutralnews - INFO - Starting server on port 5000
+2025-03-24 13:03:49,843 - neutralnews - INFO - Application initialized at 1742817829.498842
+2025-03-24 13:03:49,843 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:03:49,843 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:03:49,843 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:03:49,843 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:12:19,625 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:12:19,626 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:12:19,627 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:12:19,627 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:12:19,627 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:12:19,627 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:12:19,627 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:12:19,987 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:12:19,988 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:12:19,989 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:12:19,989 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:12:19,989 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:12:20,054 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:12:20,054 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:12:20,054 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:12:20,054 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:12:20,055 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:12:20,055 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:12:20,055 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:12:20,055 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, HEAD, GET) -> static>])
+2025-03-24 13:12:20,055 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:12:20,055 - neutralnews - INFO - About to import routes module
+2025-03-24 13:12:20,152 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:12:20,153 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:12:20,153 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, HEAD, GET) -> static>,
+ <Rule '/' (POST, OPTIONS, HEAD, GET) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, HEAD, GET) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, HEAD, GET) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, HEAD, GET) -> news_routes.image_cache_admin>])
+2025-03-24 13:12:20,153 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:12:20,153 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:12:26,783 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:12:26,784 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:12:26,789 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:12:26,791 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:12:26,799 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:12:26,800 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:12:39,271 - neutralnews - INFO - Removing duplicates from 17 articles
+2025-03-24 13:12:39,271 - neutralnews - INFO - Removed 0 duplicates
+2025-03-24 13:12:39,271 - neutralnews - INFO - Starting detailed filtering for 'JFK assassination files CIA' with 17 articles
+2025-03-24 13:12:39,271 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-24 13:12:39,271 - neutralnews - INFO - Articles before filtering for 'JFK assassination files CIA':
+2025-03-24 13:12:39,271 - neutralnews - INFO - Article 1: 'National Archives Release Some Previously Classifi...' - Source: Time
+2025-03-24 13:12:39,271 - neutralnews - INFO - Article 2: 'Here’s All the Most Interesting Stuff We Saw in th...' - Source: Gizmodo.com
+2025-03-24 13:12:39,271 - neutralnews - INFO - Article 3: 'JFK Files Land With a Thud and a Dox...' - Source: Gizmodo.com
+2025-03-24 13:12:39,271 - neutralnews - INFO - Article 4: 'New JFK files: What was revealed about Oswald, CIA...' - Source: Al Jazeera English
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 5: 'Kimmel on Musk backlash: ‘When you pull out a chai...' - Source: Guardian
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 6: 'Jimmy Kimmel on release of JFK files: ‘Like Christ...' - Source: Guardian
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 7: 'Trump releases thousands of pages on John F Kenned...' - Source: Guardian
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 8: 'DNA testing firm 23andMe files for bankruptcy as C...' - Source: Guardian
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 9: 'JFK Files: Story of Kennedy assassination & what n...' - Source: The Indian Express
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 10: 'What The New Kennedy Assassination Files Reveal Ab...' - Source: News18
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 11: 'Newly released JFK assassination files reveal more...' - Source: Toronto Star
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 12: 'JFK assassination files: CIA plot, Oswald's 'poor ...' - Source: Irish Mirror
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 13: 'Were the Kennedy Files a Bust? Not So Fast, Histor...' - Source: New York Times
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 14: 'Shielded Kennedy Files Hid Spies, Not Conspiracies...' - Source: New York Times
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 15: 'Takeaways From the Kennedy Files: Spycraft, Collat...' - Source: New York Times
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 16: 'White House Seeks to Contain Damage From Personal ...' - Source: New York Times
+2025-03-24 13:12:39,272 - neutralnews - INFO - Article 17: 'Inside the 24-Hour Scramble Among Top National Sec...' - Source: New York Times
+2025-03-24 13:12:39,274 - neutralnews - INFO - Relevance threshold for 'JFK assassination files CIA': 0.01
+2025-03-24 13:12:39,274 - neutralnews - INFO - Article filtering details for 'JFK assassination files CIA':
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 1 - Title: 'National Archives Release Some...' - Source: Time - Similarity: 0.0358
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 2 - Title: 'Here’s All the Most Interestin...' - Source: Gizmodo.com - Similarity: 0.1192
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 3 - Title: 'JFK Files Land With a Thud and...' - Source: Gizmodo.com - Similarity: 0.1226
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 4 - Title: 'New JFK files: What was reveal...' - Source: Al Jazeera English - Similarity: 0.0874
+2025-03-24 13:12:39,274 - neutralnews - INFO - FILTERED OUT: Article 5 - Title: 'Kimmel on Musk backlash: ‘When...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 6 - Title: 'Jimmy Kimmel on release of JFK...' - Source: Guardian - Similarity: 0.2316
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 7 - Title: 'Trump releases thousands of pa...' - Source: Guardian - Similarity: 0.0815
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 8 - Title: 'DNA testing firm 23andMe files...' - Source: Guardian - Similarity: 0.0670
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 9 - Title: 'JFK Files: Story of Kennedy as...' - Source: The Indian Express - Similarity: 0.2038
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 10 - Title: 'What The New Kennedy Assassina...' - Source: News18 - Similarity: 0.1636
+2025-03-24 13:12:39,274 - neutralnews - INFO - FILTERED OUT: Article 11 - Title: 'Newly released JFK assassinati...' - Source: Toronto Star - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 12 - Title: 'JFK assassination files: CIA p...' - Source: Irish Mirror - Similarity: 0.0627
+2025-03-24 13:12:39,274 - neutralnews - INFO - KEPT: Article 13 - Title: 'Were the Kennedy Files a Bust?...' - Source: New York Times - Similarity: 0.0429
+2025-03-24 13:12:39,274 - neutralnews - INFO - FILTERED OUT: Article 14 - Title: 'Shielded Kennedy Files Hid Spi...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:12:39,274 - neutralnews - INFO - FILTERED OUT: Article 15 - Title: 'Takeaways From the Kennedy Fil...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:12:39,274 - neutralnews - INFO - FILTERED OUT: Article 16 - Title: 'White House Seeks to Contain D...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:12:39,274 - neutralnews - INFO - FILTERED OUT: Article 17 - Title: 'Inside the 24-Hour Scramble Am...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:12:39,274 - neutralnews - INFO - Articles filtered out for 'JFK assassination files CIA': 6/17
+2025-03-24 13:12:39,274 - neutralnews - INFO - Final article count for 'JFK assassination files CIA' after filtering: 10
+2025-03-24 13:12:39,274 - neutralnews - INFO - Starting GPT-based summarization for 10 articles about 'JFK assassination files CIA'
+2025-03-24 13:12:39,274 - neutralnews - INFO - GPT prompt length: 1901 characters
+2025-03-24 13:12:39,308 - neutralnews - INFO - Starting OpenAI API call for 'JFK assassination files CIA' at 1742818359.308637
+2025-03-24 13:12:40,284 - neutralnews - INFO - OpenAI API call completed in 0.98s
+2025-03-24 13:12:40,284 - neutralnews - INFO - Generated summary for 'JFK assassination files CIA': The release of JFK assassination files by the Trump administration revealed new information about Oswald and CIA operations, sparking interest among conspiracy theorists and historians. Despite some disappointment among assassination buffs, the newly-released documents shed light on previously unknown details surrounding the event.
+2025-03-24 13:12:40,299 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-24 13:12:40,299 - neutralnews.image_cache - INFO - Cache miss for query: 'JFK assassination files CIA'
+2025-03-24 13:12:40,323 - neutralnews.image_cache - INFO - Added image to cache for query: 'JFK assassination files CIA'
+2025-03-24 13:12:50,060 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-24 13:12:50,065 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:12:50,070 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:12:50,074 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:12:50,076 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:12:50,080 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:12:50,080 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:12:50,081 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-24 13:14:13,790 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:14:13,791 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:14:13,791 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:14:13,791 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:14:13,792 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:14:13,792 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:14:13,792 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:14:14,018 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:14:14,019 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:14:14,019 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:14:14,020 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:14:14,020 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:14:14,076 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:14:14,076 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:14:14,076 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:14:14,076 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:14:14,077 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:14:14,077 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:14:14,077 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:14:14,077 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (HEAD, GET, OPTIONS) -> static>])
+2025-03-24 13:14:14,077 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:14:14,077 - neutralnews - INFO - About to import routes module
+2025-03-24 13:14:14,134 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:14:14,135 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:14:14,135 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (HEAD, GET, OPTIONS) -> static>,
+ <Rule '/' (HEAD, GET, OPTIONS, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (HEAD, GET, OPTIONS) -> news_routes.serve_image>,
+ <Rule '/health' (HEAD, GET, OPTIONS) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (HEAD, GET, OPTIONS, POST) -> news_routes.image_cache_admin>])
+2025-03-24 13:14:14,135 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:14:14,135 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:14:14,135 - neutralnews - INFO - Starting server on port 5000
+2025-03-24 13:14:14,135 - neutralnews - INFO - Application initialized at 1742818453.789632
+2025-03-24 13:14:14,135 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:14:14,136 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:14:14,136 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:14:14,136 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:14:15,880 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:14:15,881 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:14:15,881 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:14:15,882 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:14:15,883 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:14:15,883 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:14:25,480 - neutralnews - INFO - Removing duplicates from 12 articles
+2025-03-24 13:14:25,484 - neutralnews - INFO - Removed 0 duplicates
+2025-03-24 13:14:25,484 - neutralnews - INFO - Starting detailed filtering for 'Philippines crisis' with 12 articles
+2025-03-24 13:14:25,484 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-24 13:14:25,484 - neutralnews - INFO - Articles before filtering for 'Philippines crisis':
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 1: 'Rodrigo Duterte Is at the Hague. What’s Next for t...' - Source: Thenation.com
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 2: 'Extreme Weather in 2024 Forced Biggest Displacemen...' - Source: Insurance Journal
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 3: ''We have to fight for a better end': Author John G...' - Source: Live Science
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 4: 'Marcos calls for adaptability, discipline amid cyb...' - Source: Globalsecurity.org
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 5: 'Christians worldwide urged to take legal action on...' - Source: Guardian
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 6: '‘Hospices are in retreat’: funding crisis squeezin...' - Source: Guardian
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 7: 'Conor McGregor’s Trump meeting was ‘sinister’, say...' - Source: Guardian
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 8: 'Crisis in Antarctica: can science teams ever prepa...' - Source: Guardian
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 9: 'Rice crisis in Philippines: ‘Food security emergen...' - Source: Firstpost
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 10: 'What is bullying? 'Outdated' definition in Philipp...' - Source: Rappler
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 11: 'Legal action on climate crisis sought...' - Source: The Manila Times
+2025-03-24 13:14:25,484 - neutralnews - INFO - Article 12: 'CAAP holds crisis simulation exercise...' - Source: manilastandard.net
+2025-03-24 13:14:25,486 - neutralnews - INFO - Relevance threshold for 'Philippines crisis': 0.01
+2025-03-24 13:14:25,486 - neutralnews - INFO - Article filtering details for 'Philippines crisis':
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 1 - Title: 'Rodrigo Duterte Is at the Hagu...' - Source: Thenation.com - Similarity: 0.1111
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 2 - Title: 'Extreme Weather in 2024 Forced...' - Source: Insurance Journal - Similarity: 0.0565
+2025-03-24 13:14:25,486 - neutralnews - INFO - FILTERED OUT: Article 3 - Title: ''We have to fight for a better...' - Source: Live Science - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:25,486 - neutralnews - INFO - FILTERED OUT: Article 4 - Title: 'Marcos calls for adaptability,...' - Source: Globalsecurity.org - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 5 - Title: 'Christians worldwide urged to ...' - Source: Guardian - Similarity: 0.1081
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 6 - Title: '‘Hospices are in retreat’: fun...' - Source: Guardian - Similarity: 0.0941
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 7 - Title: 'Conor McGregor’s Trump meeting...' - Source: Guardian - Similarity: 0.0921
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 8 - Title: 'Crisis in Antarctica: can scie...' - Source: Guardian - Similarity: 0.0963
+2025-03-24 13:14:25,486 - neutralnews - INFO - FILTERED OUT: Article 9 - Title: 'Rice crisis in Philippines: ‘F...' - Source: Firstpost - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 10 - Title: 'What is bullying? 'Outdated' d...' - Source: Rappler - Similarity: 0.0509
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 11 - Title: 'Legal action on climate crisis...' - Source: The Manila Times - Similarity: 0.1482
+2025-03-24 13:14:25,486 - neutralnews - INFO - KEPT: Article 12 - Title: 'CAAP holds crisis simulation e...' - Source: manilastandard.net - Similarity: 0.1111
+2025-03-24 13:14:25,486 - neutralnews - INFO - Articles filtered out for 'Philippines crisis': 3/12
+2025-03-24 13:14:25,486 - neutralnews - INFO - Final article count for 'Philippines crisis' after filtering: 9
+2025-03-24 13:14:25,486 - neutralnews - INFO - Starting GPT-based summarization for 9 articles about 'Philippines crisis'
+2025-03-24 13:14:25,486 - neutralnews - INFO - GPT prompt length: 1648 characters
+2025-03-24 13:14:25,519 - neutralnews - INFO - Starting OpenAI API call for 'Philippines crisis' at 1742818465.519189
+2025-03-24 13:14:26,474 - neutralnews - INFO - OpenAI API call completed in 0.96s
+2025-03-24 13:14:26,474 - neutralnews - INFO - Generated summary for 'Philippines crisis': The Philippines is seeking legal action on the climate crisis at the Hague-based International Court of Justice. CAAP conducted a crisis simulation exercise, while Christians worldwide are urged to take legal action on the climate crisis. Extreme weather in 2024 led to the biggest displacement of people in 16 years.
+2025-03-24 13:14:26,489 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-24 13:14:26,489 - neutralnews.image_cache - INFO - Cache miss for query: 'Philippines crisis'
+2025-03-24 13:14:32,685 - neutralnews.image_cache - INFO - Added image to cache for query: 'Philippines crisis'
+2025-03-24 13:14:44,081 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-24 13:14:44,083 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:14:44,084 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:14:44,085 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:14:44,085 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:14:44,086 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:14:44,086 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:14:44,086 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-24 13:14:52,173 - neutralnews - INFO - Removing duplicates from 21 articles
+2025-03-24 13:14:52,174 - neutralnews - INFO - Removed 0 duplicates
+2025-03-24 13:14:52,174 - neutralnews - INFO - Starting detailed filtering for 'twitter' with 21 articles
+2025-03-24 13:14:52,174 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-24 13:14:52,174 - neutralnews - INFO - Articles before filtering for 'twitter':
+2025-03-24 13:14:52,174 - neutralnews - INFO - Article 1: 'Wait a minute. Has Elon Musk really turned Twitter...' - Source: Business Insider
+2025-03-24 13:14:52,174 - neutralnews - INFO - Article 2: 'How did Nasa's Suni and Butch fill nine months in ...' - Source: BBC News
+2025-03-24 13:14:52,174 - neutralnews - INFO - Article 3: 'Auction: Twitter logo of the headquarters comes un...' - Source: heise online
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 4: 'Value of Elon Musk’s X ‘rebounds to $44bn purchase...' - Source: Guardian
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 5: 'How would I survive the apocalypse? By stocking up...' - Source: Guardian
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 6: 'Piper, no! Parker Posey’s viral White Lotus accent...' - Source: Guardian
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 7: 'Yvette Cooper ‘urgently’ looking at gun laws after...' - Source: Guardian
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 8: 'Does the FaceTime peer-to-peer operation posed a p...' - Source: Numerama
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 9: ''Mandatory' new HMRC rule for anyone who's self-em...' - Source: Birmingham Live
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 10: 'Elon Musk: Twitter post about Switzerland goes vir...' - Source: 20 Minuten
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 11: 'He went to "cut" in the middle the pearl to mom in...' - Source: Gossip-tv.gr
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 12: 'Meet Elon Musk’s Top Lieutenant Who Oversees DOGE...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 13: 'Why the Pentagon Scuttled Its Briefing of Musk on ...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 14: 'The Lady Will Have the Laxatives...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 15: 'Is Playboi Carti Rap’s Next — or Last — Superstar?...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 16: 'What’s Going On With Clothing Prices?...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 17: 'High-Rise? Low-Rise? How Do I Know Which Jeans Are...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 18: 'What to Know About the Backlash Against Tesla...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 19: 'From Welcoming New Life to Mourning Its Loss, in 2...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 20: 'Making Sense of DOGE’s Cuts...' - Source: New York Times
+2025-03-24 13:14:52,175 - neutralnews - INFO - Article 21: '‘I Told Her How Pretty Her Comb Was and Asked Wher...' - Source: New York Times
+2025-03-24 13:14:52,177 - neutralnews - INFO - Relevance threshold for 'twitter': 0.01
+2025-03-24 13:14:52,177 - neutralnews - INFO - Article filtering details for 'twitter':
+2025-03-24 13:14:52,177 - neutralnews - INFO - KEPT: Article 1 - Title: 'Wait a minute. Has Elon Musk r...' - Source: Business Insider - Similarity: 0.1335
+2025-03-24 13:14:52,177 - neutralnews - INFO - FILTERED OUT: Article 2 - Title: 'How did Nasa's Suni and Butch ...' - Source: BBC News - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,177 - neutralnews - INFO - KEPT: Article 3 - Title: 'Auction: Twitter logo of the h...' - Source: heise online - Similarity: 0.1391
+2025-03-24 13:14:52,177 - neutralnews - INFO - FILTERED OUT: Article 4 - Title: 'Value of Elon Musk’s X ‘reboun...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,177 - neutralnews - INFO - FILTERED OUT: Article 5 - Title: 'How would I survive the apocal...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,177 - neutralnews - INFO - FILTERED OUT: Article 6 - Title: 'Piper, no! Parker Posey’s vira...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,177 - neutralnews - INFO - FILTERED OUT: Article 7 - Title: 'Yvette Cooper ‘urgently’ looki...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,177 - neutralnews - INFO - KEPT: Article 8 - Title: 'Does the FaceTime peer-to-peer...' - Source: Numerama - Similarity: 0.1274
+2025-03-24 13:14:52,177 - neutralnews - INFO - KEPT: Article 9 - Title: ''Mandatory' new HMRC rule for ...' - Source: Birmingham Live - Similarity: 0.1094
+2025-03-24 13:14:52,177 - neutralnews - INFO - FILTERED OUT: Article 10 - Title: 'Elon Musk: Twitter post about ...' - Source: 20 Minuten - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,177 - neutralnews - INFO - FILTERED OUT: Article 11 - Title: 'He went to "cut" in the middle...' - Source: Gossip-tv.gr - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 12 - Title: 'Meet Elon Musk’s Top Lieutenan...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 13 - Title: 'Why the Pentagon Scuttled Its ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 14 - Title: 'The Lady Will Have the Laxativ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 15 - Title: 'Is Playboi Carti Rap’s Next — ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 16 - Title: 'What’s Going On With Clothing ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 17 - Title: 'High-Rise? Low-Rise? How Do I ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 18 - Title: 'What to Know About the Backlas...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 19 - Title: 'From Welcoming New Life to Mou...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 20 - Title: 'Making Sense of DOGE’s Cuts...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - FILTERED OUT: Article 21 - Title: '‘I Told Her How Pretty Her Com...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-24 13:14:52,178 - neutralnews - INFO - Articles filtered out for 'twitter': 17/21
+2025-03-24 13:14:52,178 - neutralnews - INFO - Final article count for 'twitter' after filtering: 4
+2025-03-24 13:14:52,178 - neutralnews - INFO - Starting GPT-based summarization for 4 articles about 'twitter'
+2025-03-24 13:14:52,178 - neutralnews - INFO - GPT prompt length: 842 characters
+2025-03-24 13:14:52,184 - neutralnews - INFO - Starting OpenAI API call for 'twitter' at 1742818492.1848772
+2025-03-24 13:14:53,191 - neutralnews - INFO - OpenAI API call completed in 1.01s
+2025-03-24 13:14:53,192 - neutralnews - INFO - Generated summary for 'twitter': 1. The Twitter logo from the company's headquarters in San Francisco is up for auction.
+2. Elon Musk's acquisition of Twitter in 2022 led to a decline in advertisers and the company's value.
+3. Twitter users are concerned about privacy issues with FaceTime's peer-to-peer operation.
+2025-03-24 13:14:53,192 - neutralnews.image_cache - INFO - Cache miss for query: 'twitter'
+2025-03-24 13:14:58,942 - neutralnews.image_cache - INFO - Added image to cache for query: 'twitter'

@@ -15,11 +15,11 @@
             <!-- Header with Logo and Search Bar -->
             <header class="header">
                 <div class="logo" style="cursor: pointer;">
-                    <h1>Neutral News</h1>
+                    <h1>📰 Neutral News</h1>
                 </div>
                 <div class="search-bar">
                     <form id="search-form" class="search-form">
-                        <input type="text" name="event" class="search-input" placeholder="Enter news event (e.g., Election 2025)" value="{{ event if event else '' }}"/>
+                        <input type="text" name="event" class="search-input" placeholder="🔍 Enter news event (e.g., Election 2025)" value="{{ event if event else '' }}"/>
                         <button type="submit" class="search-button">
                             <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoinV="round" stroke-linejoin="round"/>
@@ -37,14 +37,14 @@
             
             <!-- Trending Topics Section -->
             <div class="trending-container" style="display: {% if event is none or event == '' %}block{% else %}none{% endif %};">
-                <h2 class="trending-title">Trending News Topics</h2>
+                <h2 class="trending-title">🔥 Trending News Topics</h2>
                 
                 <!-- Today's Topics -->
                 <div class="trending-topics">
-                    <h3>Today</h3>
+                    <h3>📅 Today</h3>
                     {% for item in today_topics %}
                         <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 }}">
-                            <h4>{{ item[0] if item|length >= 1 else 'No topic' }}</h4>
+                            <h4>{{ item[2] if item|length >= 3 else '' }} {{ item[0] if item|length >= 1 else 'No topic' }}</h4>
                         </div>
                     {% endfor %}
                     <div style="display: none;" id="debug-today-count">{{ today_topics|length }}</div> 
@@ -52,10 +52,10 @@
                 
                 <!-- Last Week's Topics -->
                 <div class="trending-topics">
-                    <h3>Last Week</h3>
+                    <h3>🗓️ Last Week</h3>
                     {% for item in last_week_topics %}
                         <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 + 8 }}">
-                            <h4>{{ item[0] if item|length >= 1 else 'No topic' }}</h4>
+                            <h4>{{ item[2] if item|length >= 3 else '' }} {{ item[0] if item|length >= 1 else 'No topic' }}</h4>
                         </div>
                     {% endfor %}
                     <div style="display: none;" id="debug-last-week-count">{{ last_week_topics|length }}</div> 
@@ -63,10 +63,10 @@
                 
                 <!-- Last Month's Topics -->
                 <div class="trending-topics">
-                    <h3>Last Month</h3>
+                    <h3>📆 Last Month</h3>
                     {% for item in last_month_topics %}
                         <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 + 16 }}">
-                            <h4>{{ item[0] if item|length >= 1 else 'No topic' }}</h4>
+                            <h4>{{ item[2] if item|length >= 3 else '' }} {{ item[0] if item|length >= 1 else 'No topic' }}</h4>
                         </div>
                     {% endfor %}
                     <div style="display: none;" id="debug-last-month-count">{{ last_month_topics|length }}</div> 
@@ -104,7 +104,7 @@
                 
                 <div class="content-card summary-card" style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
-                        <span class="card-title-dot"></span> Summary
+                        <span class="card-title-dot"></span> 📝 Summary
                     </div>
                     <div class="summary-content">{{ summary if summary else '' }}</div>
                 </div>
@@ -112,7 +112,7 @@
                 <!-- Added Image Container -->
                 <div id="image-container" class="content-card" style="display: {% if image_path %}block{% else %}none{% endif %}; margin-top: 20px;">
                     <div class="card-title">
-                        <span class="card-title-dot"></span> Topic Visualization
+                        <span class="card-title-dot"></span> 🖼️ Topic Visualization
                     </div>
                     {% if image_path %}
                         {% set base_path = image_path.split('.')[0] %}
@@ -149,7 +149,7 @@
                 <!-- Source Transparency Dashboard -->
                 <div class="content-card source-dashboard" style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
-                        <span class="card-title-dot"></span> Source Distribution
+                        <span class="card-title-dot"></span> 📊 Source Distribution
                     </div>
                     <div class="source-distribution-container">
                         <div class="source-chart-container">
@@ -157,11 +157,11 @@
                         </div>
                         <div class="source-stats">
                             <div class="source-stat">
-                                <div class="stat-label">Source Count</div>
+                                <div class="stat-label">📰 Source Count</div>
                                 <div class="stat-value" id="source-count"></div>
                             </div>
                             <div class="source-stat">
-                                <div class="stat-label">Balance Score</div>
+                                <div class="stat-label">⚖️ Balance Score</div>
                                 <div class="stat-value" id="balance-score"></div>
                             </div>
                         </div>
@@ -171,7 +171,7 @@
                 
                 <div class="content-card articles-card" style="display: {% if summary %}block{% else %}none{% endif %};">
                     <div class="card-title">
-                        <span class="card-title-dot"></span> Articles
+                        <span class="card-title-dot"></span> 📰 Articles
                     </div>
                     <div class="article-list">
                         {% if articles %}
@@ -203,7 +203,7 @@
                         {% endif %}
                     </div>
                 </div>
-                <button class="clear-button" style="display: {% if summary %}block{% else %}none{% endif %};">Clear Results</button>
+                <button class="clear-button" style="display: {% if summary %}block{% else %}none{% endif %};">🔄 Clear Results</button>
             </div>
         </div>
 

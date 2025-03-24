@@ -6,9 +6,172 @@ from datetime import date, datetime, timedelta
 import os
 from flask import current_app
 import time
+from textblob import TextBlob  # Add this import for sentiment analysis
 
 # Configure logging
 logger = logging.getLogger("neutralnews")
+
+# Function to convert text to an appropriate emoji
+def text_to_emoji(text):
+    """
+    Convert a text string to a relevant emoji based on keywords or sentiment.
+    
+    Args:
+        text (str): The text to analyze
+        
+    Returns:
+        str: A single emoji character
+    """
+    # Convert text to lowercase for consistency
+    text = text.lower()
+    
+    # Expanded keyword map with topic-specific emojis
+    keyword_map = {
+        # General sentiments
+        "love": "❤️",
+        "laugh": "😂",
+        "good": "👍",
+        "bad": "👎",
+        "yes": "✅",
+        "no": "❌",
+        "cool": "😎",
+        "amazing": "✨",
+        "great": "🌟",
+        "terrible": "😣",
+        "awesome": "😍",
+        "sorry": "🙏",
+        "fun": "🎉",
+        "boring": "😪",
+        "excited": "🥳",
+        "fail": "😬",
+
+        # Space and science
+        "space": "🚀",
+        "astronaut": "👩‍🚀",
+        "lunar": "🌕",
+        "launch": "🚀",
+        "fusion": "⚛️",
+        "breakthrough": "💡",
+        "mars": "🪐",
+        "planet": "🌍",
+        "rocket": "🚀",
+        "satellite": "🛰️",
+        "science": "🔬",
+        "experiment": "🧪",
+        "discovery": "🔭",
+        "gravity": "🌌",
+
+        # Tech and innovation
+        "tech": "💻",
+        "tesla": "🚗",
+        "robotaxi": "🤖",
+        "robot": "🤖",
+        "meta": "📱",
+        "ai": "🤖",
+        "AI": "🤖",
+        "artificial intelligence": "🤖",
+        "twitter": "🐦",
+        "google": "🔍",
+        "apple": "🍎",
+        "software": "🖥️",
+        "hardware": "⚙️",
+        "internet": "🌐",
+        "data": "📊",
+        "cyber": "🔒",
+        "blockchain": "⛓️",
+        "crypto": "₿",
+        "innovation": "💡",
+
+        # Health and environment
+        "measles": "🤒",
+        "vaccine": "💉",
+        "heatwave": "🥵",
+        "pollution": "🌫️",
+        "climate": "🌍",
+        "healthcare": "🏥",
+        "coronavirus": "🦠",
+        "covid": "🦠",
+        "covid-19": "🦠",
+        "pandemic": "🦠",
+        "disease": "🤢",
+        "flood": "🌊",
+        "drought": "🏜️",
+        "wildfire": "🔥",
+        "earthquake": "🌋",
+        "recycling": "♻️",
+        "nature": "🌳",
+        "medicine": "💊",
+        "virus": "🦠",
+
+        # Politics and economics
+        "talks": "🗣️",
+        "ceasefire": "☮️",
+        "sanctions": "🚫",
+        "crackdown": "👮",
+        "economic": "💰",
+        "economy": "💰",
+        "economics": "💰",
+        "rate cut": "📉",
+        "layoffs": "😞",
+        "inflation": "📈",
+        "recession": "📉",
+        "trade": "🤝",
+        "election": "🗳️",
+        "protest": "✊",
+        "war": "⚔️",
+        "peace": "🕊️",
+        "law": "⚖️",
+        "tax": "💸",
+        "budget": "💼",
+        "strike": "🚩",
+        "policy": "📜",
+
+        # Miscellaneous
+        "food": "🍽️",
+        "dog": "🐶",
+        "cat": "🐱",
+        "hello": "👋",
+        "tourism": "✈️",
+        "victories": "🏆",
+        "prices": "💸",
+        "energy": "🔋",
+        "energy crisis": "🔋",
+        "nuclear": "💥",
+        "nuclear power": "💥",
+        "sports": "⚽",
+        "music": "🎶",
+        "movie": "🎬",
+        "art": "🎨",
+        "fashion": "👗",
+        "travel": "🗺️",
+        "game": "🎮",
+        "party": "🎈",
+        "school": "🏫",
+        "work": "💼",
+        "money": "💵",
+        "time": "⏳",
+        "weather": "☀️",
+        "rain": "☔"
+    }
+    
+    # Check for specific keywords first
+    for keyword, emoji in keyword_map.items():
+        if keyword in text:
+            return emoji
+    
+    # Fallback to sentiment analysis
+    blob = TextBlob(text)
+    polarity = blob.sentiment.polarity
+    if polarity > 0.3:
+        return "😊"
+    elif polarity > 0:
+        return "🙂"
+    elif polarity < -0.3:
+        return "😢"
+    elif polarity < 0:
+        return "😕"
+    else:
+        return "😐"
 
 # Fallback topics for different time periods
 FALLBACK_TOPICS = {
@@ -159,16 +322,34 @@ def get_trending_topics(period="today", force_refresh=False, max_topics=8):
         max_topics (int): Maximum number of topics to return
     
     Returns:
-        list: List of topic pairs [headline, keywords]
+        list: List of topic pairs [headline, keywords, emoji]
     """
     # Try to get from cache first (unless forced refresh)
     if not force_refresh:
         cached_topics = get_cached_topics(period)
         if cached_topics:
+            # Add emoji to each topic if it doesn't already have one
+            for i, topic in enumerate(cached_topics):
+                if len(topic) < 3:  # If no emoji is present
+                    headline = topic[0]
+                    emoji = text_to_emoji(headline)
+                    if len(topic) == 2:
+                        cached_topics[i] = [topic[0], topic[1], emoji]
+                    else:
+                        cached_topics[i] = [topic[0], "", emoji]
             return cached_topics
     
     # If we get here, we need to fetch from API
     topics = fetch_topics_from_api(period, max_topics)
+    
+    # Add emoji to each topic
+    for i, topic in enumerate(topics):
+        headline = topic[0]
+        emoji = text_to_emoji(headline)
+        if len(topic) == 2:
+            topics[i] = [topic[0], topic[1], emoji]
+        else:
+            topics[i] = [topic[0], "", emoji]
     
     # Cache the results
     if topics:
