@@ -241,17 +241,342 @@ def fetch_with_error_handling(url, params=None, headers=None, json=None, retry_c
         logger.error(error_msg)
         return None, error_msg
 
+# High-quality source lists for diversity
+HIGH_QUALITY_SOURCES = {
+    "us_mainstream": "cnn,the-washington-post,the-wall-street-journal,usa-today,associated-press,reuters,bloomberg",
+    "us_diverse": "fox-news,the-american-conservative,national-review,the-huffington-post,vice-news,the-hill",
+    "international": "bbc-news,al-jazeera-english,the-guardian,the-globe-and-mail,der-spiegel,le-monde",
+    "tech": "wired,techcrunch,ars-technica,the-verge,engadget",
+    "business": "financial-times,business-insider,fortune,the-economist",
+    "science": "national-geographic,scientific-american,new-scientist"
+}
+
+# Define tiers of news sources for quality scoring
+TIER1_SOURCES = {
+    "associated-press", "reuters", "bbc-news", "the-washington-post", 
+    "the-new-york-times", "the-wall-street-journal", "the-economist",
+    "bloomberg", "financial-times", "the-guardian"
+}
+
+TIER2_SOURCES = {
+    "al-jazeera-english", "cnn", "usa-today", "politico", "the-hill",
+    "fox-news", "nbc-news", "abc-news", "cbs-news", "time",
+    "der-spiegel", "le-monde"
+}
+
+def score_article_quality(article):
+    """
+    Score article quality based on multiple factors.
+    
+    Args:
+        article (dict): The article to score
+        
+    Returns:
+        int: Quality score (higher is better)
+    """
+    score = 0
+    
+    # Favor longer, more substantive articles
+    content_length = len(article.get("content", "") or article.get("description", ""))
+    if content_length > 2000:
+        score += 3
+    elif content_length > 1000:
+        score += 2
+    elif content_length > 500:
+        score += 1
+    
+    # Favor articles with images
+    if article.get("urlToImage"):
+        score += 1
+    
+    # Favor articles from known high-quality sources
+    source_name = article.get("source", {}).get("name", "").lower()
+    if source_name in TIER1_SOURCES:
+        score += 3
+    elif source_name in TIER2_SOURCES:
+        score += 2
+    
+    # Favor articles that mention the query in the title
+    title = article.get("title", "").lower()
+    description = article.get("description", "").lower()
+    
+    query_terms = article.get("_query", "").lower().split()
+    main_terms = [term for term in query_terms if len(term) > 3]  # Skip short words
+    
+    for term in main_terms:
+        if term in title:
+            score += 2
+        elif term in description:
+            score += 1
+    
+    # Penalize for very short titles (often clickbait)
+    if len(title) < 30:
+        score -= 1
+    
+    return score
+
+# Original fetch_newsapi_org function remains for backward compatibility 
+# but we'll add a new enhanced function
+
+async def async_fetch_newsapi_org_diversified(event, days_back=7, intl_ratio=0.2, quality_ratio=0.8):
+    """Async wrapper for fetch_newsapi_org_diversified"""
+    try:
+        return fetch_newsapi_org_diversified(event, days_back, intl_ratio, quality_ratio)
+    except Exception as e:
+        logger.error(f"Error in async_fetch_newsapi_org_diversified: {e}")
+        return []
+
+def fetch_newsapi_org_diversified(event, days_back=7, intl_ratio=0.2, quality_ratio=0.8):
+    """
+    Enhanced version of fetch_newsapi_org that makes multiple requests to different source groups
+    to ensure article quality and source diversity.
+    
+    Args:
+        event (str): The search query
+        days_back (int): Number of days back to search
+        intl_ratio (float): Ratio of international to US sources (0.0 to 1.0)
+        quality_ratio (float): Ratio of high-quality to standard sources (0.0 to 1.0)
+    
+    Returns:
+        list: List of articles from diverse sources
+    """
+    if not NEWSAPI_ORG_KEY:
+        logger.warning("NewsAPI.org API key not found")
+        return []
+    
+    logger.info(f"Making diversified requests to NewsAPI.org for '{event}' (intl_ratio={intl_ratio}, quality_ratio={quality_ratio})")
+    
+    # Define the API URL
+    url = "https://newsapi.org/v2/everything"
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    
+    # Implement query expansion for topics with limited results
+    expanded_queries = [event]
+    
+    # Define keywords that might benefit from query expansion
+    limited_result_topics = {
+        "wheat": ["grain", "agriculture", "farming", "crop"],
+        "food": ["agriculture", "nutrition", "grocery", "supply chain"],
+        "prices": ["inflation", "costs", "market", "economy"],
+        "agriculture": ["farming", "crops", "production"],
+        "commodity": ["trading", "market", "prices", "futures"]
+    }
+    
+    # Check if current query contains any keywords needing expansion
+    query_terms = event.lower().split()
+    expansion_needed = False
+    for term in query_terms:
+        if term in limited_result_topics:
+            expansion_needed = True
+            break
+    
+    if expansion_needed:
+        # Create expanded queries by adding related terms
+        for term in query_terms:
+            if term in limited_result_topics:
+                for related_term in limited_result_topics[term][:2]:  # Take up to 2 related terms
+                    expanded_query = f"{event} {related_term}"
+                    if expanded_query not in expanded_queries:
+                        expanded_queries.append(expanded_query)
+        
+        logger.info(f"Query expansion for '{event}': {expanded_queries}")
+    
+    # Calculate the distribution for mainstream, diverse and international sources
+    total_articles = 50  # Total target
+    mainstream_articles = int(total_articles * 0.4 * (1 - intl_ratio))  # 40% mainstream US 
+    diverse_articles = int(total_articles * 0.4 * (1 - intl_ratio))     # 40% diverse US
+    international_articles = int(total_articles * intl_ratio)           # 20% international
+    
+    # Ensure we have at least some articles from each category
+    mainstream_articles = max(1, mainstream_articles)
+    diverse_articles = max(1, diverse_articles)
+    international_articles = max(1, international_articles)
+    
+    logger.info(f"Article distribution: Mainstream={mainstream_articles}, Diverse={diverse_articles}, International={international_articles}")
+    
+    # Define parameters for three requests
+    # 1. US mainstream sources
+    mainstream_params = {
+        "q": event,
+        "apiKey": NEWSAPI_ORG_KEY,
+        "language": "en",
+        "from": from_date,
+        "pageSize": mainstream_articles,
+        "sortBy": "relevancy",
+        "sources": ",".join([
+            "cnn", "the-washington-post", "the-wall-street-journal", 
+            "bloomberg", "associated-press", "reuters", "politico",
+            "usa-today", "abc-news", "nbc-news", "cbs-news"
+        ])
+    }
+    
+    # 2. US diverse sources
+    diverse_params = {
+        "q": event,
+        "apiKey": NEWSAPI_ORG_KEY,
+        "language": "en",
+        "from": from_date,
+        "pageSize": diverse_articles,
+        "sortBy": "relevancy",
+        "sources": ",".join([
+            "fox-news", "the-american-conservative", "breitbart-news",
+            "national-review", "the-hill", "newsweek", "time",
+            "vice-news", "the-verge", "wired", "techcrunch", 
+            "ars-technica", "business-insider", "fortune"
+        ])
+    }
+    
+    # 3. International sources
+    international_params = {
+        "q": event,
+        "apiKey": NEWSAPI_ORG_KEY,
+        "from": from_date,
+        "pageSize": international_articles,
+        "sortBy": "relevancy",
+        "sources": ",".join([
+            "bbc-news", "al-jazeera-english", "the-hindu",
+            "the-times-of-india", "the-globe-and-mail", "the-irish-times",
+            "independent", "australian-financial-review"
+        ])
+    }
+    
+    # Execute the requests and collect articles
+    all_articles = []
+    
+    # First try with the original query
+    logger.info(f"NewsAPI.org diversified request #1: sources={mainstream_params['sources'][:35]}... pageSize={mainstream_params['pageSize']}")
+    data, error = fetch_with_error_handling(url, params=mainstream_params)
+    mainstream_articles_resp = data.get('articles', []) if not error and data.get('status') != 'error' else []
+    logger.info(f"NewsAPI.org: Fetched {len(mainstream_articles_resp)} articles in request #1")
+    all_articles.extend(mainstream_articles_resp)
+    
+    logger.info(f"NewsAPI.org diversified request #2: sources={diverse_params['sources'][:35]}... pageSize={diverse_params['pageSize']}")
+    data, error = fetch_with_error_handling(url, params=diverse_params)
+    diverse_articles_resp = data.get('articles', []) if not error and data.get('status') != 'error' else []
+    logger.info(f"NewsAPI.org: Fetched {len(diverse_articles_resp)} articles in request #2")
+    all_articles.extend(diverse_articles_resp)
+    
+    logger.info(f"NewsAPI.org diversified request #3: sources={international_params['sources'][:35]}... pageSize={international_params['pageSize']}")
+    data, error = fetch_with_error_handling(url, params=international_params)
+    international_articles_resp = data.get('articles', []) if not error and data.get('status') != 'error' else []
+    logger.info(f"NewsAPI.org: Fetched {len(international_articles_resp)} articles in request #3")
+    all_articles.extend(international_articles_resp)
+    
+    # If we have few articles and query expansion is enabled, try expanded queries
+    if len(all_articles) < 5 and len(expanded_queries) > 1:
+        logger.info(f"Initial query returned only {len(all_articles)} articles, trying expanded queries")
+        
+        for expanded_query in expanded_queries[1:]:  # Skip the original query
+            # Update the query for each parameter set
+            mainstream_params["q"] = expanded_query
+            diverse_params["q"] = expanded_query
+            international_params["q"] = expanded_query
+            
+            # Make additional requests with expanded queries
+            logger.info(f"NewsAPI.org expanded request with '{expanded_query}' to mainstream sources")
+            data, error = fetch_with_error_handling(url, params=mainstream_params)
+            expanded_mainstream = data.get('articles', []) if not error and data.get('status') != 'error' else []
+            logger.info(f"NewsAPI.org: Fetched {len(expanded_mainstream)} articles with expanded query")
+            all_articles.extend(expanded_mainstream)
+            
+            logger.info(f"NewsAPI.org expanded request with '{expanded_query}' to diverse sources")
+            data, error = fetch_with_error_handling(url, params=diverse_params)
+            expanded_diverse = data.get('articles', []) if not error and data.get('status') != 'error' else []
+            logger.info(f"NewsAPI.org: Fetched {len(expanded_diverse)} articles with expanded query")
+            all_articles.extend(expanded_diverse)
+            
+            logger.info(f"NewsAPI.org expanded request with '{expanded_query}' to international sources")
+            data, error = fetch_with_error_handling(url, params=international_params)
+            expanded_international = data.get('articles', []) if not error and data.get('status') != 'error' else []
+            logger.info(f"NewsAPI.org: Fetched {len(expanded_international)} articles with expanded query")
+            all_articles.extend(expanded_international)
+            
+            # If we have enough articles, stop making additional requests
+            if len(all_articles) >= 15:
+                logger.info(f"Collected sufficient articles ({len(all_articles)}) with expanded queries")
+                break
+    
+    logger.info(f"NewsAPI.org: Total articles fetched across all diversified requests: {len(all_articles)}")
+    
+    # If requested quality ratio is less than 1.0, add some standard articles 
+    if quality_ratio < 1.0 and quality_ratio > 0:
+        # Calculate how many standard articles to add
+        high_quality_count = len(all_articles)
+        target_high_quality_ratio = quality_ratio
+        target_high_quality_count = int(high_quality_count / target_high_quality_ratio)
+        standard_articles_needed = target_high_quality_count - high_quality_count
+        
+        if standard_articles_needed > 0:
+            logger.info(f"Adding {standard_articles_needed} standard articles to maintain quality ratio of {quality_ratio}")
+            # Make a general request for standard articles
+            standard_params = {
+                "q": event,
+                "apiKey": NEWSAPI_ORG_KEY,
+                "language": "en",
+                "from": from_date,
+                "pageSize": standard_articles_needed,
+                "sortBy": "relevancy",
+            }
+            
+            data, error = fetch_with_error_handling(url, params=standard_params)
+            standard_articles = data.get('articles', []) if not error and data.get('status') != 'error' else []
+            logger.info(f"Added {len(standard_articles)} standard articles")
+            all_articles.extend(standard_articles)
+    
+    # Remove duplicates based on URL
+    unique_urls = set()
+    unique_articles = []
+    
+    for article in all_articles:
+        url = article.get("url")
+        if url and url not in unique_urls:
+            unique_urls.add(url)
+            unique_articles.append(article)
+    
+    duplicates_removed = len(all_articles) - len(unique_articles)
+    logger.info(f"NewsAPI.org: {duplicates_removed} duplicates removed")
+    
+    # Score articles for quality and sort
+    scored_articles = []
+    for article in unique_articles:
+        score = score_article_quality(article)
+        article["quality_score"] = score
+        scored_articles.append(article)
+    
+    # Sort by quality score
+    scored_articles.sort(key=lambda x: x.get("quality_score", 0), reverse=True)
+    
+    # Log article quality scores
+    if scored_articles:
+        min_score = min(a.get("quality_score", 0) for a in scored_articles)
+        max_score = max(a.get("quality_score", 0) for a in scored_articles)
+        avg_score = sum(a.get("quality_score", 0) for a in scored_articles) / len(scored_articles)
+        logger.info(f"Article quality scores - Min: {min_score}, Max: {max_score}, Avg: {avg_score:.1f}")
+        
+        # Log top articles by score
+        for i, article in enumerate(scored_articles[:3]):
+            title = article.get("title", "")[:40] + "..."
+            score = article.get("quality_score", 0)
+            source = article.get("source", {}).get("name", "Unknown")
+            logger.info(f"Top {i+1}: [{score}] {title} ({source})")
+    
+    return scored_articles
+
 async def async_fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
     """Async version of fetch_newsapi_org"""
     from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
     
     url = "https://newsapi.org/v2/everything"
+    # Using a hard limit of 30 articles instead of MAX_ARTICLES_PER_SOURCE to control costs
+    hardlimit = 30
     params = {
         "q": event,
         "from": from_date,
-        "pageSize": MAX_ARTICLES_PER_SOURCE,
+        "pageSize": hardlimit,
+        "sortBy": "relevancy",  # Sort by relevance to get the most relevant articles
         "apiKey": NEWSAPI_ORG_KEY
     }
+    logger.info(f"NewsAPI.org: Requesting {params['pageSize']} articles for event '{event}' (hard limit applied)")
     data, error = await async_fetch_with_error_handling(url, params=params)
     if error:
         return []
@@ -260,6 +585,51 @@ async def async_fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
         return []
     articles = data.get('articles', [])
     logger.info(f"NewsAPI.org: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+    logger.info(f"NewsAPI.org: Total results available: {data.get('totalResults', 0)}")
+    return articles
+
+def fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    
+    url = "https://newsapi.org/v2/everything"
+    # Using a hard limit of 30 articles instead of MAX_ARTICLES_PER_SOURCE to control costs
+    hardlimit = 30
+    params = {
+        "q": event,
+        "from": from_date,
+        "pageSize": hardlimit,
+        "sortBy": "relevancy",  # Sort by relevance to get the most relevant articles
+        "apiKey": NEWSAPI_ORG_KEY
+    }
+    logger.info(f"NewsAPI.org: Requesting {params['pageSize']} articles for event '{event}' (hard limit applied)")
+    data, error = fetch_with_error_handling(url, params=params)
+    if error:
+        return []
+    if data.get("status") == "error":
+        logger.error(f"NewsAPI.org API error: {data.get('message')}")
+        return []
+    articles = data.get('articles', [])
+    logger.info(f"NewsAPI.org: Fetched {len(articles)} articles for event '{event}' from {from_date}")
+    logger.info(f"NewsAPI.org: Total results available: {data.get('totalResults', 0)}")
+    return articles
+
+def fetch_guardian(event, days_back=DEFAULT_DAYS_BACK):
+    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+    url = "https://content.guardianapis.com/search"
+    params = {
+        "q": event,
+        "from-date": from_date,
+        "page-size": MAX_ARTICLES_PER_SOURCE,
+        "api-key": GUARDIAN_API_KEY
+    }
+    data, error = fetch_with_error_handling(url, params=params)
+    if error:
+        return []
+    if data.get('response', {}).get('status') != "ok":
+        logger.error(f"The Guardian API error: {data.get('response', {}).get('message', 'Unknown error')}")
+        return []
+    articles = data.get('response', {}).get('results', [])
+    logger.info(f"The Guardian: Fetched {len(articles)} articles for event '{event}' from {from_date}")
     return articles
 
 async def async_fetch_guardian(event, days_back=DEFAULT_DAYS_BACK):
@@ -273,45 +643,6 @@ async def async_fetch_guardian(event, days_back=DEFAULT_DAYS_BACK):
         "api-key": GUARDIAN_API_KEY
     }
     data, error = await async_fetch_with_error_handling(url, params=params)
-    if error:
-        return []
-    if data.get('response', {}).get('status') != "ok":
-        logger.error(f"The Guardian API error: {data.get('response', {}).get('message', 'Unknown error')}")
-        return []
-    articles = data.get('response', {}).get('results', [])
-    logger.info(f"The Guardian: Fetched {len(articles)} articles for event '{event}' from {from_date}")
-    return articles
-
-def fetch_newsapi_org(event, days_back=DEFAULT_DAYS_BACK):
-    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    
-    url = "https://newsapi.org/v2/everything"
-    params = {
-        "q": event,
-        "from": from_date,
-        "pageSize": MAX_ARTICLES_PER_SOURCE,
-        "apiKey": NEWSAPI_ORG_KEY
-    }
-    data, error = fetch_with_error_handling(url, params=params)
-    if error:
-        return []
-    if data.get("status") == "error":
-        logger.error(f"NewsAPI.org API error: {data.get('message')}")
-        return []
-    articles = data.get('articles', [])
-    logger.info(f"NewsAPI.org: Fetched {len(articles)} articles for event '{event}' from {from_date}")
-    return articles
-
-def fetch_guardian(event, days_back=DEFAULT_DAYS_BACK):
-    from_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    url = "https://content.guardianapis.com/search"
-    params = {
-        "q": event,
-        "from-date": from_date,
-        "page-size": MAX_ARTICLES_PER_SOURCE,
-        "api-key": GUARDIAN_API_KEY
-    }
-    data, error = fetch_with_error_handling(url, params=params)
     if error:
         return []
     if data.get('response', {}).get('status') != "ok":
@@ -658,13 +989,14 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     """
     Asynchronously fetch articles from multiple sources using asyncio.
     This replaces the ThreadPoolExecutor approach with true non-blocking async IO.
+    Uses a diversified fetcher for NewsAPI.org to improve article quality and source diversity.
     """
     logger.info(f"Starting async fetching of articles for '{event}'")
     # Log the current timeout settings
     log_request_timeout_settings()
     
     fetch_functions = [
-        (async_fetch_newsapi_org, "NewsAPI.org", USE_NEWSAPI_ORG),
+        (async_fetch_newsapi_org_diversified, "NewsAPI.org (Diversified)", USE_NEWSAPI_ORG),
         (async_fetch_guardian, "Guardian", USE_GUARDIAN),
         (async_fetch_aylien_articles, "Aylien", USE_AYLIEN),
         (async_fetch_gnews_articles, "GNews", USE_GNEWS),

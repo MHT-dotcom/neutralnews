@@ -74,7 +74,7 @@ SUMMARIZER_MODEL = "facebook/bart-large-cnn"
 
 # Default Settings
 MAX_ARTICLES_PER_API = 12  # Increased from 8 to get more articles per API
-DEFAULT_TOP_N = 10  # Changed from 15 to exactly 10 articles
+DEFAULT_TOP_N = 15  # Increased from 10 to 15 to allow more articles in the response
 RELEVANCE_THRESHOLD = 0.03  # Lowered from 0.05 to allow more articles through
 ELECTION_RELEVANCE_THRESHOLD = 0.01
 MAX_ARTICLES_PER_SOURCE = 4  # Adjusted to allow up to 4 articles per source for better distribution
