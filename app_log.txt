@@ -1049,3 +1049,256 @@
 3. Twitter users are concerned about privacy issues with FaceTime's peer-to-peer operation.
 2025-03-24 13:14:53,192 - neutralnews.image_cache - INFO - Cache miss for query: 'twitter'
 2025-03-24 13:14:58,942 - neutralnews.image_cache - INFO - Added image to cache for query: 'twitter'
+2025-03-24 13:22:51,000 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:22:51,002 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:22:51,002 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:22:51,002 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:22:51,003 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:22:51,003 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:22:51,003 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:22:51,327 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:22:51,328 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:22:51,328 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:22:51,329 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:22:51,329 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:22:51,393 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:22:51,393 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:22:51,393 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:22:51,393 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:22:51,394 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:22:51,394 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:22:51,394 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:22:51,394 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-24 13:22:51,394 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:22:51,394 - neutralnews - INFO - About to import routes module
+2025-03-24 13:22:51,395 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:22:51,396 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:22:51,396 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (POST, OPTIONS, GET, HEAD) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, GET, HEAD) -> news_routes.image_cache_admin>])
+2025-03-24 13:22:51,396 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:22:51,396 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:23:06,671 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:23:06,672 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:23:06,672 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:23:06,672 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:23:06,673 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:23:06,673 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:23:06,673 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:23:06,900 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:23:06,901 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:23:06,901 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:23:06,901 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:23:06,902 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:23:07,014 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:23:07,015 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:23:07,016 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:23:07,016 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:23:07,021 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:23:07,021 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:23:07,021 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:23:07,021 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>])
+2025-03-24 13:23:07,022 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:23:07,022 - neutralnews - INFO - About to import routes module
+2025-03-24 13:23:07,099 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:23:07,100 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:23:07,100 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>,
+ <Rule '/' (HEAD, POST, OPTIONS, GET) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (HEAD, OPTIONS, GET) -> news_routes.serve_image>,
+ <Rule '/health' (HEAD, OPTIONS, GET) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (HEAD, POST, OPTIONS, GET) -> news_routes.image_cache_admin>])
+2025-03-24 13:23:07,100 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:23:07,100 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:23:07,100 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:23:07,100 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:24:43,367 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:24:43,368 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:24:43,368 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:24:43,369 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:24:43,369 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:24:43,369 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:24:43,369 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:24:43,619 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:24:43,620 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:24:43,621 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:24:43,621 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:24:43,621 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:24:43,692 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:24:43,692 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:24:43,692 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:24:43,692 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:24:43,693 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:24:43,693 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:24:43,693 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:24:43,693 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, HEAD, OPTIONS) -> static>])
+2025-03-24 13:24:43,693 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:24:43,693 - neutralnews - INFO - About to import routes module
+2025-03-24 13:24:43,694 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:24:43,695 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:24:43,695 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, HEAD, OPTIONS) -> static>,
+ <Rule '/' (GET, HEAD, POST, OPTIONS) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, HEAD, OPTIONS) -> news_routes.serve_image>,
+ <Rule '/health' (GET, HEAD, OPTIONS) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, HEAD, POST, OPTIONS) -> news_routes.image_cache_admin>])
+2025-03-24 13:24:43,695 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:24:43,695 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:26:33,092 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:26:33,093 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:26:33,094 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:26:33,094 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:26:33,094 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:26:33,094 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:26:33,094 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:26:33,388 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:26:33,389 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:26:33,390 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:26:33,390 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:26:33,390 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:26:33,450 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:26:33,450 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:26:33,450 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:26:33,450 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:26:33,451 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:26:33,451 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:26:33,451 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:26:33,451 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>])
+2025-03-24 13:26:33,451 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:26:33,451 - neutralnews - INFO - About to import routes module
+2025-03-24 13:26:33,451 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:26:33,452 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:26:33,452 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>,
+ <Rule '/' (GET, OPTIONS, POST, HEAD) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, OPTIONS, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (GET, OPTIONS, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, OPTIONS, POST, HEAD) -> news_routes.image_cache_admin>])
+2025-03-24 13:26:33,452 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:26:33,452 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:26:51,410 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:26:51,410 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:26:51,410 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:26:51,412 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:26:51,412 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:26:51,412 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:26:51,412 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:26:51,413 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-24 13:26:51,413 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:26:51,413 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-24 13:26:51,413 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:26:51,414 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-24 13:26:51,415 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:26:51,415 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:26:51,416 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:26:51,416 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:26:51,417 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:26:51,418 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:26:51,419 - neutralnews - INFO - search_count column already exists
+2025-03-24 13:26:51,419 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-24 13:26:51,420 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-24 13:26:51,650 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:26:51,651 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:26:51,651 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-24 13:26:51,652 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:26:51,651 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:26:51,652 - neutralnews - INFO - Cache cleared on startup
+2025-03-24 13:26:51,653 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:26:51,653 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:26:51,653 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:26:51,654 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:26:51,655 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:26:51,655 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:26:51,655 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:26:51,655 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:26:51,656 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:26:51,729 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:26:51,729 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:26:51,729 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-24 13:26:51,729 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:26:51,729 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:26:51,730 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-24 13:26:51,730 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:26:51,730 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:26:51,731 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:26:51,731 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:26:51,731 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-24 13:26:51,731 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-24 13:26:51,732 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:26:51,732 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:26:51,732 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:26:51,732 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:26:51,733 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:26:51,733 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-24 13:26:51,733 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:26:51,734 - neutralnews - INFO - Cache type: simple
+2025-03-24 13:26:51,734 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>])
+2025-03-24 13:26:51,734 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>])
+2025-03-24 13:26:51,735 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:26:51,735 - neutralnews - INFO - About to register routes blueprint
+2025-03-24 13:26:51,735 - neutralnews - INFO - About to import routes module
+2025-03-24 13:26:51,735 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:26:51,736 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>])
+2025-03-24 13:26:51,736 - neutralnews - INFO - About to import routes module
+2025-03-24 13:26:51,736 - neutralnews - INFO - Starting app.py execution
+2025-03-24 13:26:51,737 - neutralnews - INFO - About to import routes module
+2025-03-24 13:26:51,805 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:26:51,805 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:26:51,805 - neutralnews - INFO - Successfully imported routes module
+2025-03-24 13:26:51,807 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:26:51,807 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:26:51,807 - neutralnews - INFO - Routes blueprint registered
+2025-03-24 13:26:51,808 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>,
+ <Rule '/' (GET, OPTIONS, HEAD, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, OPTIONS, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (GET, OPTIONS, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, OPTIONS, HEAD, POST) -> news_routes.image_cache_admin>])
+2025-03-24 13:26:51,808 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>,
+ <Rule '/' (GET, OPTIONS, HEAD, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, OPTIONS, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (GET, OPTIONS, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, OPTIONS, HEAD, POST) -> news_routes.image_cache_admin>])
+2025-03-24 13:26:51,808 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>,
+ <Rule '/' (GET, OPTIONS, HEAD, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, OPTIONS, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (GET, OPTIONS, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, OPTIONS, HEAD, POST) -> news_routes.image_cache_admin>])
+2025-03-24 13:26:51,808 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:26:51,808 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:26:51,808 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-24 13:26:51,808 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:26:51,809 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:26:51,809 - neutralnews - INFO - Application fully initialized
+2025-03-24 13:27:21,761 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-24 13:27:21,761 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-24 13:27:21,761 - neutralnews.image_cache - INFO - Initialized image cache with 17 entries
+2025-03-24 13:27:21,762 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-24 13:27:21,762 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-24 13:27:21,763 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:27:21,763 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:27:21,762 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-24 13:27:21,764 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:27:21,764 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:27:21,764 - neutralnews - INFO - Using cached today trending topics from 2025-03-24
+2025-03-24 13:27:21,765 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:27:21,765 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:27:21,765 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-17
+2025-03-24 13:27:21,766 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,766 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,766 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-22
+2025-03-24 13:27:21,767 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,767 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,768 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,767 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,769 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-24 13:27:21,769 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,770 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,770 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-24 13:27:21,771 - neutralnews - INFO - Started background task for trending image generation
+2025-03-24 13:27:21,772 - neutralnews - INFO - Trending image pre-generation tasks started for all periods

@@ -125,7 +125,7 @@ def check_database_connection():
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = [row[0] for row in cursor.fetchall()]
         
-        expected_tables = ['searches', 'articles']
+        expected_tables = ['search_history', 'hot_topics']
         missing_tables = [table for table in expected_tables if table not in tables]
         
         if missing_tables:
@@ -135,7 +135,7 @@ def check_database_connection():
         logger.info(f"✅ Successfully connected to database with tables: {', '.join(tables)}")
         
         # Check for any data
-        cursor.execute("SELECT COUNT(*) FROM searches")
+        cursor.execute("SELECT COUNT(*) FROM search_history")
         search_count = cursor.fetchone()[0]
         logger.info(f"ℹ️ Database contains {search_count} saved searches")
         
