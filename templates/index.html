@@ -6,6 +6,10 @@
         <meta http-equiv="Expires" content="0">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>Neutral News</title>
+        <!-- Favicon -->
+        <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.svg') }}" type="image/svg+xml">
+        <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}" sizes="any">
+        <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     </head>
@@ -40,7 +44,7 @@
                 <h2 class="trending-title">🔥 Trending News Topics</h2>
                 
                 <!-- Today's Topics -->
-                <div class="trending-topics">
+                <div class="trending-topics topic-column" data-category="today">
                     <h3>📅 Today</h3>
                     {% for item in today_topics %}
                         <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 }}">
@@ -51,7 +55,7 @@
                 </div>
                 
                 <!-- Last Week's Topics -->
-                <div class="trending-topics">
+                <div class="trending-topics topic-column" data-category="last_week">
                     <h3>🗓️ Last Week</h3>
                     {% for item in last_week_topics %}
                         <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 + 8 }}">
@@ -62,7 +66,7 @@
                 </div>
                 
                 <!-- Last Month's Topics -->
-                <div class="trending-topics">
+                <div class="trending-topics topic-column" data-category="last_month">
                     <h3>📆 Last Month</h3>
                     {% for item in last_month_topics %}
                         <div class="trending-card" data-search-term="{{ item[1] if item|length >= 2 else '' }}" data-index="{{ loop.index0 + 16 }}">
@@ -210,6 +214,7 @@
         <script>
             console.log("main.js loaded successfully");
         </script>
+        <script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
         <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     </body>
 </html>

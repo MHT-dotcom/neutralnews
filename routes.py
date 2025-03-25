@@ -1210,3 +1210,137 @@ def init_db():
     except Exception as e:
         logger.error(f"Error in init_db: {str(e)}")
         raise
+
+@routes.route('/analytics', methods=['POST'])
+def log_analytics():
+    try:
+        data = request.get_json()
+        
+        # Get DB path
+        db_path = current_app.config.get('DB_PATH')
+        if not db_path:
+            db_path = os.environ.get('DB_PATH', 'search_db.sqlite')
+            
+        # Connect to database
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        
+        # Create analytics table if it doesn't exist
+        c.execute('''CREATE TABLE IF NOT EXISTS analytics
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     event_type TEXT NOT NULL,
+                     event_data TEXT NOT NULL,
+                     timestamp TEXT NOT NULL)''')
+        
+        # Insert analytics data
+        c.execute('INSERT INTO analytics (event_type, event_data, timestamp) VALUES (?, ?, ?)',
+                 (data['event_type'], 
+                  json.dumps(data['data']), 
+                  datetime.now().isoformat()))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        current_app.logger.error(f"Error logging analytics: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@routes.route('/analytics-dashboard')
+def analytics_dashboard():
+    """Display analytics data in a dashboard format."""
+    try:
+        # Get DB path
+        db_path = current_app.config.get('DB_PATH')
+        if not db_path:
+            db_path = os.environ.get('DB_PATH', 'search_db.sqlite')
+            
+        # Connect to database
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        
+        # Get top searches (only manual searches)
+        c.execute('''
+            SELECT json_extract(event_data, '$.query') as search_query, COUNT(*) as count 
+            FROM analytics 
+            WHERE event_type = 'search'
+            GROUP BY search_query 
+            ORDER BY count DESC 
+            LIMIT 10
+        ''')
+        top_searches = c.fetchall()
+        
+        # Get top hot topics clicked
+        c.execute('''
+            SELECT json_extract(event_data, '$.topic') as topic, 
+                   json_extract(event_data, '$.category') as category,
+                   COUNT(*) as count 
+            FROM analytics 
+            WHERE event_type = 'hot_topic_click'
+            GROUP BY topic, category
+            ORDER BY count DESC 
+            LIMIT 10
+        ''')
+        top_hot_topics = c.fetchall()
+        
+        # Get most clicked articles
+        c.execute('''
+            SELECT json_extract(event_data, '$.title') as article_title, 
+                   json_extract(event_data, '$.source') as source,
+                   COUNT(*) as clicks 
+            FROM analytics 
+            WHERE event_type = 'article_click'
+            GROUP BY article_title, source
+            ORDER BY clicks DESC 
+            LIMIT 10
+        ''')
+        top_articles = c.fetchall()
+        
+        # Get average session duration
+        c.execute('''
+            SELECT AVG(CAST(json_extract(event_data, '$.duration_ms') AS INTEGER))/1000.0 as avg_session_seconds 
+            FROM analytics 
+            WHERE event_type = 'session_end'
+        ''')
+        avg_session_duration = c.fetchone()[0]
+        
+        # Get feature usage
+        c.execute('''
+            SELECT json_extract(event_data, '$.feature') as feature, COUNT(*) as views 
+            FROM analytics 
+            WHERE event_type = 'feature_view'
+            GROUP BY feature
+        ''')
+        feature_usage = c.fetchall()
+        
+        # Get API performance
+        c.execute('''
+            SELECT 
+                json_extract(event_data, '$.endpoint') as endpoint,
+                AVG(CAST(json_extract(event_data, '$.response_time_ms') AS INTEGER)) as avg_response_time,
+                COUNT(*) as calls,
+                SUM(CASE WHEN json_extract(event_data, '$.success') = 'true' THEN 1 ELSE 0 END) * 100.0 / COUNT(*) as success_rate
+            FROM analytics 
+            WHERE event_type = 'api_response'
+            GROUP BY endpoint
+        ''')
+        api_stats = c.fetchall()
+        
+        conn.close()
+        
+        return render_template('analytics_dashboard.html',
+                             top_searches=top_searches or [],
+                             top_hot_topics=top_hot_topics or [],
+                             top_articles=top_articles or [],
+                             avg_session_duration=avg_session_duration or 0,
+                             feature_usage=feature_usage or [],
+                             api_stats=api_stats or [])
+                             
+    except Exception as e:
+        current_app.logger.error(f"Error in analytics dashboard: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@routes.route('/favicon.ico')
+def favicon():
+    """Serve the favicon from the static folder."""
+    return current_app.send_static_file('favicon/favicon.svg')

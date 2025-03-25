@@ -44,6 +44,8 @@ $(document).ready(function() {
     // Handle search form submission (hide trending container)
     $('#search-form').on('submit', function(e) {
         e.preventDefault();
+        const query = $(this).find('input[name="event"]').val();
+        Analytics.trackSearch(query);
         $trendingContainer.hide();
     });
     
@@ -215,6 +217,9 @@ $(document).ready(function() {
 
     // Display articles and image
     function displayArticles(articles, summary, metadata) {
+        const responseTime = new Date() - window.requestStartTime;
+        Analytics.trackAPIResponse('/data', responseTime, !!articles && articles.length > 0);
+        
         console.log('displayArticles called with:', {
             articlesCount: articles ? articles.length : 0,
             summary: summary,
@@ -347,6 +352,10 @@ $(document).ready(function() {
             console.error('No search term found for this topic');
             return;
         }
+        
+        // Track the hot topic click with analytics
+        const category = $(this).closest('.topic-column').data('category') || 'unknown';
+        Analytics.trackHotTopicClick(searchTerm, category);
 
         $loading.show();
         $results.hide();
@@ -398,6 +407,10 @@ $(document).ready(function() {
             alert('Please enter a news event to search for.');
             return;
         }
+        
+        // Track the manual search
+        Analytics.trackSearch(eventQuery);
+        
         $loading.show();
         $results.hide();
         $errorMessage.text('').hide();
@@ -459,5 +472,28 @@ $(document).ready(function() {
         $('.error-message').hide();
         $imageContainer.hide();
         document.title = 'Neutral News';
+    });
+
+    // Track article clicks
+    $(document).on('click', '.article-link', function(e) {
+        const $article = $(this).closest('.article-card');
+        Analytics.trackArticleClick({
+            title: $(this).text(),
+            source: $article.find('.source').text(),
+            url: $(this).attr('href')
+        });
+    });
+    
+    // Track feature views
+    $('.summary-card').on('inview', function() {
+        Analytics.trackFeatureView('summary');
+    });
+    
+    $('#image-container').on('inview', function() {
+        Analytics.trackFeatureView('visualization');
+    });
+    
+    $('.articles-card').on('inview', function() {
+        Analytics.trackFeatureView('articles');
     });
 });

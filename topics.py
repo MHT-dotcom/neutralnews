@@ -593,9 +593,14 @@ def pregenerate_topic_images(topics):
     try:
         # Import here to avoid circular imports
         from get_img import generate_and_save_image
+        from flask import current_app
+        
+        # Capture the app instance instead of using current_app in the thread
+        app = current_app._get_current_object()
         
         def generate_images():
-            with current_app.app_context():
+            # Use the captured app instance for the context
+            with app.app_context():
                 for topic in topics:
                     try:
                         # Use the headline as the query

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neutral News Analytics</title>
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}" sizes="any">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 10px 0;
+        }
+        .stat-label {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .chart-container {
+            height: 300px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="header">
+            <div class="logo">
+                <h1>📊 Neutral News Analytics</h1>
+            </div>
+            <a href="/" class="clear-button">Back to Home</a>
+        </header>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-label">Average Session Duration</div>
+                <div class="stat-value">{{ "%.1f"|format(avg_session_duration or 0) }}s</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Manual Searches</div>
+                <div class="stat-value">{{ top_searches|sum(attribute='1') if top_searches else 0 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Hot Topic Clicks</div>
+                <div class="stat-value">{{ top_hot_topics|sum(attribute='2') if top_hot_topics else 0 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Article Clicks</div>
+                <div class="stat-value">{{ top_articles|sum(attribute='2') if top_articles else 0 }}</div>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>🔍 Manual Searches</h2>
+            <div class="chart-container">
+                <canvas id="searchesChart"></canvas>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Search Query</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for query, count in top_searches %}
+                    <tr>
+                        <td>{{ query }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>🔥 Hot Topic Clicks</h2>
+            <div class="chart-container">
+                <canvas id="hotTopicsChart"></canvas>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th>Category</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for topic, category, count in top_hot_topics %}
+                    <tr>
+                        <td>{{ topic }}</td>
+                        <td>{{ category }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>📰 Most Clicked Articles</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Article Title</th>
+                        <th>Source</th>
+                        <th>Clicks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for title, source, clicks in top_articles %}
+                    <tr>
+                        <td>{{ title }}</td>
+                        <td>{{ source }}</td>
+                        <td>{{ clicks }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>🎯 Feature Usage</h2>
+            <div class="chart-container">
+                <canvas id="featureChart"></canvas>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>⚡ API Performance</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Avg Response Time</th>
+                        <th>Success Rate</th>
+                        <th>Total Calls</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for endpoint, avg_time, calls, success_rate in api_stats %}
+                    <tr>
+                        <td>{{ endpoint }}</td>
+                        <td>{{ "%.1f"|format(avg_time or 0) }}ms</td>
+                        <td>{{ "%.1f"|format(success_rate or 0) }}%</td>
+                        <td>{{ calls }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Create charts using Chart.js
+        const searchCtx = document.getElementById('searchesChart').getContext('2d');
+        new Chart(searchCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ top_searches|map(attribute=0)|list|tojson }},
+                datasets: [{
+                    label: 'Search Count',
+                    data: {{ top_searches|map(attribute=1)|list|tojson }},
+                    backgroundColor: '#3b82f6'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Create hot topics chart
+        const hotTopicsCtx = document.getElementById('hotTopicsChart').getContext('2d');
+        new Chart(hotTopicsCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ top_hot_topics|map(attribute=0)|list|tojson }},
+                datasets: [{
+                    label: 'Click Count',
+                    data: {{ top_hot_topics|map(attribute=2)|list|tojson }},
+                    backgroundColor: '#ef4444'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const featureCtx = document.getElementById('featureChart').getContext('2d');
+        new Chart(featureCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ feature_usage|map(attribute=0)|list|tojson }},
+                datasets: [{
+                    data: {{ feature_usage|map(attribute=1)|list|tojson }},
+                    backgroundColor: ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+</body>
+</html> 

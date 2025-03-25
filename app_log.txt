@@ -7158,3 +7158,1121 @@ Title: London Metal Exchange fined £9.2m for role in nickel market chaos. The L
 2025-03-25 10:39:17,296 - neutralnews - INFO - Started background task for trending image generation
 2025-03-25 10:39:17,296 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
 2025-03-25 10:39:17,297 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 11:02:43,461 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 11:02:43,463 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 11:02:43,466 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 11:02:43,466 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 11:02:43,467 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 11:02:43,468 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 11:37:08,043 - neutralnews.image_cache - INFO - Cache miss for query: 'Philippines crisis'
+2025-03-25 11:37:08,079 - neutralnews.image_cache - INFO - Added image to cache for query: 'Philippines crisis'
+2025-03-25 15:29:22,519 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:29:22,521 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:29:22,521 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:29:22,521 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:29:22,524 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:29:22,524 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:29:22,524 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:29:22,862 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:29:22,862 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:29:22,863 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:29:22,863 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:29:22,863 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:29:22,924 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:29:22,924 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:29:22,924 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:29:22,924 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:29:22,925 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:29:22,925 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:29:22,925 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:29:22,925 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, HEAD, OPTIONS) -> static>])
+2025-03-25 15:29:22,925 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:29:22,925 - neutralnews - INFO - About to import routes module
+2025-03-25 15:29:23,069 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:29:23,071 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:29:23,071 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, HEAD, OPTIONS) -> static>,
+ <Rule '/' (GET, HEAD, POST, OPTIONS) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, HEAD, OPTIONS) -> news_routes.serve_image>,
+ <Rule '/health' (GET, HEAD, OPTIONS) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, HEAD, POST, OPTIONS) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (POST, OPTIONS) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (GET, HEAD, OPTIONS) -> news_routes.analytics_dashboard>])
+2025-03-25 15:29:23,071 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:29:23,071 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:29:23,071 - neutralnews - INFO - Starting server on port 5000
+2025-03-25 15:29:23,071 - neutralnews - INFO - Application initialized at 1742912962.5190022
+2025-03-25 15:29:23,071 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:29:23,071 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:29:23,071 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:29:23,071 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:29:24,689 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:29:24,690 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:29:24,691 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:29:24,691 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:29:24,692 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:29:24,694 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:29:52,949 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:29:52,949 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:29:52,950 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:29:52,950 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:29:52,950 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:29:52,951 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:29:52,951 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:29:52,951 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:29:52,951 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:36:20,136 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:36:20,138 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:36:20,138 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:36:20,138 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:36:20,138 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:36:20,139 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:36:20,139 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:36:20,536 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:36:20,537 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:36:20,538 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:36:20,538 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:36:20,538 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:36:20,581 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:36:20,581 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:36:20,581 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:36:20,582 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:36:20,582 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:36:20,582 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:36:20,582 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:36:20,582 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>])
+2025-03-25 15:36:20,582 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:36:20,582 - neutralnews - INFO - About to import routes module
+2025-03-25 15:36:20,697 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:36:20,698 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:36:20,699 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>,
+ <Rule '/' (POST, HEAD, OPTIONS, GET) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (HEAD, OPTIONS, GET) -> news_routes.serve_image>,
+ <Rule '/health' (HEAD, OPTIONS, GET) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, HEAD, OPTIONS, GET) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (POST, OPTIONS) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (HEAD, OPTIONS, GET) -> news_routes.analytics_dashboard>])
+2025-03-25 15:36:20,699 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:36:20,699 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:36:20,699 - neutralnews - INFO - Starting server on port 5000
+2025-03-25 15:36:20,699 - neutralnews - INFO - Application initialized at 1742913380.136239
+2025-03-25 15:36:20,699 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:36:20,699 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:36:20,699 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:36:20,699 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:36:24,719 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:36:24,720 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:36:24,720 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:36:24,720 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:36:24,721 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:36:24,721 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:36:50,610 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:36:50,610 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:36:50,611 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:36:50,611 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:36:50,611 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:36:50,612 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:36:50,612 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:36:50,613 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:36:50,613 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:37:50,706 - neutralnews - INFO - Removing duplicates from 10 articles
+2025-03-25 15:37:50,707 - neutralnews - INFO - Removed 0 duplicates
+2025-03-25 15:37:50,707 - neutralnews - INFO - Starting detailed filtering for 'pollution ocean' with 10 articles
+2025-03-25 15:37:50,707 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-25 15:37:50,707 - neutralnews - INFO - Articles before filtering for 'pollution ocean':
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 1: 'Trump’s EPA aims to cut pollution rules projected ...' - Source: Guardian
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 2: 'Scientists identify ‘tipping point’ that caused cl...' - Source: Guardian
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 3: 'Single-use plastic waste on UK and Channel Island ...' - Source: Guardian
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 4: 'Rare Wright’s gardenia reappears in record numbers...' - Source: Guardian
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 5: 'In Brest, a plastic challenge sensitizes ocean pol...' - Source: Le Télégramme
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 6: 'Franceinfo Junior. #Tritonpot, recycling yogurt po...' - Source: franceinfo
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 7: 'Xbox Game Pass Just Quietly Added The Most Delight...' - Source: Inverse
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 8: 'That Pretty Starship Explosion? A Lot of Pollution...' - Source: Newser
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 9: '‘It Is Hard to Imagine a More Sweeping Agenda to M...' - Source: New York Times
+2025-03-25 15:37:50,707 - neutralnews - INFO - Article 10: 'Government Science Data May Soon Be Hidden. They’r...' - Source: New York Times
+2025-03-25 15:37:50,719 - neutralnews - INFO - Relevance threshold for 'pollution ocean': 0.01
+2025-03-25 15:37:50,720 - neutralnews - INFO - Article filtering details for 'pollution ocean':
+2025-03-25 15:37:50,720 - neutralnews - INFO - KEPT: Article 1 - Title: 'Trump’s EPA aims to cut pollut...' - Source: Guardian - Similarity: 0.1708
+2025-03-25 15:37:50,720 - neutralnews - INFO - FILTERED OUT: Article 2 - Title: 'Scientists identify ‘tipping p...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:37:50,720 - neutralnews - INFO - FILTERED OUT: Article 3 - Title: 'Single-use plastic waste on UK...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:37:50,720 - neutralnews - INFO - FILTERED OUT: Article 4 - Title: 'Rare Wright’s gardenia reappea...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:37:50,720 - neutralnews - INFO - FILTERED OUT: Article 5 - Title: 'In Brest, a plastic challenge ...' - Source: Le Télégramme - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:37:50,720 - neutralnews - INFO - FILTERED OUT: Article 6 - Title: 'Franceinfo Junior. #Tritonpot,...' - Source: franceinfo - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:37:50,720 - neutralnews - INFO - FILTERED OUT: Article 7 - Title: 'Xbox Game Pass Just Quietly Ad...' - Source: Inverse - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:37:50,720 - neutralnews - INFO - KEPT: Article 8 - Title: 'That Pretty Starship Explosion...' - Source: Newser - Similarity: 0.1152
+2025-03-25 15:37:50,720 - neutralnews - INFO - FILTERED OUT: Article 9 - Title: '‘It Is Hard to Imagine a More ...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:37:50,720 - neutralnews - INFO - FILTERED OUT: Article 10 - Title: 'Government Science Data May So...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:37:50,720 - neutralnews - INFO - Articles filtered out for 'pollution ocean': 8/10
+2025-03-25 15:37:50,720 - neutralnews - INFO - Final article count for 'pollution ocean' after filtering: 2
+2025-03-25 15:37:50,720 - neutralnews - INFO - Starting GPT-based summarization for 2 articles about 'pollution ocean'
+2025-03-25 15:37:50,720 - neutralnews - INFO - GPT prompt length: 484 characters
+2025-03-25 15:37:50,762 - neutralnews - INFO - Starting OpenAI API call for 'pollution ocean' at 1742913470.7627158
+2025-03-25 15:37:51,562 - neutralnews - INFO - OpenAI API call completed in 0.80s
+2025-03-25 15:37:51,562 - neutralnews - INFO - Generated summary for 'pollution ocean': o released a significant amount of pollution into the ocean, further contributing to environmental harm. The incident highlights the potential negative consequences of space exploration on the environment.
+2025-03-25 15:37:51,562 - neutralnews.image_cache - INFO - Cache miss for query: 'pollution ocean'
+2025-03-25 15:38:03,555 - neutralnews.image_cache - INFO - Added image to cache for query: 'pollution ocean'
+2025-03-25 15:38:26,472 - neutralnews.image_cache - INFO - Cache miss for query: 'NCAA tournament upsets'
+2025-03-25 15:38:26,478 - neutralnews.image_cache - INFO - Added image to cache for query: 'NCAA tournament upsets'
+2025-03-25 15:38:35,991 - neutralnews - INFO - Removing duplicates from 8 articles
+2025-03-25 15:38:35,992 - neutralnews - INFO - Removed 0 duplicates
+2025-03-25 15:38:35,992 - neutralnews - INFO - Starting detailed filtering for 'Sunita Williams ISS return' with 8 articles
+2025-03-25 15:38:35,992 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-25 15:38:35,992 - neutralnews - INFO - Articles before filtering for 'Sunita Williams ISS return':
+2025-03-25 15:38:35,992 - neutralnews - INFO - Article 1: 'Nasa-SpaceX crew makes joyful return to Earth afte...' - Source: Guardian
+2025-03-25 15:38:35,992 - neutralnews - INFO - Article 2: 'Nasa astronauts back on Earth after being stuck mo...' - Source: Guardian
+2025-03-25 15:38:35,992 - neutralnews - INFO - Article 3: 'David Williams obituary...' - Source: Guardian
+2025-03-25 15:38:35,993 - neutralnews - INFO - Article 4: 'Thursday briefing: What do Elon Musk and Donald Tr...' - Source: Guardian
+2025-03-25 15:38:35,993 - neutralnews - INFO - Article 5: 'NASA's stranded astronauts Suni and Butch may suff...' - Source: indy100
+2025-03-25 15:38:35,993 - neutralnews - INFO - Article 6: 'NASA Astronauts Sunita Williams And Butch Wilmore ...' - Source: TheHealthSite
+2025-03-25 15:38:35,993 - neutralnews - INFO - Article 7: 'What awaits Sunita Williams after her return from ...' - Source: India TV News
+2025-03-25 15:38:35,993 - neutralnews - INFO - Article 8: 'Sunita Williams, Barry Wilmore’s return to Earth d...' - Source: The Indian Express
+2025-03-25 15:38:35,998 - neutralnews - INFO - Relevance threshold for 'Sunita Williams ISS return': 0.01
+2025-03-25 15:38:35,998 - neutralnews - INFO - Article filtering details for 'Sunita Williams ISS return':
+2025-03-25 15:38:35,998 - neutralnews - INFO - KEPT: Article 1 - Title: 'Nasa-SpaceX crew makes joyful ...' - Source: Guardian - Similarity: 0.0870
+2025-03-25 15:38:35,998 - neutralnews - INFO - KEPT: Article 2 - Title: 'Nasa astronauts back on Earth ...' - Source: Guardian - Similarity: 0.1091
+2025-03-25 15:38:35,998 - neutralnews - INFO - KEPT: Article 3 - Title: 'David Williams obituary...' - Source: Guardian - Similarity: 0.1616
+2025-03-25 15:38:35,998 - neutralnews - INFO - FILTERED OUT: Article 4 - Title: 'Thursday briefing: What do Elo...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:38:35,998 - neutralnews - INFO - KEPT: Article 5 - Title: 'NASA's stranded astronauts Sun...' - Source: indy100 - Similarity: 0.2725
+2025-03-25 15:38:35,998 - neutralnews - INFO - KEPT: Article 6 - Title: 'NASA Astronauts Sunita William...' - Source: TheHealthSite - Similarity: 0.2524
+2025-03-25 15:38:35,998 - neutralnews - INFO - KEPT: Article 7 - Title: 'What awaits Sunita Williams af...' - Source: India TV News - Similarity: 0.2545
+2025-03-25 15:38:35,998 - neutralnews - INFO - KEPT: Article 8 - Title: 'Sunita Williams, Barry Wilmore...' - Source: The Indian Express - Similarity: 0.2332
+2025-03-25 15:38:35,998 - neutralnews - INFO - Articles filtered out for 'Sunita Williams ISS return': 1/8
+2025-03-25 15:38:35,998 - neutralnews - INFO - Final article count for 'Sunita Williams ISS return' after filtering: 7
+2025-03-25 15:38:35,998 - neutralnews - INFO - Starting GPT-based summarization for 7 articles about 'Sunita Williams ISS return'
+2025-03-25 15:38:35,999 - neutralnews - INFO - GPT prompt length: 1469 characters
+2025-03-25 15:38:36,011 - neutralnews - INFO - Starting OpenAI API call for 'Sunita Williams ISS return' at 1742913516.011164
+2025-03-25 15:38:37,041 - neutralnews - INFO - OpenAI API call completed in 1.03s
+2025-03-25 15:38:37,041 - neutralnews - INFO - Generated summary for 'Sunita Williams ISS return': NASA astronauts Sunita Williams and Barry Wilmore have returned to Earth after a long stay on the International Space Station, facing potential health risks from space radiation. Their return was delayed due to a postponed Falcon 9 mission, but they have now safely returned with smiles on their faces.
+2025-03-25 15:38:37,041 - neutralnews.image_cache - INFO - Cache miss for query: 'Sunita Williams ISS return'
+2025-03-25 15:38:48,325 - neutralnews.image_cache - INFO - Added image to cache for query: 'Sunita Williams ISS return'
+2025-03-25 15:39:13,472 - neutralnews - INFO - Removing duplicates from 8 articles
+2025-03-25 15:39:13,473 - neutralnews - INFO - Removed 0 duplicates
+2025-03-25 15:39:13,473 - neutralnews - INFO - Starting detailed filtering for 'Philippines crisis' with 8 articles
+2025-03-25 15:39:13,473 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-25 15:39:13,473 - neutralnews - INFO - Articles before filtering for 'Philippines crisis':
+2025-03-25 15:39:13,473 - neutralnews - INFO - Article 1: 'Labour delight in welcome distraction of Heathrow ...' - Source: Guardian
+2025-03-25 15:39:13,473 - neutralnews - INFO - Article 2: 'Christians worldwide urged to take legal action on...' - Source: Guardian
+2025-03-25 15:39:13,473 - neutralnews - INFO - Article 3: '‘Hospices are in retreat’: funding crisis squeezin...' - Source: Guardian
+2025-03-25 15:39:13,473 - neutralnews - INFO - Article 4: 'Scottish voters split over free tuition as univers...' - Source: Guardian
+2025-03-25 15:39:13,473 - neutralnews - INFO - Article 5: 'Rice crisis in Philippines: ‘Food security emergen...' - Source: Firstpost
+2025-03-25 15:39:13,473 - neutralnews - INFO - Article 6: 'What is bullying? 'Outdated' definition in Philipp...' - Source: Rappler
+2025-03-25 15:39:13,473 - neutralnews - INFO - Article 7: 'Legal action on climate crisis sought...' - Source: The Manila Times
+2025-03-25 15:39:13,474 - neutralnews - INFO - Article 8: 'CAAP holds crisis simulation exercise...' - Source: manilastandard.net
+2025-03-25 15:39:13,477 - neutralnews - INFO - Relevance threshold for 'Philippines crisis': 0.01
+2025-03-25 15:39:13,477 - neutralnews - INFO - Article filtering details for 'Philippines crisis':
+2025-03-25 15:39:13,477 - neutralnews - INFO - KEPT: Article 1 - Title: 'Labour delight in welcome dist...' - Source: Guardian - Similarity: 0.1564
+2025-03-25 15:39:13,477 - neutralnews - INFO - KEPT: Article 2 - Title: 'Christians worldwide urged to ...' - Source: Guardian - Similarity: 0.0937
+2025-03-25 15:39:13,478 - neutralnews - INFO - KEPT: Article 3 - Title: '‘Hospices are in retreat’: fun...' - Source: Guardian - Similarity: 0.0824
+2025-03-25 15:39:13,478 - neutralnews - INFO - KEPT: Article 4 - Title: 'Scottish voters split over fre...' - Source: Guardian - Similarity: 0.0799
+2025-03-25 15:39:13,478 - neutralnews - INFO - FILTERED OUT: Article 5 - Title: 'Rice crisis in Philippines: ‘F...' - Source: Firstpost - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:39:13,478 - neutralnews - INFO - KEPT: Article 6 - Title: 'What is bullying? 'Outdated' d...' - Source: Rappler - Similarity: 0.0429
+2025-03-25 15:39:13,478 - neutralnews - INFO - KEPT: Article 7 - Title: 'Legal action on climate crisis...' - Source: The Manila Times - Similarity: 0.1480
+2025-03-25 15:39:13,478 - neutralnews - INFO - KEPT: Article 8 - Title: 'CAAP holds crisis simulation e...' - Source: manilastandard.net - Similarity: 0.1245
+2025-03-25 15:39:13,478 - neutralnews - INFO - Articles filtered out for 'Philippines crisis': 1/8
+2025-03-25 15:39:13,478 - neutralnews - INFO - Final article count for 'Philippines crisis' after filtering: 7
+2025-03-25 15:39:13,478 - neutralnews - INFO - Starting GPT-based summarization for 7 articles about 'Philippines crisis'
+2025-03-25 15:39:13,478 - neutralnews - INFO - GPT prompt length: 1298 characters
+2025-03-25 15:39:13,490 - neutralnews - INFO - Starting OpenAI API call for 'Philippines crisis' at 1742913553.490643
+2025-03-25 15:39:14,724 - neutralnews - INFO - OpenAI API call completed in 1.23s
+2025-03-25 15:39:14,724 - neutralnews - INFO - Generated summary for 'Philippines crisis': Labor in the Philippines is facing a crisis, with a plea for legal action on climate change and a simulation exercise by the Civil Aviation Authority. Worldwide, Christians are also urged to take legal action on the climate crisis, while UK hospices and Scottish universities are dealing with funding crises. The Philippines is also facing challenges with an outdated definition of bullying.
+2025-03-25 15:39:14,724 - neutralnews.image_cache - INFO - Cache miss for query: 'Philippines crisis'
+2025-03-25 15:39:14,729 - neutralnews.image_cache - INFO - Added image to cache for query: 'Philippines crisis'
+2025-03-25 15:45:01,542 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:45:01,544 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:45:01,544 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:45:01,544 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:45:01,544 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:45:01,544 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:45:01,544 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:45:01,872 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:45:01,873 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:45:01,873 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:45:01,873 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:45:01,874 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:45:01,918 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:45:01,918 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:45:01,918 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:45:01,918 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:45:01,919 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:45:01,919 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:45:01,919 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:45:01,919 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>])
+2025-03-25 15:45:01,919 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:45:01,919 - neutralnews - INFO - About to import routes module
+2025-03-25 15:45:02,057 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:45:02,058 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:45:02,058 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>,
+ <Rule '/' (GET, OPTIONS, POST, HEAD) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, OPTIONS, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (GET, OPTIONS, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, OPTIONS, POST, HEAD) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (OPTIONS, POST) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (GET, OPTIONS, HEAD) -> news_routes.analytics_dashboard>])
+2025-03-25 15:45:02,058 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:45:02,058 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:45:02,058 - neutralnews - INFO - Starting server on port 5000
+2025-03-25 15:45:02,058 - neutralnews - INFO - Application initialized at 1742913901.542047
+2025-03-25 15:45:02,058 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:45:02,059 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:45:02,059 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:45:02,059 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:45:09,494 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:45:09,495 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:45:09,495 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:45:09,495 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:45:09,495 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:45:09,495 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:45:19,222 - neutralnews - INFO - Removing duplicates from 13 articles
+2025-03-25 15:45:19,223 - neutralnews - INFO - Removed 0 duplicates
+2025-03-25 15:45:19,223 - neutralnews - INFO - Starting detailed filtering for 'JFK assassination files CIA' with 13 articles
+2025-03-25 15:45:19,223 - neutralnews - INFO - Using universal low threshold: 0.01
+2025-03-25 15:45:19,223 - neutralnews - INFO - Articles before filtering for 'JFK assassination files CIA':
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 1: 'Kimmel on Musk backlash: ‘When you pull out a chai...' - Source: Guardian
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 2: 'Jimmy Kimmel on release of JFK files: ‘Like Christ...' - Source: Guardian
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 3: 'Trump releases thousands of pages on John F Kenned...' - Source: Guardian
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 4: 'DNA testing firm 23andMe files for bankruptcy as C...' - Source: Guardian
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 5: 'JFK Files: Story of Kennedy assassination & what n...' - Source: The Indian Express
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 6: 'What The New Kennedy Assassination Files Reveal Ab...' - Source: News18
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 7: 'Newly released JFK assassination files reveal more...' - Source: Toronto Star
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 8: 'JFK assassination files: CIA plot, Oswald's 'poor ...' - Source: Irish Mirror
+2025-03-25 15:45:19,223 - neutralnews - INFO - Article 9: 'Were the Kennedy Files a Bust? Not So Fast, Histor...' - Source: New York Times
+2025-03-25 15:45:19,224 - neutralnews - INFO - Article 10: 'Shielded Kennedy Files Hid Spies, Not Conspiracies...' - Source: New York Times
+2025-03-25 15:45:19,224 - neutralnews - INFO - Article 11: 'Takeaways From the Kennedy Files: Spycraft, Collat...' - Source: New York Times
+2025-03-25 15:45:19,224 - neutralnews - INFO - Article 12: 'White House Seeks to Contain Damage From Personal ...' - Source: New York Times
+2025-03-25 15:45:19,224 - neutralnews - INFO - Article 13: 'Inside the 24-Hour Scramble Among Top National Sec...' - Source: New York Times
+2025-03-25 15:45:19,229 - neutralnews - INFO - Relevance threshold for 'JFK assassination files CIA': 0.01
+2025-03-25 15:45:19,229 - neutralnews - INFO - Article filtering details for 'JFK assassination files CIA':
+2025-03-25 15:45:19,229 - neutralnews - INFO - FILTERED OUT: Article 1 - Title: 'Kimmel on Musk backlash: ‘When...' - Source: Guardian - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:45:19,229 - neutralnews - INFO - KEPT: Article 2 - Title: 'Jimmy Kimmel on release of JFK...' - Source: Guardian - Similarity: 0.2370
+2025-03-25 15:45:19,229 - neutralnews - INFO - KEPT: Article 3 - Title: 'Trump releases thousands of pa...' - Source: Guardian - Similarity: 0.1117
+2025-03-25 15:45:19,229 - neutralnews - INFO - KEPT: Article 4 - Title: 'DNA testing firm 23andMe files...' - Source: Guardian - Similarity: 0.0926
+2025-03-25 15:45:19,229 - neutralnews - INFO - KEPT: Article 5 - Title: 'JFK Files: Story of Kennedy as...' - Source: The Indian Express - Similarity: 0.1889
+2025-03-25 15:45:19,229 - neutralnews - INFO - KEPT: Article 6 - Title: 'What The New Kennedy Assassina...' - Source: News18 - Similarity: 0.1790
+2025-03-25 15:45:19,229 - neutralnews - INFO - FILTERED OUT: Article 7 - Title: 'Newly released JFK assassinati...' - Source: Toronto Star - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:45:19,229 - neutralnews - INFO - KEPT: Article 8 - Title: 'JFK assassination files: CIA p...' - Source: Irish Mirror - Similarity: 0.0865
+2025-03-25 15:45:19,229 - neutralnews - INFO - KEPT: Article 9 - Title: 'Were the Kennedy Files a Bust?...' - Source: New York Times - Similarity: 0.0638
+2025-03-25 15:45:19,229 - neutralnews - INFO - FILTERED OUT: Article 10 - Title: 'Shielded Kennedy Files Hid Spi...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:45:19,230 - neutralnews - INFO - FILTERED OUT: Article 11 - Title: 'Takeaways From the Kennedy Fil...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:45:19,230 - neutralnews - INFO - FILTERED OUT: Article 12 - Title: 'White House Seeks to Contain D...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:45:19,230 - neutralnews - INFO - FILTERED OUT: Article 13 - Title: 'Inside the 24-Hour Scramble Am...' - Source: New York Times - Similarity: 0.0000 (below threshold 0.01)
+2025-03-25 15:45:19,230 - neutralnews - INFO - Articles filtered out for 'JFK assassination files CIA': 6/13
+2025-03-25 15:45:19,230 - neutralnews - INFO - Final article count for 'JFK assassination files CIA' after filtering: 7
+2025-03-25 15:45:19,230 - neutralnews - INFO - Starting GPT-based summarization for 7 articles about 'JFK assassination files CIA'
+2025-03-25 15:45:19,230 - neutralnews - INFO - GPT prompt length: 1375 characters
+2025-03-25 15:45:19,275 - neutralnews - INFO - Starting OpenAI API call for 'JFK assassination files CIA' at 1742913919.275376
+2025-03-25 15:45:20,097 - neutralnews - INFO - OpenAI API call completed in 0.82s
+2025-03-25 15:45:20,097 - neutralnews - INFO - Generated summary for 'JFK assassination files CIA': and experts say there is still valuable information to be found in the JFK assassination files, including details about Oswald, the CIA, and potential plots surrounding Kennedy's death.
+2025-03-25 15:45:20,115 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:45:20,116 - neutralnews.image_cache - INFO - Cache miss for query: 'JFK assassination files CIA'
+2025-03-25 15:45:20,139 - neutralnews.image_cache - INFO - Added image to cache for query: 'JFK assassination files CIA'
+2025-03-25 15:45:31,923 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:45:31,925 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:45:31,926 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:45:31,927 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:45:31,927 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:45:31,930 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:45:31,931 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:45:31,931 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:50:13,926 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:50:13,926 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:50:13,926 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:50:13,928 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:50:13,928 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:50:13,928 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:50:13,929 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:50:13,929 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:50:13,929 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:50:13,929 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:50:13,929 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:50:13,930 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:50:13,931 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:50:13,931 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:50:13,932 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:50:13,932 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:50:13,932 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:50:13,933 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:50:13,934 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:50:13,935 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:50:13,935 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:50:14,184 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:50:14,184 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:50:14,184 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:50:14,185 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:50:14,185 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:50:14,185 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:50:14,186 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:50:14,186 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:50:14,186 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:50:14,187 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:50:14,187 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:50:14,187 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:50:14,188 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:50:14,188 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:50:14,188 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:50:14,257 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:50:14,257 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:50:14,257 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:50:14,258 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:50:14,258 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:50:14,257 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:50:14,258 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:50:14,258 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:50:14,258 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:50:14,259 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:50:14,259 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:50:14,259 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:50:14,260 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:50:14,260 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:50:14,260 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:50:14,261 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:50:14,261 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:50:14,261 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:50:14,261 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:50:14,261 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:50:14,261 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:50:14,262 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 15:50:14,262 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 15:50:14,262 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 15:50:14,262 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:50:14,262 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:50:14,263 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:50:14,263 - neutralnews - INFO - About to import routes module
+2025-03-25 15:50:14,263 - neutralnews - INFO - About to import routes module
+2025-03-25 15:50:14,263 - neutralnews - INFO - About to import routes module
+2025-03-25 15:50:14,433 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:50:14,433 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:50:14,433 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:50:14,435 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:50:14,435 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:50:14,435 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:50:14,436 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (POST, OPTIONS, GET, HEAD) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, GET, HEAD) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (POST, OPTIONS) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>])
+2025-03-25 15:50:14,436 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (POST, OPTIONS, GET, HEAD) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, GET, HEAD) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (POST, OPTIONS) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>])
+2025-03-25 15:50:14,436 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (POST, OPTIONS, GET, HEAD) -> news_routes.index>,
+ <Rule '/data' (POST, OPTIONS) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (POST, OPTIONS, GET, HEAD) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (POST, OPTIONS) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>])
+2025-03-25 15:50:14,436 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:50:14,436 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:50:14,436 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:50:14,436 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:50:14,437 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:50:14,437 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:50:18,897 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:50:18,898 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:50:18,898 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:50:18,899 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:50:18,900 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:50:18,900 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:50:44,285 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:50:44,285 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:50:44,285 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:50:44,286 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:50:44,286 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:50:44,286 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:50:44,287 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:50:44,287 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:50:44,287 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:50:44,288 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:50:44,288 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:50:44,288 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:50:44,289 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:50:44,289 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:50:44,289 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:50:44,289 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,289 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,289 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,291 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,291 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,290 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,292 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,292 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,292 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:50:44,292 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:50:44,293 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:50:44,292 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:53:32,650 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:53:32,650 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:53:32,650 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:53:32,652 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:53:32,652 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:53:32,652 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:53:32,653 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:53:32,653 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:53:32,653 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:53:32,654 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:53:32,654 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:53:32,654 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:53:32,657 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:53:32,658 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:53:32,658 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:53:32,658 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:53:32,659 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:53:32,659 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:53:32,660 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:53:32,661 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:53:32,661 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:53:32,910 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:53:32,910 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:53:32,910 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:53:32,912 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:53:32,912 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:53:32,912 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:53:32,913 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:53:32,913 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:53:32,913 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:53:32,914 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:53:32,914 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:53:32,914 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:53:32,914 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:53:32,915 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:53:32,915 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:53:32,980 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:53:32,980 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:53:32,980 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:53:32,981 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:53:32,981 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:53:32,981 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:53:32,982 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:53:32,982 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:53:32,982 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:53:32,982 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:53:32,982 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:53:32,982 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:53:32,983 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:53:32,983 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:53:32,983 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:53:32,984 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:53:32,984 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:53:32,984 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:53:32,984 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:53:32,984 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:53:32,984 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:53:32,985 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 15:53:32,985 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 15:53:32,985 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 15:53:32,986 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:53:32,986 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:53:32,986 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:53:32,986 - neutralnews - INFO - About to import routes module
+2025-03-25 15:53:32,986 - neutralnews - INFO - About to import routes module
+2025-03-25 15:53:32,986 - neutralnews - INFO - About to import routes module
+2025-03-25 15:53:33,194 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:53:33,194 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:53:33,194 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:53:33,196 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:53:33,196 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:53:33,196 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:53:33,196 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (OPTIONS, GET, HEAD, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (OPTIONS, GET, HEAD, POST) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (OPTIONS, POST) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>])
+2025-03-25 15:53:33,197 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (OPTIONS, GET, HEAD, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (OPTIONS, GET, HEAD, POST) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (OPTIONS, POST) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>])
+2025-03-25 15:53:33,197 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (OPTIONS, GET, HEAD, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (OPTIONS, GET, HEAD, POST) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (OPTIONS, POST) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>])
+2025-03-25 15:53:33,197 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:53:33,197 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:53:33,197 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:53:33,198 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:53:33,198 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:53:33,198 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:53:39,480 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:53:39,481 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:53:39,481 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:53:39,482 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:53:39,483 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:53:39,483 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:54:03,004 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:54:03,004 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:54:03,004 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:54:03,005 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:54:03,005 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:54:03,005 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:54:03,006 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:54:03,006 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:54:03,006 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:54:03,007 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:54:03,007 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:54:03,007 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:54:03,008 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:54:03,008 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:54:03,008 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:54:03,009 - neutralnews - INFO - Pregenerating image for topic: JFK Files Released with New CIA Revelations
+2025-03-25 15:54:03,009 - neutralnews - INFO - Pregenerating image for topic: JFK Files Released with New CIA Revelations
+2025-03-25 15:54:03,009 - neutralnews - INFO - Pregenerating image for topic: JFK Files Released with New CIA Revelations
+2025-03-25 15:54:03,009 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,009 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,009 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,010 - neutralnews - ERROR - Error generating image for JFK Files Released with New CIA Revelations: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,010 - neutralnews - ERROR - Error generating image for JFK Files Released with New CIA Revelations: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,010 - neutralnews - ERROR - Error generating image for JFK Files Released with New CIA Revelations: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,010 - neutralnews - INFO - Pregenerating image for topic: Ukraine-Russia Peace Talks Stall After New Sanctions
+2025-03-25 15:54:03,011 - neutralnews - INFO - Pregenerating image for topic: Ukraine-Russia Peace Talks Stall After New Sanctions
+2025-03-25 15:54:03,010 - neutralnews - INFO - Pregenerating image for topic: Ukraine-Russia Peace Talks Stall After New Sanctions
+2025-03-25 15:54:03,011 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,011 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,011 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,011 - neutralnews - INFO - Pregenerating image for topic: Astronauts Splash Down After 9 Months in Space
+2025-03-25 15:54:03,011 - neutralnews - INFO - Pregenerating image for topic: Astronauts Splash Down After 9 Months in Space
+2025-03-25 15:54:03,011 - neutralnews - INFO - Pregenerating image for topic: Astronauts Splash Down After 9 Months in Space
+2025-03-25 15:54:03,012 - neutralnews - ERROR - Error generating image for Ukraine-Russia Peace Talks Stall After New Sanctions: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,012 - neutralnews - ERROR - Error generating image for Ukraine-Russia Peace Talks Stall After New Sanctions: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,012 - neutralnews - ERROR - Error generating image for Ukraine-Russia Peace Talks Stall After New Sanctions: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,013 - neutralnews - INFO - Pregenerating image for topic: US Passes Major Climate Legislation
+2025-03-25 15:54:03,013 - neutralnews - INFO - Pregenerating image for topic: US Passes Major Climate Legislation
+2025-03-25 15:54:03,013 - neutralnews - INFO - Pregenerating image for topic: US Passes Major Climate Legislation
+2025-03-25 15:54:03,013 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,013 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,013 - neutralnews - ERROR - Error generating image for Astronauts Splash Down After 9 Months in Space: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,013 - neutralnews - ERROR - Error generating image for Astronauts Splash Down After 9 Months in Space: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,014 - neutralnews - ERROR - Error generating image for Astronauts Splash Down After 9 Months in Space: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,014 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:54:03,014 - neutralnews - INFO - Pregenerating image for topic: Tesla Unveils Robotaxi Plans for 2026 Rollout
+2025-03-25 15:54:03,014 - neutralnews - INFO - Pregenerating image for topic: Tesla Unveils Robotaxi Plans for 2026 Rollout
+2025-03-25 15:54:03,015 - neutralnews - ERROR - Error generating image for US Passes Major Climate Legislation: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,014 - neutralnews - INFO - Pregenerating image for topic: Tesla Unveils Robotaxi Plans for 2026 Rollout
+2025-03-25 15:54:03,015 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:54:03,015 - neutralnews - ERROR - Error generating image for US Passes Major Climate Legislation: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,015 - neutralnews - ERROR - Error generating image for US Passes Major Climate Legislation: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,016 - neutralnews - INFO - Pregenerating image for topic: Trump Pushes Ukraine-Russia Ceasefire Talks
+2025-03-25 15:54:03,016 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:54:03,016 - neutralnews - INFO - Pregenerating image for topic: Trump Pushes Ukraine-Russia Ceasefire Talks
+2025-03-25 15:54:03,016 - neutralnews - ERROR - Error generating image for Tesla Unveils Robotaxi Plans for 2026 Rollout: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,016 - neutralnews - INFO - Pregenerating image for topic: Trump Pushes Ukraine-Russia Ceasefire Talks
+2025-03-25 15:54:03,016 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:54:03,017 - neutralnews - INFO - Pregenerating image for topic: Twitter Introduces New Content Moderation Tools
+2025-03-25 15:54:03,017 - neutralnews - ERROR - Error generating image for Tesla Unveils Robotaxi Plans for 2026 Rollout: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,017 - neutralnews - ERROR - Error generating image for Tesla Unveils Robotaxi Plans for 2026 Rollout: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,018 - neutralnews - INFO - Pregenerating image for topic: Twitter Introduces New Content Moderation Tools
+2025-03-25 15:54:03,018 - neutralnews - ERROR - Error generating image for Trump Pushes Ukraine-Russia Ceasefire Talks: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,018 - neutralnews - INFO - Pregenerating image for topic: Twitter Introduces New Content Moderation Tools
+2025-03-25 15:54:03,018 - neutralnews - INFO - Pregenerating image for topic: Federal Reserve Signals Potential Rate Cut
+2025-03-25 15:54:03,019 - neutralnews - ERROR - Error generating image for Trump Pushes Ukraine-Russia Ceasefire Talks: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,018 - neutralnews - ERROR - Error generating image for Trump Pushes Ukraine-Russia Ceasefire Talks: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,019 - neutralnews - ERROR - Error generating image for Twitter Introduces New Content Moderation Tools: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,019 - neutralnews - INFO - Pregenerating image for topic: Federal Reserve Signals Potential Rate Cut
+2025-03-25 15:54:03,019 - neutralnews - INFO - Pregenerating image for topic: Federal Reserve Signals Potential Rate Cut
+2025-03-25 15:54:03,020 - neutralnews - INFO - Pregenerating image for topic: Tech Stocks Rebound After Volatile Week
+2025-03-25 15:54:03,020 - neutralnews - ERROR - Error generating image for Twitter Introduces New Content Moderation Tools: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,020 - neutralnews - ERROR - Error generating image for Twitter Introduces New Content Moderation Tools: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,020 - neutralnews - ERROR - Error generating image for Federal Reserve Signals Potential Rate Cut: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,020 - neutralnews - INFO - Pregenerating image for topic: Tech Stocks Rebound After Volatile Week
+2025-03-25 15:54:03,020 - neutralnews - INFO - Pregenerating image for topic: Tech Stocks Rebound After Volatile Week
+2025-03-25 15:54:03,021 - neutralnews - ERROR - Error generating image for Federal Reserve Signals Potential Rate Cut: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,021 - neutralnews - INFO - Pregenerating image for topic: Major Tech Companies Announce Layoffs
+2025-03-25 15:54:03,021 - neutralnews - ERROR - Error generating image for Federal Reserve Signals Potential Rate Cut: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,022 - neutralnews - INFO - Pregenerating image for topic: Major Tech Companies Announce Layoffs
+2025-03-25 15:54:03,021 - neutralnews - ERROR - Error generating image for Tech Stocks Rebound After Volatile Week: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,021 - neutralnews - INFO - Pregenerating image for topic: Major Tech Companies Announce Layoffs
+2025-03-25 15:54:03,022 - neutralnews - INFO - Pregenerating image for topic: Meta AI Assistant Now Available in 40 Languages
+2025-03-25 15:54:03,022 - neutralnews - ERROR - Error generating image for Tech Stocks Rebound After Volatile Week: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,022 - neutralnews - ERROR - Error generating image for Tech Stocks Rebound After Volatile Week: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,022 - neutralnews - ERROR - Error generating image for Major Tech Companies Announce Layoffs: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,022 - neutralnews - INFO - Pregenerating image for topic: Meta AI Assistant Now Available in 40 Languages
+2025-03-25 15:54:03,022 - neutralnews - INFO - Pregenerating image for topic: Meta AI Assistant Now Available in 40 Languages
+2025-03-25 15:54:03,023 - neutralnews - INFO - Pregenerating image for topic: Sydney Measles Cases Rise After Jetstar Alert
+2025-03-25 15:54:03,023 - neutralnews - ERROR - Error generating image for Major Tech Companies Announce Layoffs: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,023 - neutralnews - ERROR - Error generating image for Major Tech Companies Announce Layoffs: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,023 - neutralnews - ERROR - Error generating image for Meta AI Assistant Now Available in 40 Languages: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,024 - neutralnews - INFO - Pregenerating image for topic: Sydney Measles Cases Rise After Jetstar Alert
+2025-03-25 15:54:03,023 - neutralnews - INFO - Pregenerating image for topic: Sydney Measles Cases Rise After Jetstar Alert
+2025-03-25 15:54:03,024 - neutralnews - INFO - Pregenerating image for topic: Japan Reopens Borders to International Tourism
+2025-03-25 15:54:03,024 - neutralnews - ERROR - Error generating image for Meta AI Assistant Now Available in 40 Languages: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,024 - neutralnews - ERROR - Error generating image for Meta AI Assistant Now Available in 40 Languages: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,024 - neutralnews - ERROR - Error generating image for Sydney Measles Cases Rise After Jetstar Alert: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,025 - neutralnews - INFO - Pregenerating image for topic: Japan Reopens Borders to International Tourism
+2025-03-25 15:54:03,025 - neutralnews - INFO - Pregenerating image for topic: Japan Reopens Borders to International Tourism
+2025-03-25 15:54:03,025 - neutralnews - INFO - Pregenerating image for topic: Record Temperatures Hit Mediterranean Countries
+2025-03-25 15:54:03,025 - neutralnews - ERROR - Error generating image for Sydney Measles Cases Rise After Jetstar Alert: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,026 - neutralnews - ERROR - Error generating image for Japan Reopens Borders to International Tourism: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,025 - neutralnews - ERROR - Error generating image for Sydney Measles Cases Rise After Jetstar Alert: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,026 - neutralnews - INFO - Pregenerating image for topic: Record Temperatures Hit Mediterranean Countries
+2025-03-25 15:54:03,026 - neutralnews - INFO - Pregenerating image for topic: March Madness Kicks Off with Upset Victories
+2025-03-25 15:54:03,026 - neutralnews - INFO - Pregenerating image for topic: Record Temperatures Hit Mediterranean Countries
+2025-03-25 15:54:03,026 - neutralnews - ERROR - Error generating image for Japan Reopens Borders to International Tourism: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,027 - neutralnews - ERROR - Error generating image for Record Temperatures Hit Mediterranean Countries: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,027 - neutralnews - ERROR - Error generating image for Japan Reopens Borders to International Tourism: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,027 - neutralnews - INFO - Pregenerating image for topic: March Madness Kicks Off with Upset Victories
+2025-03-25 15:54:03,027 - neutralnews - INFO - Pregenerating image for topic: Breakthrough in Nuclear Fusion Energy Announced
+2025-03-25 15:54:03,028 - neutralnews - ERROR - Error generating image for Record Temperatures Hit Mediterranean Countries: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,027 - neutralnews - INFO - Pregenerating image for topic: March Madness Kicks Off with Upset Victories
+2025-03-25 15:54:03,028 - neutralnews - ERROR - Error generating image for March Madness Kicks Off with Upset Victories: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,028 - neutralnews - INFO - Pregenerating image for topic: Breakthrough in Nuclear Fusion Energy Announced
+2025-03-25 15:54:03,028 - neutralnews - ERROR - Error generating image for Record Temperatures Hit Mediterranean Countries: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,028 - neutralnews - INFO - Pregenerating image for topic: SpaceX Launches First Commercial Lunar Lander
+2025-03-25 15:54:03,029 - neutralnews - ERROR - Error generating image for March Madness Kicks Off with Upset Victories: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,029 - neutralnews - ERROR - Error generating image for Breakthrough in Nuclear Fusion Energy Announced: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,029 - neutralnews - INFO - Pregenerating image for topic: Breakthrough in Nuclear Fusion Energy Announced
+2025-03-25 15:54:03,029 - neutralnews - INFO - Pregenerating image for topic: SpaceX Launches First Commercial Lunar Lander
+2025-03-25 15:54:03,029 - neutralnews - INFO - Pregenerating image for topic: Turkey Escalates Crackdown on Opposition Assets
+2025-03-25 15:54:03,029 - neutralnews - ERROR - Error generating image for March Madness Kicks Off with Upset Victories: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,030 - neutralnews - ERROR - Error generating image for Breakthrough in Nuclear Fusion Energy Announced: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,030 - neutralnews - ERROR - Error generating image for SpaceX Launches First Commercial Lunar Lander: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,030 - neutralnews - INFO - Pregenerating image for topic: SpaceX Launches First Commercial Lunar Lander
+2025-03-25 15:54:03,030 - neutralnews - INFO - Pregenerating image for topic: Turkey Escalates Crackdown on Opposition Assets
+2025-03-25 15:54:03,031 - neutralnews - INFO - Pregenerating image for topic: Amazon Acquires Healthcare Provider for $4 Billion
+2025-03-25 15:54:03,031 - neutralnews - ERROR - Error generating image for Breakthrough in Nuclear Fusion Energy Announced: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,031 - neutralnews - ERROR - Error generating image for SpaceX Launches First Commercial Lunar Lander: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,031 - neutralnews - ERROR - Error generating image for Turkey Escalates Crackdown on Opposition Assets: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,031 - neutralnews - INFO - Pregenerating image for topic: Turkey Escalates Crackdown on Opposition Assets
+2025-03-25 15:54:03,031 - neutralnews - INFO - Pregenerating image for topic: Amazon Acquires Healthcare Provider for $4 Billion
+2025-03-25 15:54:03,031 - neutralnews - INFO - Pregenerating image for topic: UN Report Warns of Critical Ocean Pollution Levels
+2025-03-25 15:54:03,032 - neutralnews - ERROR - Error generating image for SpaceX Launches First Commercial Lunar Lander: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,032 - neutralnews - ERROR - Error generating image for Turkey Escalates Crackdown on Opposition Assets: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,032 - neutralnews - ERROR - Error generating image for Amazon Acquires Healthcare Provider for $4 Billion: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,032 - neutralnews - INFO - Pregenerating image for topic: Amazon Acquires Healthcare Provider for $4 Billion
+2025-03-25 15:54:03,032 - neutralnews - INFO - Pregenerating image for topic: Philippines Heatwave Prompts Emergency Measures
+2025-03-25 15:54:03,032 - neutralnews - INFO - Pregenerating image for topic: UN Report Warns of Critical Ocean Pollution Levels
+2025-03-25 15:54:03,033 - neutralnews - ERROR - Error generating image for Turkey Escalates Crackdown on Opposition Assets: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,033 - neutralnews - ERROR - Error generating image for UN Report Warns of Critical Ocean Pollution Levels: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,033 - neutralnews - ERROR - Error generating image for Amazon Acquires Healthcare Provider for $4 Billion: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,033 - neutralnews - INFO - Pregenerating image for topic: UN Report Warns of Critical Ocean Pollution Levels
+2025-03-25 15:54:03,034 - neutralnews - INFO - Pregenerating image for topic: Global Wheat Prices Stabilize After Recent Surge
+2025-03-25 15:54:03,034 - neutralnews - INFO - Pregenerating image for topic: Philippines Heatwave Prompts Emergency Measures
+2025-03-25 15:54:03,034 - neutralnews - ERROR - Error generating image for Amazon Acquires Healthcare Provider for $4 Billion: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,034 - neutralnews - ERROR - Error generating image for Philippines Heatwave Prompts Emergency Measures: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,034 - neutralnews - ERROR - Error generating image for UN Report Warns of Critical Ocean Pollution Levels: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,035 - neutralnews - INFO - Pregenerating image for topic: Philippines Heatwave Prompts Emergency Measures
+2025-03-25 15:54:03,035 - neutralnews - INFO - Pregenerating image for topic: China Unveils New Economic Stimulus Package
+2025-03-25 15:54:03,035 - neutralnews - INFO - Pregenerating image for topic: Global Wheat Prices Stabilize After Recent Surge
+2025-03-25 15:54:03,035 - neutralnews - ERROR - Error generating image for UN Report Warns of Critical Ocean Pollution Levels: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,035 - neutralnews - ERROR - Error generating image for Global Wheat Prices Stabilize After Recent Surge: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,036 - neutralnews - ERROR - Error generating image for Philippines Heatwave Prompts Emergency Measures: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,036 - neutralnews - INFO - Pregenerating image for topic: Global Wheat Prices Stabilize After Recent Surge
+2025-03-25 15:54:03,036 - neutralnews - ERROR - Error generating image for China Unveils New Economic Stimulus Package: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,036 - neutralnews - INFO - Pregenerating image for topic: China Unveils New Economic Stimulus Package
+2025-03-25 15:54:03,037 - neutralnews - INFO - Pregenerating image for topic: New Malaria Vaccine Shows 80% Efficacy in Trials
+2025-03-25 15:54:03,036 - neutralnews - ERROR - Error generating image for Philippines Heatwave Prompts Emergency Measures: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,038 - neutralnews - ERROR - Error generating image for New Malaria Vaccine Shows 80% Efficacy in Trials: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,037 - neutralnews - INFO - Pregenerating image for topic: China Unveils New Economic Stimulus Package
+2025-03-25 15:54:03,037 - neutralnews - ERROR - Error generating image for Global Wheat Prices Stabilize After Recent Surge: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,038 - neutralnews - ERROR - Error generating image for Global Wheat Prices Stabilize After Recent Surge: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,038 - neutralnews - ERROR - Error generating image for China Unveils New Economic Stimulus Package: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,039 - neutralnews - INFO - Pregenerating image for topic: New Malaria Vaccine Shows 80% Efficacy in Trials
+2025-03-25 15:54:03,039 - neutralnews - ERROR - Error generating image for China Unveils New Economic Stimulus Package: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,040 - neutralnews - ERROR - Error generating image for New Malaria Vaccine Shows 80% Efficacy in Trials: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:03,039 - neutralnews - INFO - Pregenerating image for topic: New Malaria Vaccine Shows 80% Efficacy in Trials
+2025-03-25 15:54:03,040 - neutralnews - ERROR - Error generating image for New Malaria Vaccine Shows 80% Efficacy in Trials: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:54:48,137 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:54:48,139 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 15:54:48,139 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 15:54:48,139 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 15:54:48,139 - neutralnews - INFO - search_count column already exists
+2025-03-25 15:54:48,139 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 15:54:48,139 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 15:54:48,436 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 15:54:48,437 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 15:54:48,438 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:54:48,438 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:54:48,438 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:54:48,483 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 15:54:48,483 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 15:54:48,483 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 15:54:48,483 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:54:48,484 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:54:48,484 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:54:48,484 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 15:54:48,484 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (GET, HEAD, OPTIONS) -> static>])
+2025-03-25 15:54:48,484 - neutralnews - INFO - Starting app.py execution
+2025-03-25 15:54:48,484 - neutralnews - INFO - About to import routes module
+2025-03-25 15:54:48,546 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 15:54:48,547 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 15:54:48,547 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (GET, HEAD, OPTIONS) -> static>,
+ <Rule '/' (GET, HEAD, OPTIONS, POST) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (GET, HEAD, OPTIONS) -> news_routes.serve_image>,
+ <Rule '/health' (GET, HEAD, OPTIONS) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (GET, HEAD, OPTIONS, POST) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (OPTIONS, POST) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (GET, HEAD, OPTIONS) -> news_routes.analytics_dashboard>])
+2025-03-25 15:54:48,547 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 15:54:48,547 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:54:48,547 - neutralnews - INFO - Starting server on port 5000
+2025-03-25 15:54:48,547 - neutralnews - INFO - Application initialized at 1742914488.1373298
+2025-03-25 15:54:48,547 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 15:54:48,548 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 15:54:48,548 - neutralnews - INFO - Cache type: simple
+2025-03-25 15:54:48,548 - neutralnews - INFO - Application fully initialized
+2025-03-25 15:54:50,071 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:54:50,071 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:54:50,071 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:54:50,072 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:54:50,072 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:54:50,072 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:54:52,118 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 15:54:52,118 - neutralnews.image_cache - INFO - Cache miss for query: 'JFK assassination files CIA'
+2025-03-25 15:54:52,151 - neutralnews.image_cache - INFO - Added image to cache for query: 'JFK assassination files CIA'
+2025-03-25 15:55:18,485 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 15:55:18,486 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 15:55:18,486 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 15:55:18,487 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 15:55:18,487 - neutralnews - INFO - Pregenerating image for topic: JFK Files Released with New CIA Revelations
+2025-03-25 15:55:18,487 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:55:18,487 - neutralnews - ERROR - Error generating image for JFK Files Released with New CIA Revelations: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,488 - neutralnews - INFO - Pregenerating image for topic: Ukraine-Russia Peace Talks Stall After New Sanctions
+2025-03-25 15:55:18,488 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:55:18,488 - neutralnews - INFO - Pregenerating image for topic: Astronauts Splash Down After 9 Months in Space
+2025-03-25 15:55:18,488 - neutralnews - ERROR - Error generating image for Ukraine-Russia Peace Talks Stall After New Sanctions: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,488 - neutralnews - INFO - Pregenerating image for topic: US Passes Major Climate Legislation
+2025-03-25 15:55:18,488 - neutralnews - ERROR - Error generating image for Astronauts Splash Down After 9 Months in Space: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,488 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 15:55:18,488 - neutralnews - INFO - Pregenerating image for topic: Tesla Unveils Robotaxi Plans for 2026 Rollout
+2025-03-25 15:55:18,488 - neutralnews - ERROR - Error generating image for US Passes Major Climate Legislation: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,488 - neutralnews - INFO - Pregenerating image for topic: Trump Pushes Ukraine-Russia Ceasefire Talks
+2025-03-25 15:55:18,488 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 15:55:18,488 - neutralnews - ERROR - Error generating image for Tesla Unveils Robotaxi Plans for 2026 Rollout: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,488 - neutralnews - INFO - Pregenerating image for topic: Twitter Introduces New Content Moderation Tools
+2025-03-25 15:55:18,489 - neutralnews - ERROR - Error generating image for Trump Pushes Ukraine-Russia Ceasefire Talks: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,489 - neutralnews - INFO - Pregenerating image for topic: Federal Reserve Signals Potential Rate Cut
+2025-03-25 15:55:18,489 - neutralnews - ERROR - Error generating image for Twitter Introduces New Content Moderation Tools: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,489 - neutralnews - INFO - Pregenerating image for topic: Tech Stocks Rebound After Volatile Week
+2025-03-25 15:55:18,489 - neutralnews - ERROR - Error generating image for Federal Reserve Signals Potential Rate Cut: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,489 - neutralnews - INFO - Pregenerating image for topic: Major Tech Companies Announce Layoffs
+2025-03-25 15:55:18,489 - neutralnews - ERROR - Error generating image for Tech Stocks Rebound After Volatile Week: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,489 - neutralnews - INFO - Pregenerating image for topic: Meta AI Assistant Now Available in 40 Languages
+2025-03-25 15:55:18,489 - neutralnews - ERROR - Error generating image for Major Tech Companies Announce Layoffs: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,489 - neutralnews - INFO - Pregenerating image for topic: Sydney Measles Cases Rise After Jetstar Alert
+2025-03-25 15:55:18,489 - neutralnews - ERROR - Error generating image for Meta AI Assistant Now Available in 40 Languages: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,489 - neutralnews - INFO - Pregenerating image for topic: Japan Reopens Borders to International Tourism
+2025-03-25 15:55:18,489 - neutralnews - ERROR - Error generating image for Sydney Measles Cases Rise After Jetstar Alert: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,489 - neutralnews - INFO - Pregenerating image for topic: Record Temperatures Hit Mediterranean Countries
+2025-03-25 15:55:18,490 - neutralnews - ERROR - Error generating image for Record Temperatures Hit Mediterranean Countries: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,489 - neutralnews - ERROR - Error generating image for Japan Reopens Borders to International Tourism: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,490 - neutralnews - INFO - Pregenerating image for topic: March Madness Kicks Off with Upset Victories
+2025-03-25 15:55:18,490 - neutralnews - INFO - Pregenerating image for topic: SpaceX Launches First Commercial Lunar Lander
+2025-03-25 15:55:18,490 - neutralnews - INFO - Pregenerating image for topic: Breakthrough in Nuclear Fusion Energy Announced
+2025-03-25 15:55:18,490 - neutralnews - ERROR - Error generating image for March Madness Kicks Off with Upset Victories: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,490 - neutralnews - ERROR - Error generating image for SpaceX Launches First Commercial Lunar Lander: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,490 - neutralnews - ERROR - Error generating image for Breakthrough in Nuclear Fusion Energy Announced: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,490 - neutralnews - INFO - Pregenerating image for topic: Turkey Escalates Crackdown on Opposition Assets
+2025-03-25 15:55:18,490 - neutralnews - INFO - Pregenerating image for topic: UN Report Warns of Critical Ocean Pollution Levels
+2025-03-25 15:55:18,490 - neutralnews - INFO - Pregenerating image for topic: Amazon Acquires Healthcare Provider for $4 Billion
+2025-03-25 15:55:18,490 - neutralnews - ERROR - Error generating image for Turkey Escalates Crackdown on Opposition Assets: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,491 - neutralnews - ERROR - Error generating image for UN Report Warns of Critical Ocean Pollution Levels: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,491 - neutralnews - ERROR - Error generating image for Amazon Acquires Healthcare Provider for $4 Billion: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,491 - neutralnews - INFO - Pregenerating image for topic: Philippines Heatwave Prompts Emergency Measures
+2025-03-25 15:55:18,491 - neutralnews - INFO - Pregenerating image for topic: China Unveils New Economic Stimulus Package
+2025-03-25 15:55:18,491 - neutralnews - INFO - Pregenerating image for topic: Global Wheat Prices Stabilize After Recent Surge
+2025-03-25 15:55:18,491 - neutralnews - ERROR - Error generating image for Philippines Heatwave Prompts Emergency Measures: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,491 - neutralnews - ERROR - Error generating image for China Unveils New Economic Stimulus Package: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,491 - neutralnews - ERROR - Error generating image for Global Wheat Prices Stabilize After Recent Surge: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 15:55:18,491 - neutralnews - INFO - Pregenerating image for topic: New Malaria Vaccine Shows 80% Efficacy in Trials
+2025-03-25 15:55:18,492 - neutralnews - ERROR - Error generating image for New Malaria Vaccine Shows 80% Efficacy in Trials: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:03,129 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 16:01:03,129 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 16:01:03,129 - neutralnews - INFO - Before .env load: GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 16:01:03,131 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 16:01:03,131 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 16:01:03,131 - neutralnews - INFO - GROK_API_KEY status: uvC7************************************************************************YyEi
+2025-03-25 16:01:03,132 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 16:01:03,132 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 16:01:03,132 - neutralnews - WARNING - ⚠️ Startup warning: Missing API keys: NEWSDATA_API_KEY
+2025-03-25 16:01:03,132 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 16:01:03,132 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 16:01:03,132 - neutralnews - INFO - ✅ Application startup validation passed
+2025-03-25 16:01:03,135 - neutralnews - INFO - search_count column already exists
+2025-03-25 16:01:03,135 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 16:01:03,136 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 16:01:03,136 - neutralnews - INFO - search_count column already exists
+2025-03-25 16:01:03,136 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 16:01:03,137 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 16:01:03,138 - neutralnews - INFO - search_count column already exists
+2025-03-25 16:01:03,139 - neutralnews - INFO - Database initialized at /Users/maxteeuwen/neutralnews/data/search_db.sqlite
+2025-03-25 16:01:03,139 - neutralnews - INFO - Preloading sentiment analysis model...
+2025-03-25 16:01:03,392 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 16:01:03,392 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 16:01:03,392 - neutralnews - INFO - Sentiment analysis model preloaded
+2025-03-25 16:01:03,394 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 16:01:03,394 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 16:01:03,394 - neutralnews - INFO - Cache cleared on startup
+2025-03-25 16:01:03,395 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 16:01:03,395 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 16:01:03,395 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 16:01:03,395 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 16:01:03,396 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 16:01:03,396 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 16:01:03,396 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 16:01:03,396 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 16:01:03,396 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 16:01:03,466 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 16:01:03,466 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 16:01:03,466 - neutralnews - INFO - Starting periodic image optimization worker
+2025-03-25 16:01:03,467 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 16:01:03,467 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 16:01:03,467 - neutralnews - INFO - Image optimization scheduler started (interval: 12 hours)
+2025-03-25 16:01:03,468 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 16:01:03,468 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 16:01:03,468 - neutralnews - INFO - Scheduled delayed trending image initialization
+2025-03-25 16:01:03,468 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 16:01:03,468 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 16:01:03,468 - neutralnews - INFO - Python version: 3.10.0 (v3.10.0:b494f5935c, Oct  4 2021, 14:59:19) [Clang 12.0.5 (clang-1205.0.22.11)]
+2025-03-25 16:01:03,470 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 16:01:03,469 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 16:01:03,469 - neutralnews - INFO - Flask version: 3.1.0
+2025-03-25 16:01:03,470 - neutralnews - INFO - Cache type: simple
+2025-03-25 16:01:03,470 - neutralnews - INFO - Cache type: simple
+2025-03-25 16:01:03,470 - neutralnews - INFO - Cache type: simple
+2025-03-25 16:01:03,471 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 16:01:03,471 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 16:01:03,471 - neutralnews - INFO - About to register routes blueprint
+2025-03-25 16:01:03,471 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 16:01:03,471 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 16:01:03,471 - neutralnews - INFO - Available routes before registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>])
+2025-03-25 16:01:03,472 - neutralnews - INFO - Starting app.py execution
+2025-03-25 16:01:03,472 - neutralnews - INFO - Starting app.py execution
+2025-03-25 16:01:03,472 - neutralnews - INFO - Starting app.py execution
+2025-03-25 16:01:03,472 - neutralnews - INFO - About to import routes module
+2025-03-25 16:01:03,473 - neutralnews - INFO - About to import routes module
+2025-03-25 16:01:03,473 - neutralnews - INFO - About to import routes module
+2025-03-25 16:01:03,731 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 16:01:03,731 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 16:01:03,731 - neutralnews - INFO - Successfully imported routes module
+2025-03-25 16:01:03,733 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 16:01:03,733 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 16:01:03,733 - neutralnews - INFO - Routes blueprint registered
+2025-03-25 16:01:03,733 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (OPTIONS, GET, POST, HEAD) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (OPTIONS, GET, POST, HEAD) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (OPTIONS, POST) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>,
+ <Rule '/favicon.ico' (OPTIONS, GET, HEAD) -> news_routes.favicon>])
+2025-03-25 16:01:03,733 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (OPTIONS, GET, POST, HEAD) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (OPTIONS, GET, POST, HEAD) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (OPTIONS, POST) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>,
+ <Rule '/favicon.ico' (OPTIONS, GET, HEAD) -> news_routes.favicon>])
+2025-03-25 16:01:03,733 - neutralnews - INFO - Available routes after registration: Map([<Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/' (OPTIONS, GET, POST, HEAD) -> news_routes.index>,
+ <Rule '/data' (OPTIONS, POST) -> news_routes.get_news_data>,
+ <Rule '/images/<filename>' (OPTIONS, GET, HEAD) -> news_routes.serve_image>,
+ <Rule '/health' (OPTIONS, GET, HEAD) -> news_routes.health_check>,
+ <Rule '/admin/image-cache' (OPTIONS, GET, POST, HEAD) -> news_routes.image_cache_admin>,
+ <Rule '/analytics' (OPTIONS, POST) -> news_routes.log_analytics>,
+ <Rule '/analytics-dashboard' (OPTIONS, GET, HEAD) -> news_routes.analytics_dashboard>,
+ <Rule '/favicon.ico' (OPTIONS, GET, HEAD) -> news_routes.favicon>])
+2025-03-25 16:01:03,734 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 16:01:03,734 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 16:01:03,734 - neutralnews - INFO - Registered blueprints: ['news_routes']
+2025-03-25 16:01:03,734 - neutralnews - INFO - Application fully initialized
+2025-03-25 16:01:03,735 - neutralnews - INFO - Application fully initialized
+2025-03-25 16:01:03,734 - neutralnews - INFO - Application fully initialized
+2025-03-25 16:01:15,642 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 16:01:15,643 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 16:01:15,644 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 16:01:15,644 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 16:01:15,645 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 16:01:15,646 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 16:01:33,500 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 16:01:33,500 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 16:01:33,500 - neutralnews.image_cache - INFO - Initialized image cache with 15 entries
+2025-03-25 16:01:33,502 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 16:01:33,502 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 16:01:33,502 - neutralnews - INFO - Starting trending image pre-generation for all periods...
+2025-03-25 16:01:33,503 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 16:01:33,503 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 16:01:33,503 - neutralnews - INFO - Using cached today trending topics from 2025-03-25
+2025-03-25 16:01:33,504 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 16:01:33,504 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 16:01:33,504 - neutralnews - INFO - Using cached last_week trending topics from 2025-03-18
+2025-03-25 16:01:33,505 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 16:01:33,505 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 16:01:33,505 - neutralnews - INFO - Using cached last_month trending topics from 2025-02-23
+2025-03-25 16:01:33,505 - neutralnews - INFO - Pregenerating image for topic: JFK Files Released with New CIA Revelations
+2025-03-25 16:01:33,505 - neutralnews - INFO - Pregenerating image for topic: JFK Files Released with New CIA Revelations
+2025-03-25 16:01:33,505 - neutralnews - INFO - Pregenerating image for topic: JFK Files Released with New CIA Revelations
+2025-03-25 16:01:33,506 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,506 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,506 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,506 - neutralnews - ERROR - Error generating image for JFK Files Released with New CIA Revelations: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,506 - neutralnews - ERROR - Error generating image for JFK Files Released with New CIA Revelations: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,506 - neutralnews - ERROR - Error generating image for JFK Files Released with New CIA Revelations: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,507 - neutralnews - INFO - Pregenerating image for topic: Ukraine-Russia Peace Talks Stall After New Sanctions
+2025-03-25 16:01:33,508 - neutralnews - INFO - Pregenerating image for topic: Astronauts Splash Down After 9 Months in Space
+2025-03-25 16:01:33,508 - neutralnews - INFO - Pregenerating image for topic: Ukraine-Russia Peace Talks Stall After New Sanctions
+2025-03-25 16:01:33,508 - neutralnews - INFO - Pregenerating image for topic: Astronauts Splash Down After 9 Months in Space
+2025-03-25 16:01:33,508 - neutralnews - INFO - Pregenerating image for topic: Astronauts Splash Down After 9 Months in Space
+2025-03-25 16:01:33,508 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,508 - neutralnews - INFO - Pregenerating image for topic: Ukraine-Russia Peace Talks Stall After New Sanctions
+2025-03-25 16:01:33,508 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,508 - neutralnews - ERROR - Error generating image for Ukraine-Russia Peace Talks Stall After New Sanctions: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,509 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,509 - neutralnews - ERROR - Error generating image for Astronauts Splash Down After 9 Months in Space: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,509 - neutralnews - ERROR - Error generating image for Ukraine-Russia Peace Talks Stall After New Sanctions: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,509 - neutralnews - ERROR - Error generating image for Astronauts Splash Down After 9 Months in Space: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,509 - neutralnews - ERROR - Error generating image for Astronauts Splash Down After 9 Months in Space: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,510 - neutralnews - INFO - Pregenerating image for topic: US Passes Major Climate Legislation
+2025-03-25 16:01:33,510 - neutralnews - ERROR - Error generating image for Ukraine-Russia Peace Talks Stall After New Sanctions: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,510 - neutralnews - INFO - Pregenerating image for topic: Tesla Unveils Robotaxi Plans for 2026 Rollout
+2025-03-25 16:01:33,510 - neutralnews - INFO - Pregenerating image for topic: US Passes Major Climate Legislation
+2025-03-25 16:01:33,510 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,511 - neutralnews - INFO - Pregenerating image for topic: US Passes Major Climate Legislation
+2025-03-25 16:01:33,511 - neutralnews - INFO - Pregenerating image for topic: Trump Pushes Ukraine-Russia Ceasefire Talks
+2025-03-25 16:01:33,511 - neutralnews - INFO - Pregenerating image for topic: Trump Pushes Ukraine-Russia Ceasefire Talks
+2025-03-25 16:01:33,511 - neutralnews - INFO - Pregenerating image for topic: Tesla Unveils Robotaxi Plans for 2026 Rollout
+2025-03-25 16:01:33,511 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,511 - neutralnews - INFO - Started background task for trending image generation
+2025-03-25 16:01:33,512 - neutralnews - ERROR - Error generating image for US Passes Major Climate Legislation: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,512 - neutralnews - INFO - Pregenerating image for topic: Tesla Unveils Robotaxi Plans for 2026 Rollout
+2025-03-25 16:01:33,512 - neutralnews - INFO - Pregenerating image for topic: Trump Pushes Ukraine-Russia Ceasefire Talks
+2025-03-25 16:01:33,513 - neutralnews - ERROR - Error generating image for US Passes Major Climate Legislation: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,512 - neutralnews - ERROR - Error generating image for Tesla Unveils Robotaxi Plans for 2026 Rollout: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,513 - neutralnews - ERROR - Error generating image for US Passes Major Climate Legislation: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,513 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 16:01:33,513 - neutralnews - ERROR - Error generating image for Trump Pushes Ukraine-Russia Ceasefire Talks: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,513 - neutralnews - ERROR - Error generating image for Tesla Unveils Robotaxi Plans for 2026 Rollout: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,514 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 16:01:33,514 - neutralnews - INFO - Trending image pre-generation tasks started for all periods
+2025-03-25 16:01:33,514 - neutralnews - ERROR - Error generating image for Tesla Unveils Robotaxi Plans for 2026 Rollout: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,514 - neutralnews - ERROR - Error generating image for Trump Pushes Ukraine-Russia Ceasefire Talks: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,514 - neutralnews - ERROR - Error generating image for Trump Pushes Ukraine-Russia Ceasefire Talks: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,514 - neutralnews - INFO - Pregenerating image for topic: Twitter Introduces New Content Moderation Tools
+2025-03-25 16:01:33,515 - neutralnews - INFO - Pregenerating image for topic: Twitter Introduces New Content Moderation Tools
+2025-03-25 16:01:33,515 - neutralnews - INFO - Pregenerating image for topic: Twitter Introduces New Content Moderation Tools
+2025-03-25 16:01:33,515 - neutralnews - INFO - Pregenerating image for topic: Federal Reserve Signals Potential Rate Cut
+2025-03-25 16:01:33,516 - neutralnews - INFO - Pregenerating image for topic: Tech Stocks Rebound After Volatile Week
+2025-03-25 16:01:33,516 - neutralnews - INFO - Pregenerating image for topic: Federal Reserve Signals Potential Rate Cut
+2025-03-25 16:01:33,517 - neutralnews - INFO - Pregenerating image for topic: Tech Stocks Rebound After Volatile Week
+2025-03-25 16:01:33,517 - neutralnews - INFO - Pregenerating image for topic: Federal Reserve Signals Potential Rate Cut
+2025-03-25 16:01:33,517 - neutralnews - INFO - Pregenerating image for topic: Tech Stocks Rebound After Volatile Week
+2025-03-25 16:01:33,517 - neutralnews - ERROR - Error generating image for Twitter Introduces New Content Moderation Tools: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,517 - neutralnews - ERROR - Error generating image for Twitter Introduces New Content Moderation Tools: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,518 - neutralnews - ERROR - Error generating image for Twitter Introduces New Content Moderation Tools: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,518 - neutralnews - ERROR - Error generating image for Federal Reserve Signals Potential Rate Cut: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,518 - neutralnews - ERROR - Error generating image for Federal Reserve Signals Potential Rate Cut: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,518 - neutralnews - ERROR - Error generating image for Tech Stocks Rebound After Volatile Week: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,519 - neutralnews - ERROR - Error generating image for Tech Stocks Rebound After Volatile Week: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,519 - neutralnews - ERROR - Error generating image for Tech Stocks Rebound After Volatile Week: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,519 - neutralnews - ERROR - Error generating image for Federal Reserve Signals Potential Rate Cut: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,520 - neutralnews - INFO - Pregenerating image for topic: Major Tech Companies Announce Layoffs
+2025-03-25 16:01:33,519 - neutralnews - INFO - Pregenerating image for topic: Major Tech Companies Announce Layoffs
+2025-03-25 16:01:33,520 - neutralnews - INFO - Pregenerating image for topic: Major Tech Companies Announce Layoffs
+2025-03-25 16:01:33,520 - neutralnews - INFO - Pregenerating image for topic: Meta AI Assistant Now Available in 40 Languages
+2025-03-25 16:01:33,520 - neutralnews - INFO - Pregenerating image for topic: Meta AI Assistant Now Available in 40 Languages
+2025-03-25 16:01:33,520 - neutralnews - INFO - Pregenerating image for topic: Sydney Measles Cases Rise After Jetstar Alert
+2025-03-25 16:01:33,521 - neutralnews - INFO - Pregenerating image for topic: Sydney Measles Cases Rise After Jetstar Alert
+2025-03-25 16:01:33,521 - neutralnews - INFO - Pregenerating image for topic: Meta AI Assistant Now Available in 40 Languages
+2025-03-25 16:01:33,521 - neutralnews - INFO - Pregenerating image for topic: Sydney Measles Cases Rise After Jetstar Alert
+2025-03-25 16:01:33,521 - neutralnews - ERROR - Error generating image for Major Tech Companies Announce Layoffs: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,522 - neutralnews - ERROR - Error generating image for Major Tech Companies Announce Layoffs: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,521 - neutralnews - ERROR - Error generating image for Major Tech Companies Announce Layoffs: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,522 - neutralnews - ERROR - Error generating image for Meta AI Assistant Now Available in 40 Languages: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,522 - neutralnews - ERROR - Error generating image for Sydney Measles Cases Rise After Jetstar Alert: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,522 - neutralnews - ERROR - Error generating image for Meta AI Assistant Now Available in 40 Languages: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,523 - neutralnews - ERROR - Error generating image for Sydney Measles Cases Rise After Jetstar Alert: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,523 - neutralnews - ERROR - Error generating image for Meta AI Assistant Now Available in 40 Languages: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,523 - neutralnews - ERROR - Error generating image for Sydney Measles Cases Rise After Jetstar Alert: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,524 - neutralnews - INFO - Pregenerating image for topic: Japan Reopens Borders to International Tourism
+2025-03-25 16:01:33,523 - neutralnews - INFO - Pregenerating image for topic: Japan Reopens Borders to International Tourism
+2025-03-25 16:01:33,524 - neutralnews - INFO - Pregenerating image for topic: Japan Reopens Borders to International Tourism
+2025-03-25 16:01:33,524 - neutralnews - INFO - Pregenerating image for topic: March Madness Kicks Off with Upset Victories
+2025-03-25 16:01:33,524 - neutralnews - INFO - Pregenerating image for topic: Record Temperatures Hit Mediterranean Countries
+2025-03-25 16:01:33,524 - neutralnews - INFO - Pregenerating image for topic: Record Temperatures Hit Mediterranean Countries
+2025-03-25 16:01:33,525 - neutralnews - INFO - Pregenerating image for topic: Record Temperatures Hit Mediterranean Countries
+2025-03-25 16:01:33,525 - neutralnews - INFO - Pregenerating image for topic: March Madness Kicks Off with Upset Victories
+2025-03-25 16:01:33,525 - neutralnews - INFO - Pregenerating image for topic: March Madness Kicks Off with Upset Victories
+2025-03-25 16:01:33,525 - neutralnews - ERROR - Error generating image for Japan Reopens Borders to International Tourism: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,525 - neutralnews - ERROR - Error generating image for Japan Reopens Borders to International Tourism: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,526 - neutralnews - ERROR - Error generating image for Japan Reopens Borders to International Tourism: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,526 - neutralnews - ERROR - Error generating image for March Madness Kicks Off with Upset Victories: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,526 - neutralnews - ERROR - Error generating image for Record Temperatures Hit Mediterranean Countries: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,526 - neutralnews - ERROR - Error generating image for Record Temperatures Hit Mediterranean Countries: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,526 - neutralnews - ERROR - Error generating image for Record Temperatures Hit Mediterranean Countries: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,527 - neutralnews - ERROR - Error generating image for March Madness Kicks Off with Upset Victories: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,527 - neutralnews - ERROR - Error generating image for March Madness Kicks Off with Upset Victories: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,527 - neutralnews - INFO - Pregenerating image for topic: Breakthrough in Nuclear Fusion Energy Announced
+2025-03-25 16:01:33,527 - neutralnews - INFO - Pregenerating image for topic: Breakthrough in Nuclear Fusion Energy Announced
+2025-03-25 16:01:33,527 - neutralnews - INFO - Pregenerating image for topic: Breakthrough in Nuclear Fusion Energy Announced
+2025-03-25 16:01:33,528 - neutralnews - INFO - Pregenerating image for topic: Turkey Escalates Crackdown on Opposition Assets
+2025-03-25 16:01:33,528 - neutralnews - INFO - Pregenerating image for topic: SpaceX Launches First Commercial Lunar Lander
+2025-03-25 16:01:33,528 - neutralnews - INFO - Pregenerating image for topic: SpaceX Launches First Commercial Lunar Lander
+2025-03-25 16:01:33,528 - neutralnews - INFO - Pregenerating image for topic: SpaceX Launches First Commercial Lunar Lander
+2025-03-25 16:01:33,529 - neutralnews - INFO - Pregenerating image for topic: Turkey Escalates Crackdown on Opposition Assets
+2025-03-25 16:01:33,529 - neutralnews - INFO - Pregenerating image for topic: Turkey Escalates Crackdown on Opposition Assets
+2025-03-25 16:01:33,529 - neutralnews - ERROR - Error generating image for Breakthrough in Nuclear Fusion Energy Announced: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,529 - neutralnews - ERROR - Error generating image for Breakthrough in Nuclear Fusion Energy Announced: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,529 - neutralnews - ERROR - Error generating image for Breakthrough in Nuclear Fusion Energy Announced: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,529 - neutralnews - ERROR - Error generating image for Turkey Escalates Crackdown on Opposition Assets: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,530 - neutralnews - ERROR - Error generating image for SpaceX Launches First Commercial Lunar Lander: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,530 - neutralnews - ERROR - Error generating image for SpaceX Launches First Commercial Lunar Lander: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,530 - neutralnews - ERROR - Error generating image for SpaceX Launches First Commercial Lunar Lander: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,530 - neutralnews - ERROR - Error generating image for Turkey Escalates Crackdown on Opposition Assets: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,530 - neutralnews - ERROR - Error generating image for Turkey Escalates Crackdown on Opposition Assets: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,531 - neutralnews - INFO - Pregenerating image for topic: Amazon Acquires Healthcare Provider for $4 Billion
+2025-03-25 16:01:33,531 - neutralnews - INFO - Pregenerating image for topic: Amazon Acquires Healthcare Provider for $4 Billion
+2025-03-25 16:01:33,531 - neutralnews - INFO - Pregenerating image for topic: Amazon Acquires Healthcare Provider for $4 Billion
+2025-03-25 16:01:33,531 - neutralnews - INFO - Pregenerating image for topic: Philippines Heatwave Prompts Emergency Measures
+2025-03-25 16:01:33,531 - neutralnews - INFO - Pregenerating image for topic: UN Report Warns of Critical Ocean Pollution Levels
+2025-03-25 16:01:33,532 - neutralnews - INFO - Pregenerating image for topic: UN Report Warns of Critical Ocean Pollution Levels
+2025-03-25 16:01:33,532 - neutralnews - INFO - Pregenerating image for topic: UN Report Warns of Critical Ocean Pollution Levels
+2025-03-25 16:01:33,532 - neutralnews - INFO - Pregenerating image for topic: Philippines Heatwave Prompts Emergency Measures
+2025-03-25 16:01:33,532 - neutralnews - INFO - Pregenerating image for topic: Philippines Heatwave Prompts Emergency Measures
+2025-03-25 16:01:33,532 - neutralnews - ERROR - Error generating image for Amazon Acquires Healthcare Provider for $4 Billion: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,533 - neutralnews - ERROR - Error generating image for Amazon Acquires Healthcare Provider for $4 Billion: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,533 - neutralnews - ERROR - Error generating image for Amazon Acquires Healthcare Provider for $4 Billion: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,533 - neutralnews - ERROR - Error generating image for Philippines Heatwave Prompts Emergency Measures: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,533 - neutralnews - ERROR - Error generating image for UN Report Warns of Critical Ocean Pollution Levels: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,534 - neutralnews - ERROR - Error generating image for UN Report Warns of Critical Ocean Pollution Levels: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,533 - neutralnews - ERROR - Error generating image for UN Report Warns of Critical Ocean Pollution Levels: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,534 - neutralnews - INFO - Pregenerating image for topic: Global Wheat Prices Stabilize After Recent Surge
+2025-03-25 16:01:33,534 - neutralnews - ERROR - Error generating image for Philippines Heatwave Prompts Emergency Measures: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,534 - neutralnews - ERROR - Error generating image for Philippines Heatwave Prompts Emergency Measures: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,534 - neutralnews - INFO - Pregenerating image for topic: Global Wheat Prices Stabilize After Recent Surge
+2025-03-25 16:01:33,535 - neutralnews - INFO - Pregenerating image for topic: China Unveils New Economic Stimulus Package
+2025-03-25 16:01:33,535 - neutralnews - INFO - Pregenerating image for topic: Global Wheat Prices Stabilize After Recent Surge
+2025-03-25 16:01:33,535 - neutralnews - INFO - Pregenerating image for topic: China Unveils New Economic Stimulus Package
+2025-03-25 16:01:33,535 - neutralnews - ERROR - Error generating image for Global Wheat Prices Stabilize After Recent Surge: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,535 - neutralnews - INFO - Pregenerating image for topic: China Unveils New Economic Stimulus Package
+2025-03-25 16:01:33,536 - neutralnews - ERROR - Error generating image for Global Wheat Prices Stabilize After Recent Surge: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,536 - neutralnews - ERROR - Error generating image for China Unveils New Economic Stimulus Package: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,536 - neutralnews - ERROR - Error generating image for Global Wheat Prices Stabilize After Recent Surge: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,537 - neutralnews - INFO - Pregenerating image for topic: New Malaria Vaccine Shows 80% Efficacy in Trials
+2025-03-25 16:01:33,537 - neutralnews - ERROR - Error generating image for China Unveils New Economic Stimulus Package: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,536 - neutralnews - ERROR - Error generating image for China Unveils New Economic Stimulus Package: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,537 - neutralnews - INFO - Pregenerating image for topic: New Malaria Vaccine Shows 80% Efficacy in Trials
+2025-03-25 16:01:33,538 - neutralnews - ERROR - Error generating image for New Malaria Vaccine Shows 80% Efficacy in Trials: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,537 - neutralnews - INFO - Pregenerating image for topic: New Malaria Vaccine Shows 80% Efficacy in Trials
+2025-03-25 16:01:33,538 - neutralnews - ERROR - Error generating image for New Malaria Vaccine Shows 80% Efficacy in Trials: generate_and_save_image() missing 1 required positional argument: 'summary'
+2025-03-25 16:01:33,538 - neutralnews - ERROR - Error generating image for New Malaria Vaccine Shows 80% Efficacy in Trials: generate_and_save_image() missing 1 required positional argument: 'summary'
