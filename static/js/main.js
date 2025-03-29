@@ -368,11 +368,31 @@ $(document).ready(function() {
         $trendingContainer.hide();
         $imageContainer.hide();
 
-        $.post('/data', { event: searchTerm }, function(data) {
+        // Get the image toggle state
+        const includeImages = $('#image-toggle').is(':checked');
+        console.log('Image toggle state (trending card):', includeImages);
+        
+        // Hide image container initially
+        $imageContainer.hide();
+        
+        // Make the AJAX request with the properly formatted include_images parameter
+        const formData = {
+            event: searchTerm,
+            include_images: includeImages ? 'true' : 'false' // Standardize to string format
+        };
+        console.log('Sending form data (trending card):', formData);
+        
+        $.post('/data', formData, function(data) {
+            console.log('Received response with include_images:', includeImages);
             console.log('Response received:', data);
             if (data.error) {
                 console.log('Error found in response:', data.error);
                 $errorMessage.text(data.error).show();
+                
+                // Still display any articles/summary if available despite errors
+                if (data.articles && data.articles.length > 0) {
+                    displayArticles(data.articles, data.summary || '', data.metadata || {});
+                }
             } else {
                 $results.find('.current-topic').text('Current topic: ' + searchTerm).show();
                 console.log('Articles:', data.articles ? data.articles.length : 0);
@@ -391,8 +411,20 @@ $(document).ready(function() {
                 displayArticles(data.articles, data.summary, data.metadata || {});
             }
         }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error('AJAX request failed:', textStatus, errorThrown);
-            $errorMessage.text('Failed to fetch results. Please try again.').show();
+            console.error('AJAX request failed:', textStatus, errorThrown, jqXHR.status);
+            
+            if (jqXHR.status === 503) {
+                $errorMessage.html("Our news sources are temporarily unavailable. Please try again in a few minutes.<br><small>This is often due to rate limits on our news APIs.</small>").show();
+            } else {
+                $errorMessage.text('Failed to fetch results. Please try again.').show();
+            }
+            
+            // Create empty placeholder results
+            displayArticles([], "Unable to retrieve news at this time.", {
+                average_sentiment: 0,
+                source_distribution: {},
+                image: null
+            });
         }).always(function() {
             $loading.hide();
             $results.show();
@@ -422,11 +454,31 @@ $(document).ready(function() {
         $trendingContainer.hide();
         $imageContainer.hide();
 
-        $.post('/data', { event: eventQuery }, function(data) {
+        // Get the image toggle state
+        const includeImages = $('#image-toggle').is(':checked');
+        console.log('Image toggle state:', includeImages);
+        
+        // Hide image container initially
+        $imageContainer.hide();
+        
+        // Make the AJAX request with the properly formatted include_images parameter
+        const formData = {
+            event: eventQuery,
+            include_images: includeImages ? 'true' : 'false' // Standardize to string format
+        };
+        console.log('Sending form data:', formData);
+        
+        $.post('/data', formData, function(data) {
+            console.log('Received response with include_images:', includeImages);
             console.log('Response received:', data);
             if (data.error) {
                 console.log('Error found in response:', data.error);
                 $errorMessage.text(data.error).show();
+                
+                // Still display any articles/summary if available despite errors
+                if (data.articles && data.articles.length > 0) {
+                    displayArticles(data.articles, data.summary || '', data.metadata || {});
+                }
             } else {
                 $results.find('.current-topic').text('Current topic: ' + eventQuery).show();
                 console.log('Articles:', data.articles ? data.articles.length : 0);
@@ -445,8 +497,20 @@ $(document).ready(function() {
                 displayArticles(data.articles, data.summary, data.metadata || {});
             }
         }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error('AJAX request failed:', textStatus, errorThrown);
-            $errorMessage.text('Failed to fetch results. Please try again.').show();
+            console.error('AJAX request failed:', textStatus, errorThrown, jqXHR.status);
+            
+            if (jqXHR.status === 503) {
+                $errorMessage.html("Our news sources are temporarily unavailable. Please try again in a few minutes.<br><small>This is often due to rate limits on our news APIs.</small>").show();
+            } else {
+                $errorMessage.text('Failed to fetch results. Please try again.').show();
+            }
+            
+            // Create empty placeholder results
+            displayArticles([], "Unable to retrieve news at this time.", {
+                average_sentiment: 0,
+                source_distribution: {},
+                image: null
+            });
         }).always(function() {
             $loading.hide();
             $results.show();

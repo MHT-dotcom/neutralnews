@@ -441,8 +441,7 @@ def index():
                     
                     # Generate or fetch image for the topic
                     try:
-                        from get_img import generate_and_save_image
-                        image_path = generate_and_save_image(event)
+                        image_path = generate_and_save_image("", event, True)
                         logger.info(f"Generated image: {image_path}")
                     except Exception as img_error:
                         logger.error(f"Failed to generate image: {img_error}")
@@ -468,413 +467,455 @@ def index():
                           last_week_topics=last_week_topics,
                           last_month_topics=last_month_topics)
 
-def process_news_request(event):
-    """Process a news request for the given event, handling API calls and data formatting."""
-    if not event:
-        logger.warning("No event provided")
-        return {'error': 'Please provide an event to search for.'}, 400
+def process_news_request(event, include_images=True):
+    """Process a news data request."""
+    try:
+        logger.info(f"Starting process_news_request for '{event}' with include_images={include_images} (type: {type(include_images)})")
+        
+        # Additional checks
+        if not event:
+            logger.warning("Empty event query received")
+            return [], "", "Please enter a search query."
 
-    logger.info(f"Checking cache for '{event}'")
-    
-    # Special direct fix for "wheat prices food" query
-    if event.lower() == "wheat prices food":
-        logger.info(f"DIRECT FIX ACTIVATED: Using hard-coded handling for '{event}'")
-        return handle_wheat_prices_food_query(), 200
-    
-    # Get DB_PATH from multiple sources
-    db_path = get_db_path()
-    
-    logger.info(f"Using DB_PATH: {db_path}")
-    
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
-    c.execute("""SELECT * FROM search_history 
-                WHERE query = ? AND timestamp > ?""", 
-             (event, (datetime.now() - timedelta(hours=24)).isoformat()))
-    result = c.fetchone()
-    
-    if result:
-        logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}..., Image Path: {result[7]}")
-        image_path = result[7]
-        if image_path and os.path.exists(image_path):
-            logger.info(f"Existing image found at {image_path}")
-            image_filename = os.path.basename(image_path)
-            image_path = f"/images/{image_filename}"  # Convert to relative URL
-        else:
-            logger.info(f"No valid image in cache or on disk, generating for '{event}'")
-            image_path, image_status = generate_and_save_image(event, result[3])
-            if image_status:
-                logger.info(f"Generated new image: {image_path}")
+        logger.info(f"Checking cache for '{event}'")
+        
+        # Get DB_PATH from multiple sources
+        db_path = get_db_path()
+        
+        logger.info(f"Using DB_PATH: {db_path}")
+        
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute("""SELECT * FROM search_history 
+                    WHERE query = ? AND timestamp > ?""", 
+                 (event, (datetime.now() - timedelta(hours=24)).isoformat()))
+        result = c.fetchone()
+        
+        if result:
+            logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}..., Image Path: {result[7]}")
+            image_path = result[7] if include_images else None
+            logger.info(f"Initial image_path after cache hit: {image_path} (include_images={include_images})")
+            
+            if image_path and os.path.exists(image_path):
+                logger.info(f"Existing image found at {image_path}")
                 image_filename = os.path.basename(image_path)
                 image_path = f"/images/{image_filename}"  # Convert to relative URL
-                c.execute("UPDATE search_history SET image_path = ? WHERE query = ?", (image_path, event))
-                conn.commit()
+                logger.info(f"Converted to relative URL: {image_path}")
             else:
-                logger.warning(f"Image generation failed for cached entry '{event}'")
-                image_path = None
-        
-        data = {
-            'success': True,
-            'summary': result[3],
-            'articles': json.loads(result[5]),
-            'metadata': {
-                'average_sentiment': result[4],
-                'source_distribution': json.loads(result[6]),
-                'image': {
-                    'path': image_path if image_path else None,
-                    'generated': bool(image_path)
+                if include_images:
+                    logger.info(f"No valid image in cache or on disk, generating for '{event}'")
+                    image_path, image_status = generate_and_save_image(result[3], event, include_images)
+                    logger.info(f"Image generation returned: path={image_path}, status={image_status}")
+                    
+                    if image_status:
+                        logger.info(f"Generated new image: {image_path}")
+                        image_filename = os.path.basename(image_path)
+                        image_path = f"/images/{image_filename}"  # Convert to relative URL
+                        logger.info(f"Converted to relative URL: {image_path}")
+                        c.execute("UPDATE search_history SET image_path = ? WHERE query = ?", (image_path, event))
+                        conn.commit()
+                    else:
+                        logger.warning(f"Image generation failed for cached entry '{event}'")
+                        image_path = None
+                else:
+                    logger.info("Image generation skipped because include_images=False")
+                    image_path = None
+            
+            data = {
+                'success': True,
+                'summary': result[3],
+                'articles': json.loads(result[5]),
+                'metadata': {
+                    'average_sentiment': result[4],
+                    'source_distribution': json.loads(result[6]),
+                    'image': {
+                        'path': image_path if include_images else None,
+                        'generated': bool(image_path)
+                    } if include_images else None
                 }
             }
-        }
-        conn.close()
-        return data, 200
-    
-    # Not in cache, need to fetch from APIs
-    start_time = time.time()
-    logger.info(f"Starting request processing for '{event}' at {start_time}")
-    
-    logger.info(f"NEWSAPI_ORG_KEY: {'Available' if NEWSAPI_ORG_KEY else 'Missing'}")
-    logger.info(f"GUARDIAN_API_KEY: {'Available' if GUARDIAN_API_KEY else 'Missing'}")
-    logger.info(f"GNEWS_API_KEY: {'Available' if GNEWS_API_KEY else 'Missing'}")
-    logger.info(f"NYT_API_KEY: {'Available' if NYT_API_KEY else 'Missing'}")
-    logger.info(f"OPENAI_API_KEY: {'Available' if OPENAI_API_KEY else 'Missing'}")
-    logger.info(f"MEDIASTACK_API_KEY: {'Available' if MEDIASTACK_API_KEY else 'Missing'}")
-    logger.info(f"NEWSDATA_API_KEY: {'Available' if NEWSDATA_API_KEY else 'Missing'}")
-    logger.info(f"AYLIEN keys: {'Available' if AYLIEN_APP_ID and AYLIEN_API_KEY else 'Missing'}")
-    
-    try:
-        fetch_start = time.time()
-        logger.info(f"Beginning API fetch for event '{event}' at {fetch_start}")
+            conn.close()
+            return data, 200
         
-        # Run async fetch in an executor to avoid blocking Flask
-        loop = asyncio.new_event_loop()
+        # Not in cache, need to fetch from APIs
+        start_time = time.time()
+        logger.info(f"Starting request processing for '{event}' at {start_time}")
         
-        def run_async_fetch():
-            asyncio.set_event_loop(loop)
-            return loop.run_until_complete(async_fetch_articles(event))
+        logger.info(f"NEWSAPI_ORG_KEY: {'Available' if NEWSAPI_ORG_KEY else 'Missing'}")
+        logger.info(f"GUARDIAN_API_KEY: {'Available' if GUARDIAN_API_KEY else 'Missing'}")
+        logger.info(f"GNEWS_API_KEY: {'Available' if GNEWS_API_KEY else 'Missing'}")
+        logger.info(f"NYT_API_KEY: {'Available' if NYT_API_KEY else 'Missing'}")
+        logger.info(f"OPENAI_API_KEY: {'Available' if OPENAI_API_KEY else 'Missing'}")
+        logger.info(f"MEDIASTACK_API_KEY: {'Available' if MEDIASTACK_API_KEY else 'Missing'}")
+        logger.info(f"NEWSDATA_API_KEY: {'Available' if NEWSDATA_API_KEY else 'Missing'}")
+        logger.info(f"AYLIEN keys: {'Available' if AYLIEN_APP_ID and AYLIEN_API_KEY else 'Missing'}")
         
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            results = executor.submit(run_async_fetch).result()
-        
-        newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles = results
-        
-        fetch_time = time.time() - fetch_start
-        logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
-
-        logger.info(f"Articles retrieved for event '{event}': "
-                  f"NewsAPI.org: {len(newsapi_org_articles)}, "
-                  f"Guardian: {len(guardian_articles)}, "
-                  f"Aylien: {len(aylien_articles)}, "
-                  f"GNews: {len(gnews_articles)}, "
-                  f"NYT: {len(nyt_articles)}, "
-                  f"Mediastack: {len(mediastack_articles)}, "
-                  f"NewsAPI.ai: {len(newsapi_ai_articles)}")
-
-        # Add debug logging for USE_* variables
         try:
-            logger.info("Checking availability of API configuration flags:")
-            logger.info(f"USE_NEWSAPI_ORG defined: {'Yes' if 'USE_NEWSAPI_ORG' in globals() else 'No'}")
-            logger.info(f"USE_GUARDIAN defined: {'Yes' if 'USE_GUARDIAN' in globals() else 'No'}")
-            logger.info(f"USE_AYLIEN defined: {'Yes' if 'USE_AYLIEN' in globals() else 'No'}")
-            logger.info(f"USE_GNEWS defined: {'Yes' if 'USE_GNEWS' in globals() else 'No'}")
-            logger.info(f"USE_NYT defined: {'Yes' if 'USE_NYT' in globals() else 'No'}")
-            logger.info(f"USE_MEDIASTACK defined: {'Yes' if 'USE_MEDIASTACK' in globals() else 'No'}")
-            logger.info(f"USE_NEWSDATA defined: {'Yes' if 'USE_NEWSDATA' in globals() else 'No'}")
+            fetch_start = time.time()
+            logger.info(f"Beginning API fetch for event '{event}' at {fetch_start}")
             
-            # Try importing directly from config
-            from config_prod import USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, USE_NYT, USE_MEDIASTACK, USE_NEWSDATA
-            logger.info("Successfully imported USE_* flags from config_prod")
-        except Exception as e:
-            logger.error(f"Error importing USE_* flags: {str(e)}")
-            # Define fallback values if imports fail
-            USE_NEWSAPI_ORG = NEWSAPI_ORG_KEY is not None
-            USE_GUARDIAN = GUARDIAN_API_KEY is not None
-            USE_AYLIEN = AYLIEN_APP_ID is not None and AYLIEN_API_KEY is not None
-            USE_GNEWS = GNEWS_API_KEY is not None
-            USE_NYT = NYT_API_KEY is not None
-            USE_MEDIASTACK = MEDIASTACK_API_KEY is not None
-            USE_NEWSDATA = NEWSDATA_API_KEY is not None
-            logger.info("Using fallback values for USE_* flags based on API key availability")
+            # Run async fetch in an executor to avoid blocking Flask
+            loop = asyncio.new_event_loop()
             
-        # Identify failed sources
-        failed_sources = []
-        if not newsapi_org_articles and USE_NEWSAPI_ORG:
-            failed_sources.append("NewsAPI.org")
-        if not guardian_articles and USE_GUARDIAN:
-            failed_sources.append("Guardian")
-        if not aylien_articles and USE_AYLIEN:
-            failed_sources.append("Aylien")
-        if not gnews_articles and USE_GNEWS:
-            failed_sources.append("GNews")
-        if not nyt_articles and USE_NYT:
-            failed_sources.append("NYT")
-        if not mediastack_articles and USE_MEDIASTACK:
-            failed_sources.append("Mediastack")
-        if not newsapi_ai_articles and USE_NEWSDATA:
-            failed_sources.append("NewsAPI.ai")
-        
-        # Calculate success rate
-        enabled_sources = sum([USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, 
-                              USE_NYT, USE_MEDIASTACK, USE_NEWSDATA])
-        successful_sources = enabled_sources - len(failed_sources)
-        success_rate = successful_sources / enabled_sources if enabled_sources > 0 else 0
-        
-        if failed_sources:
-            logger.warning(f"The following sources failed to return results: {', '.join(failed_sources)}")
-            logger.warning(f"Source success rate: {success_rate:.2%}")
-        
-        # Handle critical failure scenario - almost all sources failed
-        if success_rate < 0.25 and enabled_sources > 2:
-            logger.error(f"Critical failure rate: {success_rate:.2%}")
-            # If we have an extremely low success rate, we should inform the user
-            # But we'll still try to proceed with what we have
-            if success_rate == 0:
-                logger.error("All news sources failed to return results")
-                return {
-                    'error': "We're experiencing technical difficulties reaching our news sources. Please try again later.",
-                    'technical_details': {
-                        'failed_sources': failed_sources,
-                        'enabled_sources': enabled_sources
+            def run_async_fetch():
+                asyncio.set_event_loop(loop)
+                return loop.run_until_complete(async_fetch_articles(event))
+            
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                results = executor.submit(run_async_fetch).result()
+            
+            newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles = results
+            
+            fetch_time = time.time() - fetch_start
+            logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
+
+            logger.info(f"Articles retrieved for event '{event}': "
+                      f"NewsAPI.org: {len(newsapi_org_articles)}, "
+                      f"Guardian: {len(guardian_articles)}, "
+                      f"Aylien: {len(aylien_articles)}, "
+                      f"GNews: {len(gnews_articles)}, "
+                      f"NYT: {len(nyt_articles)}, "
+                      f"Mediastack: {len(mediastack_articles)}, "
+                      f"NewsAPI.ai: {len(newsapi_ai_articles)}")
+
+            # Add debug logging for USE_* variables
+            try:
+                logger.info("Checking availability of API configuration flags:")
+                logger.info(f"USE_NEWSAPI_ORG defined: {'Yes' if 'USE_NEWSAPI_ORG' in globals() else 'No'}")
+                logger.info(f"USE_GUARDIAN defined: {'Yes' if 'USE_GUARDIAN' in globals() else 'No'}")
+                logger.info(f"USE_AYLIEN defined: {'Yes' if 'USE_AYLIEN' in globals() else 'No'}")
+                logger.info(f"USE_GNEWS defined: {'Yes' if 'USE_GNEWS' in globals() else 'No'}")
+                logger.info(f"USE_NYT defined: {'Yes' if 'USE_NYT' in globals() else 'No'}")
+                logger.info(f"USE_MEDIASTACK defined: {'Yes' if 'USE_MEDIASTACK' in globals() else 'No'}")
+                logger.info(f"USE_NEWSDATA defined: {'Yes' if 'USE_NEWSDATA' in globals() else 'No'}")
+                
+                # Try importing directly from config
+                from config_prod import USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, USE_NYT, USE_MEDIASTACK, USE_NEWSDATA
+                logger.info("Successfully imported USE_* flags from config_prod")
+            except Exception as e:
+                logger.error(f"Error importing USE_* flags: {str(e)}")
+                # Define fallback values if imports fail
+                USE_NEWSAPI_ORG = NEWSAPI_ORG_KEY is not None
+                USE_GUARDIAN = GUARDIAN_API_KEY is not None
+                USE_AYLIEN = AYLIEN_APP_ID is not None and AYLIEN_API_KEY is not None
+                USE_GNEWS = GNEWS_API_KEY is not None
+                USE_NYT = NYT_API_KEY is not None
+                USE_MEDIASTACK = MEDIASTACK_API_KEY is not None
+                USE_NEWSDATA = NEWSDATA_API_KEY is not None
+                logger.info("Using fallback values for USE_* flags based on API key availability")
+                
+            # Identify failed sources
+            failed_sources = []
+            if not newsapi_org_articles and USE_NEWSAPI_ORG:
+                failed_sources.append("NewsAPI.org")
+            if not guardian_articles and USE_GUARDIAN:
+                failed_sources.append("Guardian")
+            if not aylien_articles and USE_AYLIEN:
+                failed_sources.append("Aylien")
+            if not gnews_articles and USE_GNEWS:
+                failed_sources.append("GNews")
+            if not nyt_articles and USE_NYT:
+                failed_sources.append("NYT")
+            if not mediastack_articles and USE_MEDIASTACK:
+                failed_sources.append("Mediastack")
+            if not newsapi_ai_articles and USE_NEWSDATA:
+                failed_sources.append("NewsAPI.ai")
+            
+            # Calculate success rate
+            enabled_sources = sum([USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, 
+                                  USE_NYT, USE_MEDIASTACK, USE_NEWSDATA])
+            successful_sources = enabled_sources - len(failed_sources)
+            success_rate = successful_sources / enabled_sources if enabled_sources > 0 else 0
+            
+            if failed_sources:
+                logger.warning(f"The following sources failed to return results: {', '.join(failed_sources)}")
+                logger.warning(f"Source success rate: {success_rate:.2%}")
+            
+            # Handle critical failure scenario - almost all sources failed
+            if success_rate < 0.25 and enabled_sources > 2:
+                logger.error(f"Critical failure rate: {success_rate:.2%}")
+                # If we have an extremely low success rate, we should inform the user
+                # But we'll still try to proceed with what we have
+                if success_rate == 0:
+                    logger.error("All news sources failed to return results")
+                    # Create a more user-friendly response
+                    fallback_data = {
+                        'success': False,
+                        'error': "We're experiencing technical difficulties reaching our news sources. Please try again later.",
+                        'articles': [],
+                        'summary': "Due to technical issues, we couldn't fetch the latest news at this time. Please try again in a few minutes.",
+                        'metadata': {
+                            'average_sentiment': 0,
+                            'source_distribution': {},
+                            'image': None
+                        },
+                        'technical_details': {
+                            'failed_sources': failed_sources,
+                            'enabled_sources': enabled_sources,
+                            'success_rate': success_rate
+                        }
                     }
-                }, 503  # Service Unavailable
+                    conn.close()
+                    return fallback_data, 503  # Service Unavailable
 
-        total_fetched = (len(newsapi_org_articles) + len(guardian_articles) + 
-                        len(aylien_articles) + len(gnews_articles) +
-                        len(nyt_articles) + len(mediastack_articles) + 
-                        len(newsapi_ai_articles))
-        logger.info(f"Total articles fetched for event '{event}': {total_fetched}")
-        if total_fetched == 0:
-            total_time = time.time() - start_time
-            logger.info(f"Total request time (no articles): {total_time:.2f} seconds, ending at {time.time()}")
-            return {'warning': f"No articles found for '{event}' in the past 7 days. Try a broader topic."}, 200
+            total_fetched = (len(newsapi_org_articles) + len(guardian_articles) + 
+                            len(aylien_articles) + len(gnews_articles) +
+                            len(nyt_articles) + len(mediastack_articles) + 
+                            len(newsapi_ai_articles))
+            logger.info(f"Total articles fetched for event '{event}': {total_fetched}")
+            if total_fetched == 0:
+                total_time = time.time() - start_time
+                logger.info(f"Total request time (no articles): {total_time:.2f} seconds, ending at {time.time()}")
+                # Create a more user-friendly response
+                fallback_data = {
+                    'success': False,
+                    'warning': f"No articles found for '{event}' in the past 7 days. Try a broader topic.",
+                    'articles': [],
+                    'summary': f"We couldn't find any recent news articles about '{event}'. Try a different search term or check back later.",
+                    'metadata': {
+                        'average_sentiment': 0,
+                        'source_distribution': {},
+                        'image': None
+                    }
+                }
+                conn.close()
+                return fallback_data, 200
 
-        # Continue with existing processing code
-        standardize_start = time.time()
-        logger.info(f"Starting standardization for event '{event}' at {standardize_start}")
-        std_newsapi = process_articles(newsapi_org_articles, "NewsAPI")
-        std_guardian = process_articles(guardian_articles, "Guardian")
-        std_aylien = process_articles(aylien_articles, "Aylien")
-        std_gnews = process_articles(gnews_articles, "GNews")
-        std_nyt = process_articles(nyt_articles, "NYT")
-        std_mediastack = process_articles(mediastack_articles, "Mediastack")
-        std_newsapi_ai = process_articles(newsapi_ai_articles, "NewsAPI.ai")
-        
-        all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
-                        std_nyt + std_mediastack + std_newsapi_ai)
-        
-        # If we got this far but have some failed sources, add a note to the response
-        warning_message = None
-        if failed_sources:
-            warning_message = "Some news sources were unavailable. Showing results from available sources."
-            if success_rate < 0.5:
-                warning_message = "Several news sources were unavailable. Results may be limited."
-        
-        logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles to avoid crashes")
-        sentiment_start = time.time()
-        for article in all_articles:
-            article['sentiment_score'] = 0
-        sentiment_time = time.time() - sentiment_start
-        logger.info(f"Sentiment processing (disabled) took {sentiment_time:.2f} seconds")
-        
-        standardize_time = time.time() - standardize_start
-        logger.info(f"Standardization took {standardize_time:.2f} seconds for event '{event}'")
+            # Continue with existing processing code
+            standardize_start = time.time()
+            logger.info(f"Starting standardization for event '{event}' at {standardize_start}")
+            std_newsapi = process_articles(newsapi_org_articles, "NewsAPI")
+            std_guardian = process_articles(guardian_articles, "Guardian")
+            std_aylien = process_articles(aylien_articles, "Aylien")
+            std_gnews = process_articles(gnews_articles, "GNews")
+            std_nyt = process_articles(nyt_articles, "NYT")
+            std_mediastack = process_articles(mediastack_articles, "Mediastack")
+            std_newsapi_ai = process_articles(newsapi_ai_articles, "NewsAPI.ai")
+            
+            all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
+                            std_nyt + std_mediastack + std_newsapi_ai)
+            
+            # If we got this far but have some failed sources, add a note to the response
+            warning_message = None
+            if failed_sources:
+                warning_message = "Some news sources were unavailable. Showing results from available sources."
+                if success_rate < 0.5:
+                    warning_message = "Several news sources were unavailable. Results may be limited."
+            
+            logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles to avoid crashes")
+            sentiment_start = time.time()
+            for article in all_articles:
+                article['sentiment_score'] = 0
+            sentiment_time = time.time() - sentiment_start
+            logger.info(f"Sentiment processing (disabled) took {sentiment_time:.2f} seconds")
+            
+            standardize_time = time.time() - standardize_start
+            logger.info(f"Standardization took {standardize_time:.2f} seconds for event '{event}'")
 
-        initial_source_counts = {}
-        for article in all_articles:
-            source = article.get('source', 'Unknown')
-            initial_source_counts[source] = initial_source_counts.get(source, 0) + 1
-        logger.info(f"Initial source distribution before processing for '{event}': {initial_source_counts}")
-        logger.info(f"Initial total articles: {len(all_articles)}")
+            initial_source_counts = {}
+            for article in all_articles:
+                source = article.get('source', 'Unknown')
+                initial_source_counts[source] = initial_source_counts.get(source, 0) + 1
+            logger.info(f"Initial source distribution before processing for '{event}': {initial_source_counts}")
+            logger.info(f"Initial total articles: {len(all_articles)}")
 
-        duplicate_start = time.time()
-        logger.info(f"Starting duplicate removal for event '{event}' at {duplicate_start}")
-        unique_articles = remove_duplicates(all_articles)
-        
-        after_dedup_counts = {}
-        for article in unique_articles:
-            source = article.get('source', 'Unknown')
-            after_dedup_counts[source] = after_dedup_counts.get(source, 0) + 1
-        logger.info(f"Source distribution after duplicate removal for '{event}': {after_dedup_counts}")
-        logger.info(f"Articles removed by deduplication: {len(all_articles) - len(unique_articles)}")
-        duplicate_time = time.time() - duplicate_start
-        logger.info(f"Duplicate removal took {duplicate_time:.2f} seconds for event '{event}'")
+            duplicate_start = time.time()
+            logger.info(f"Starting duplicate removal for event '{event}' at {duplicate_start}")
+            unique_articles = remove_duplicates(all_articles)
+            
+            after_dedup_counts = {}
+            for article in unique_articles:
+                source = article.get('source', 'Unknown')
+                after_dedup_counts[source] = after_dedup_counts.get(source, 0) + 1
+            logger.info(f"Source distribution after duplicate removal for '{event}': {after_dedup_counts}")
+            logger.info(f"Articles removed by deduplication: {len(all_articles) - len(unique_articles)}")
+            duplicate_time = time.time() - duplicate_start
+            logger.info(f"Duplicate removal took {duplicate_time:.2f} seconds for event '{event}'")
 
-        filter_start = time.time()
-        logger.info(f"Starting filtering for event '{event}' at {filter_start}")
-        relevant_articles = filter_relevant_articles(unique_articles, event)
-        
-        after_relevance_counts = {}
-        for article in relevant_articles:
-            source = article.get('source', 'Unknown')
-            after_relevance_counts[source] = after_relevance_counts.get(source, 0) + 1
-        logger.info(f"Source distribution after relevance filtering for '{event}': {after_relevance_counts}")
-        logger.info(f"Articles removed by relevance filtering: {len(unique_articles) - len(relevant_articles)}")
-        filter_time = time.time() - filter_start
-        logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
+            filter_start = time.time()
+            logger.info(f"Starting filtering for event '{event}' at {filter_start}")
+            relevant_articles = filter_relevant_articles(unique_articles, event)
+            
+            after_relevance_counts = {}
+            for article in relevant_articles:
+                source = article.get('source', 'Unknown')
+                after_relevance_counts[source] = after_relevance_counts.get(source, 0) + 1
+            logger.info(f"Source distribution after relevance filtering for '{event}': {after_relevance_counts}")
+            logger.info(f"Articles removed by relevance filtering: {len(unique_articles) - len(relevant_articles)}")
+            filter_time = time.time() - filter_start
+            logger.info(f"Filtering took {filter_time:.2f} seconds for event '{event}'")
 
-        if not relevant_articles:
-            total_time = time.time() - start_time
-            logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
-            return {'warning': f"No relevant articles found for '{event}' after filtering. Try a broader topic."}, 200
+            if not relevant_articles:
+                total_time = time.time() - start_time
+                logger.info(f"Total request time (no relevant articles): {total_time:.2f} seconds, ending at {time.time()}")
+                return {'warning': f"No relevant articles found for '{event}' after filtering. Try a broader topic."}, 200
 
-        group_and_cap_start = time.time()
-        logger.info(f"Starting grouping and capping for event '{event}' at {group_and_cap_start}")
-        source_groups = {}
-        for article in relevant_articles:
-            source = article.get('source', 'Unknown')
-            if source not in source_groups:
-                source_groups[source] = []
-            source_groups[source].append(article)
-        
-        logger.info(f"Articles per source before capping for '{event}':")
-        for source, articles_list in source_groups.items():
-            logger.info(f"- {source}: {len(articles_list)} articles")
-        
-        num_sources = len(source_groups)
-        
-        # Use increased_top_n if available (for problematic queries)
-        top_n_value = increased_top_n if 'increased_top_n' in locals() else DEFAULT_TOP_N
-        
-        # Modified dynamic cap formula to allow more articles per source when there are fewer sources
-        # Using formula: min(MAX_ARTICLES_PER_SOURCE, max(3, top_n_value // max(1, num_sources - 1)))
-        dynamic_cap = min(MAX_ARTICLES_PER_SOURCE, max(3, top_n_value // max(1, num_sources - 1)))
-        logger.info(f"Using dynamic cap of {dynamic_cap} articles per source for {num_sources} sources")
-        logger.info(f"Total slots available: {top_n_value}")
-        logger.info(f"DIAGNOSTIC: MAX_ARTICLES_PER_SOURCE={MAX_ARTICLES_PER_SOURCE}, DEFAULT_TOP_N={top_n_value}")
-        logger.info(f"DIAGNOSTIC: Modified formula: min({MAX_ARTICLES_PER_SOURCE}, max(3, {top_n_value} // max(1, {num_sources} - 1))) = {dynamic_cap}")
-        
-        final_articles = []
-        remaining_slots = top_n_value
-        
-        first_round_sources = []
-        for source, articles_list in source_groups.items():
-            if articles_list and remaining_slots > 0:
-                final_articles.append(articles_list[0])
-                articles_list.pop(0)
-                remaining_slots -= 1
-                first_round_sources.append(source)
-        logger.info(f"First round distribution - Added one article from each of these sources: {first_round_sources}")
-        logger.info(f"Remaining slots after first round: {remaining_slots}")
-        
-        second_round_additions = {}
-        while remaining_slots > 0:
-            added_article = False
+            group_and_cap_start = time.time()
+            logger.info(f"Starting grouping and capping for event '{event}' at {group_and_cap_start}")
+            source_groups = {}
+            for article in relevant_articles:
+                source = article.get('source', 'Unknown')
+                if source not in source_groups:
+                    source_groups[source] = []
+                source_groups[source].append(article)
+            
+            logger.info(f"Articles per source before capping for '{event}':")
             for source, articles_list in source_groups.items():
-                current_source_count = len([a for a in final_articles if a.get('source') == source])
-                if articles_list and current_source_count < dynamic_cap:
+                logger.info(f"- {source}: {len(articles_list)} articles")
+            
+            num_sources = len(source_groups)
+            
+            # Use increased_top_n if available (for problematic queries)
+            top_n_value = increased_top_n if 'increased_top_n' in locals() else DEFAULT_TOP_N
+            
+            # Modified dynamic cap formula to allow more articles per source when there are fewer sources
+            # Using formula: min(MAX_ARTICLES_PER_SOURCE, max(3, top_n_value // max(1, num_sources - 1)))
+            dynamic_cap = min(MAX_ARTICLES_PER_SOURCE, max(3, top_n_value // max(1, num_sources - 1)))
+            logger.info(f"Using dynamic cap of {dynamic_cap} articles per source for {num_sources} sources")
+            logger.info(f"Total slots available: {top_n_value}")
+            logger.info(f"DIAGNOSTIC: MAX_ARTICLES_PER_SOURCE={MAX_ARTICLES_PER_SOURCE}, DEFAULT_TOP_N={top_n_value}")
+            logger.info(f"DIAGNOSTIC: Modified formula: min({MAX_ARTICLES_PER_SOURCE}, max(3, {top_n_value} // max(1, {num_sources} - 1))) = {dynamic_cap}")
+            
+            final_articles = []
+            remaining_slots = top_n_value
+            
+            first_round_sources = []
+            for source, articles_list in source_groups.items():
+                if articles_list and remaining_slots > 0:
                     final_articles.append(articles_list[0])
                     articles_list.pop(0)
                     remaining_slots -= 1
-                    second_round_additions[source] = second_round_additions.get(source, 0) + 1
-                    added_article = True
-                    if remaining_slots <= 0:
-                        break
-            if not added_article:
-                break
-        logger.info(f"Second round distribution - Additional articles per source: {second_round_additions}")
-        logger.info(f"Remaining slots after second round: {remaining_slots}")
-        
-        group_and_cap_time = time.time() - group_and_cap_start
-        logger.info(f"Grouping and capping took {group_and_cap_time:.2f} seconds for event '{event}'")
+                    first_round_sources.append(source)
+            logger.info(f"First round distribution - Added one article from each of these sources: {first_round_sources}")
+            logger.info(f"Remaining slots after first round: {remaining_slots}")
+            
+            second_round_additions = {}
+            while remaining_slots > 0:
+                added_article = False
+                for source, articles_list in source_groups.items():
+                    current_source_count = len([a for a in final_articles if a.get('source') == source])
+                    if articles_list and current_source_count < dynamic_cap:
+                        final_articles.append(articles_list[0])
+                        articles_list.pop(0)
+                        remaining_slots -= 1
+                        second_round_additions[source] = second_round_additions.get(source, 0) + 1
+                        added_article = True
+                        if remaining_slots <= 0:
+                            break
+                if not added_article:
+                    break
+            logger.info(f"Second round distribution - Additional articles per source: {second_round_additions}")
+            logger.info(f"Remaining slots after second round: {remaining_slots}")
+            
+            group_and_cap_time = time.time() - group_and_cap_start
+            logger.info(f"Grouping and capping took {group_and_cap_time:.2f} seconds for event '{event}'")
 
-        final_source_counts = {}
-        for article in final_articles:
-            source = article.get('source', 'Unknown')
-            final_source_counts[source] = final_source_counts.get(source, 0) + 1
-        
-        logger.info(f"=== Final Distribution Summary for '{event}' ===")
-        logger.info(f"Initial article count: {len(all_articles)}")
-        logger.info(f"After deduplication: {len(unique_articles)}")
-        logger.info(f"After relevance filtering: {len(relevant_articles)}")
-        logger.info(f"Final article count: {len(final_articles)}")
-        logger.info(f"Source distribution progression:")
-        logger.info(f"1. Initial: {initial_source_counts}")
-        logger.info(f"2. After dedup: {after_dedup_counts}")
-        logger.info(f"3. After relevance: {after_relevance_counts}")
-        logger.info(f"4. Final: {final_source_counts}")
-        logger.info(f"=== End Distribution Summary ===")
+            final_source_counts = {}
+            for article in final_articles:
+                source = article.get('source', 'Unknown')
+                final_source_counts[source] = final_source_counts.get(source, 0) + 1
+            
+            logger.info(f"=== Final Distribution Summary for '{event}' ===")
+            logger.info(f"Initial article count: {len(all_articles)}")
+            logger.info(f"After deduplication: {len(unique_articles)}")
+            logger.info(f"After relevance filtering: {len(relevant_articles)}")
+            logger.info(f"Final article count: {len(final_articles)}")
+            logger.info(f"Source distribution progression:")
+            logger.info(f"1. Initial: {initial_source_counts}")
+            logger.info(f"2. After dedup: {after_dedup_counts}")
+            logger.info(f"3. After relevance: {after_relevance_counts}")
+            logger.info(f"4. Final: {final_source_counts}")
+            logger.info(f"=== End Distribution Summary ===")
 
-        articles = final_articles
-        logger.info(f"Capped articles count for event '{event}': {len(articles)}")
-        
-        logger.info(f"Starting summarization for event '{event}'")
-        summarize_start = time.time()
-        try:
-            summary = summarize_articles(relevant_articles, event)
-            if not summary or "Error generating summary" in summary:
+            articles = final_articles
+            logger.info(f"Capped articles count for event '{event}': {len(articles)}")
+            
+            logger.info(f"Starting summarization for event '{event}'")
+            summarize_start = time.time()
+            try:
+                summary = summarize_articles(relevant_articles, event)
+                if not summary or "Error generating summary" in summary:
+                    summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
+            except Exception as e:
+                logger.error(f"Error during summarization: {e}")
                 summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
-        except Exception as e:
-            logger.error(f"Error during summarization: {e}")
-            summary = f"Found {len(relevant_articles)} articles about '{event}'. View them below for the latest news on this topic."
-        summarize_time = time.time() - summarize_start
-        logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
-        
-        # Generate image for the event
-        logger.info(f"Generating image for event '{event}'")
-        image_path, image_status = generate_and_save_image(event, summary)
-        if image_status:
-            logger.info(f"Image generation successful: {image_path}")
-            image_filename = os.path.basename(image_path)
-            image_path = f"/images/{image_filename}"  # Convert to relative URL
-        else:
-            logger.warning(f"Image generation failed for event '{event}'")
-            image_path = None
-        
-        # Store in database for caching
-        try:
-            avg_sentiment = sum(article.get('sentiment_score', 0) for article in articles) / len(articles) if articles else 0
-            logger.info(f"Storing result in database for '{event}'")
-            c.execute("""INSERT INTO search_history 
-                         (query, timestamp, summary, average_sentiment, 
-                          articles, source_distribution, image_path) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                      (event, datetime.now().isoformat(), summary, 
-                       avg_sentiment, json.dumps(articles), 
-                       json.dumps(final_source_counts), image_path))
-            conn.commit()
-        except Exception as db_error:
-            logger.error(f"Error storing results in database: {db_error}")
-        finally:
-            conn.close()
-        
-        # Return response with appropriate warning if sources failed
-        total_time = time.time() - start_time
-        logger.info(f"Total request time: {total_time:.2f} seconds, ending at {time.time()}")
-        
-        # Add diagnostic logging to trace article count
-        logger.info(f"DIAGNOSTIC: Final article count before response creation: {len(articles)}")
-        for i, article in enumerate(articles[:10]):  # Log up to 10 articles
-            logger.info(f"DIAGNOSTIC: Article {i+1}: '{article.get('title', 'No title')[:40]}...' - Source: {article.get('source', 'Unknown')}")
-        
-        if warning_message:
-            return {
-                'success': True, 
-                'summary': summary, 
-                'articles': articles,
-                'warning': warning_message,
-                'metadata': {
-                    'average_sentiment': avg_sentiment,
-                    'source_distribution': final_source_counts,
-                    'image': {
-                        'path': image_path,
-                        'generated': bool(image_path)
-                    },
-                    'source_health': {
-                        'success_rate': success_rate,
-                        'failed_sources': failed_sources,
-                        'successful_sources': successful_sources
-                    }
-                }
-            }, 200
-        else:
-            return {'success': True, 'summary': summary, 'articles': articles, 'metadata': {
-                'average_sentiment': avg_sentiment,
-                'source_distribution': final_source_counts,
-                'image': {
+            summarize_time = time.time() - summarize_start
+            logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
+            
+            # Generate image for the event
+            logger.info(f"Generating image for event '{event}'")
+            image_path, image_status = generate_and_save_image(summary, event, include_images)
+            if image_status:
+                logger.info(f"Image generation successful: {image_path}")
+                image_filename = os.path.basename(image_path)
+                image_path = f"/images/{image_filename}"  # Convert to relative URL
+            else:
+                logger.warning(f"Image generation failed for event '{event}'")
+                image_path = None
+            
+            # Store in database for caching
+            try:
+                avg_sentiment = sum(article.get('sentiment_score', 0) for article in articles) / len(articles) if articles else 0
+                logger.info(f"Storing result in database for '{event}'")
+                c.execute("""INSERT INTO search_history 
+                             (query, timestamp, summary, average_sentiment, 
+                              articles, source_distribution, image_path) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                          (event, datetime.now().isoformat(), summary, 
+                           avg_sentiment, json.dumps(articles), 
+                           json.dumps(final_source_counts), image_path))
+                conn.commit()
+            except Exception as db_error:
+                logger.error(f"Error storing results in database: {db_error}")
+            finally:
+                conn.close()
+            
+            # Return response with appropriate warning if sources failed
+            total_time = time.time() - start_time
+            logger.info(f"Total request time: {total_time:.2f} seconds, ending at {time.time()}")
+            
+            # Add diagnostic logging to trace article count
+            logger.info(f"DIAGNOSTIC: Final article count before response creation: {len(articles)}")
+            for i, article in enumerate(articles[:10]):  # Log up to 10 articles
+                logger.info(f"DIAGNOSTIC: Article {i+1}: '{article.get('title', 'No title')[:40]}...' - Source: {article.get('source', 'Unknown')}")
+            
+            # Build image metadata structure based on include_images flag
+            image_metadata = None
+            if include_images:
+                image_metadata = {
                     'path': image_path,
                     'generated': bool(image_path)
                 }
-            }}, 200
+            
+            if warning_message:
+                return {
+                    'success': True, 
+                    'summary': summary, 
+                    'articles': articles,
+                    'warning': warning_message,
+                    'metadata': {
+                        'average_sentiment': avg_sentiment,
+                        'source_distribution': final_source_counts,
+                        'image': image_metadata,
+                        'source_health': {
+                            'success_rate': success_rate,
+                            'failed_sources': failed_sources,
+                            'successful_sources': successful_sources
+                        }
+                    }
+                }, 200
+            else:
+                return {'success': True, 'summary': summary, 'articles': articles, 'metadata': {
+                    'average_sentiment': avg_sentiment,
+                    'source_distribution': final_source_counts,
+                    'image': image_metadata
+                }}, 200
+        except Exception as e:
+            logger.error(f"Error processing request: {str(e)}", exc_info=True)
+            return {
+                'error': f"An error occurred while processing your request.",
+                'details': str(e) if current_app.config.get("DEBUG", False) else "Please try again later."
+            }, 500
     except Exception as e:
         logger.error(f"Error processing request: {str(e)}", exc_info=True)
         return {
@@ -882,89 +923,126 @@ def process_news_request(event):
             'details': str(e) if current_app.config.get("DEBUG", False) else "Please try again later."
         }, 500
 
-def handle_wheat_prices_food_query():
-    """Special handler for the 'wheat prices food' query to ensure sufficient articles are returned."""
-    logger.info("Using specialized handler for 'wheat prices food' query")
-    
-    # Fetch articles with multiple expanded queries
-    expanded_queries = [
-        "wheat prices", 
-        "food prices", 
-        "agricultural commodity prices",
-        "grain market",
-        "food inflation"
-    ]
-    
-    all_articles = []
-    unique_urls = set()
-    
-    logger.info(f"Fetching articles using {len(expanded_queries)} expanded queries")
-    
-    # Loop through each expanded query
-    for expanded_query in expanded_queries:
-        logger.info(f"Fetching articles for expanded query: '{expanded_query}'")
-        
-        # Fetch and process articles for this query
-        summary, articles, error = fetch_and_process_data(expanded_query)
-        
-        if articles:
-            # Add only unique articles based on URL
-            for article in articles:
-                url = article.get('url', '')
-                if url and url not in unique_urls:
-                    unique_urls.add(url)
-                    all_articles.append(article)
-            
-            logger.info(f"Added {len(articles)} articles from query '{expanded_query}', total unique now: {len(all_articles)}")
-    
-    # Create a response with all the collected articles
-    source_counts = {}
-    for article in all_articles:
-        source = article.get('source', 'Unknown')
-        source_counts[source] = source_counts.get(source, 0) + 1
-    
-    # Generate a summary specifically for wheat prices and food
-    summary = "Analysis of wheat prices and food markets shows significant impacts from global events. Agricultural commodity prices continue to be affected by supply chain issues, climate factors, and geopolitical tensions."
-    
-    logger.info(f"Final article count for 'wheat prices food': {len(all_articles)} from {len(source_counts)} sources")
-    
-    return {
-        'success': True,
-        'summary': summary,
-        'articles': all_articles,
-        'metadata': {
-            'average_sentiment': 0.0,
-            'source_distribution': source_counts,
-            'image': {
-                'generated': True,
-                'path': "/images/wheat-prices-food.webp"
-            }
-        }
-    }
-
 @routes.route('/data', methods=['POST'])
 def get_news_data():
-    """Handle AJAX requests with detailed logging and image handling."""
-    logger.info("=== Entering get_news_data() ===")
+    """Handle news data requests"""
     try:
-        # Extract event from either form data or JSON payload
-        if request.is_json:
-            data = request.get_json()
-            event = data.get('event')
-            logger.info(f"Received JSON request with event: '{event}'")
-        else:
-            event = request.form.get('event')
-            logger.info(f"Received form request with event: '{event}'")
+        # Get the search query and image toggle state
+        event = request.form.get('event') or request.json.get('event')
+        
+        # More robust handling of include_images parameter with extensive error handling
+        try:
+            raw_include_images = request.form.get('include_images')
+            logger.info(f"Received include_images raw value: '{raw_include_images}' (type: {type(raw_include_images).__name__})")
+            
+            # Parse include_images in a more robust way with clear error handling
+            try:
+                if raw_include_images is None:
+                    include_images = request.json.get('include_images', True)
+                    logger.info(f"Using JSON parameter or default: {include_images}")
+                else:
+                    # Convert various true values to boolean True
+                    if isinstance(raw_include_images, bool):
+                        include_images = raw_include_images
+                        logger.info(f"Using boolean value directly: {include_images}")
+                    else:
+                        # Handle string values safely
+                        try:
+                            include_images = str(raw_include_images).lower() in ('true', 't', 'yes', 'y', '1')
+                            logger.info(f"Parsed string value to boolean: {include_images}")
+                        except Exception as str_error:
+                            logger.error(f"Error parsing string value: {str_error}")
+                            include_images = True  # Default to True on error
+                            logger.info(f"Using default value after string parsing error: {include_images}")
+            except Exception as parse_error:
+                logger.error(f"Error in include_images parsing: {parse_error}")
+                include_images = True  # Default to True on error
+                logger.info(f"Using default value after parsing error: {include_images}")
+        except Exception as param_error:
+            logger.error(f"Error extracting include_images parameter: {param_error}")
+            include_images = True  # Default to True on error
+            logger.info(f"Using default value after parameter error: {include_images}")
+        
+        logger.info(f"Final include_images value: {include_images} (type: {type(include_images).__name__})")
+        logger.info(f"Received request for event '{event}' with include_images={include_images}")
         
         if not event:
             logger.error("No event provided in request")
-            return jsonify({'error': 'Please provide an event to search for.'}), 400
+            return jsonify({"error": "Please provide an event to search for."}), 400
         
-        result, status_code = process_news_request(event)
-        return jsonify(result), status_code
+        # Process the request
+        try:
+            result = process_news_request(event, include_images)
+            
+            if isinstance(result, tuple) and len(result) == 2:
+                data, status_code = result
+                if 'error' in data:
+                    logger.error(f"Error in process_news_request: {data['error']}")
+                    return jsonify(data), status_code
+                articles = data.get('articles', [])
+                summary = data.get('summary', '')
+                logger.info(f"process_news_request returned: articles={len(articles) if articles else 0}, summary={'present' if summary else 'none'}")
+                
+                # Ensure metadata is properly set
+                if 'metadata' not in data:
+                    data['metadata'] = {
+                        'average_sentiment': 0,
+                        'source_distribution': {},
+                        'image': None
+                    }
+                    logger.warning(f"Added missing metadata to response")
+            else:
+                articles, summary, error = result
+                logger.info(f"process_news_request returned: articles={len(articles) if articles else 0}, summary={'present' if summary else 'none'}, error={error}")
+                if error:
+                    logger.error(f"Error processing request: {error}")
+                    return jsonify({'error': error}), 400
+                
+                # Create a proper response structure
+                data = {
+                    'articles': articles,
+                    'summary': summary,
+                    'metadata': {
+                        'average_sentiment': 0,
+                        'source_distribution': {},
+                        'image': None
+                    }
+                }
+                logger.info(f"Created fallback response structure")
+                
+        except Exception as process_error:
+            logger.error(f"Error in process_news_request: {str(process_error)}", exc_info=True)
+            # Create a safe fallback response
+            return jsonify({
+                'error': f"Internal processing error: {str(process_error)}",
+                'articles': [],
+                'summary': f"Error retrieving news for '{event}'. Please try again later.",
+                'metadata': {
+                    'average_sentiment': 0,
+                    'source_distribution': {},
+                    'image': None
+                }
+            }), 500
+        
+        # Log the response data
+        logger.info(f"Returning response with {len(data.get('articles', [])) if 'articles' in data and isinstance(data['articles'], list) else 0} articles")
+        if 'metadata' in data and 'image' in data['metadata'] and data['metadata']['image']:
+            logger.info(f"Image in response: {data['metadata']['image']}")
+        
+        return jsonify(data)
     except Exception as e:
-        logger.error(f"Unexpected error in get_news_data: {str(e)}")
-        return jsonify({'error': f"An unexpected error occurred: {str(e)}"}), 500
+        logger.error(f"Unexpected error in get_news_data: {str(e)}", exc_info=True)
+        # Create a safe fallback response
+        return jsonify({
+            'error': f"An unexpected error occurred: {str(e)}",
+            'articles': [],
+            'summary': "",
+            'metadata': {
+                'average_sentiment': 0,
+                'source_distribution': {},
+                'image': None
+            }
+        }), 500
 
 @routes.route('/images/<filename>')
 def serve_image(filename):

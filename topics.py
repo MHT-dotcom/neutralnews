@@ -606,7 +606,7 @@ def pregenerate_topic_images(topics):
                         # Use the headline as the query
                         headline = topic[0]
                         logger.info(f"Pregenerating image for topic: {headline}")
-                        generate_and_save_image(headline)
+                        generate_and_save_image("", headline, True)  # Empty summary since we don't have one
                         # Sleep briefly to avoid overloading the system
                         time.sleep(1)
                     except Exception as e:

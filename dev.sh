@@ -7,8 +7,8 @@ pkill python || true
 # Wait briefly to ensure processes are terminated
 sleep 1
 
-# Default to port 5003 to avoid conflicts with AirPlay Receiver on macOS (port 5000)
-port=${PORT:-5003}
+# Default to port 5001 to avoid conflicts with AirPlay Receiver on macOS (port 5000)
+port=${PORT:-5001}
 echo "Starting development server on port $port"
 
 # Start Flask in development mode

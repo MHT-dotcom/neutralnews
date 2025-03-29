@@ -24,7 +24,7 @@ def test_query(query):
     try:
         # Make request to local server
         response = requests.post(
-            "http://localhost:5000/data", 
+            "http://localhost:5001/data", 
             data={"event": query},
             timeout=30
         )

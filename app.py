@@ -100,7 +100,7 @@ def validate_critical_config():
     # Check required port availability (in development)
     if os.getenv("FLASK_ENV") == "development":
         import socket
-        port = int(os.getenv("PORT", 5005))
+        port = int(os.getenv("PORT", 5001))
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.bind(("127.0.0.1", port))
@@ -269,7 +269,7 @@ def server_error(e):
 
 # Entry point to run the application
 if __name__ == "__main__":
-    logger.info(f"Starting server on port {os.getenv('PORT', 5005)}")
+    logger.info(f"Starting server on port {os.getenv('PORT', 5001)}")
     logger.info(f"Application initialized at {app_start_time}")
     
     # Collect and log platform and system information for debugging
@@ -280,4 +280,4 @@ if __name__ == "__main__":
     
     # Start the server
     logger.info("Application fully initialized")
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5005)), debug=os.getenv('FLASK_ENV') == 'development')
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5001)), debug=os.getenv('FLASK_ENV') == 'development')
