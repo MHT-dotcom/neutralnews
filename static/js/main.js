@@ -86,48 +86,49 @@ $(document).ready(function() {
         $(this).css('opacity', '1');
     });
     
-    // Sentiment color utility
-    function getSentimentColor(score) {
-        if (score === 0) return '#e2e8f0';  // Neutral gray
-        let red, green, blue;
-        if (score < 0) {
-            let factor = 1 + score;  // Convert -1..0 to 0..1
-            red = 239;  // #ef4444
-            green = Math.round(68 + (148 * factor));
-            blue = Math.round(68 + (148 * factor));
-        } else {
-            let factor = score;  // Already 0..1
-            red = Math.round(226 - (127 * factor));
-            green = Math.round(232 - (111 * factor));
-            blue = Math.round(240 + (15 * factor));
-        }
-        return `rgb(${red}, ${green}, ${blue})`;
-    }
-    
-    // Sentiment width utility
-    function getSentimentWidth(score) {
-        return 20 + (Math.abs(score) * 80) + '%';
-    }
-    
-    // Sentiment label utility
-    function getSentimentLabel(score) {
-        if (Math.abs(score) < 0.2) return "Neutral";
-        if (score < -0.6) return "Very Negative";
-        if (score < -0.2) return "Somewhat Negative";
-        if (score > 0.6) return "Very Positive";
-        if (score > 0.2) return "Somewhat Positive";
-        return "Neutral";
-    }
-    
     // Source color utility
     function getSourceColor(sourceName, index) {
+        // Predefined colors for major news sources
         const sourceColors = {
-            'BBC News': '#BB1919', 'CNN': '#CC0000', 'Fox News': '#003366',
-            'The Guardian': '#052962', 'The New York Times': '#000000',
-            'Reuters': '#FF8000', 'Associated Press': '#FF0000',
-            'Washington Post': '#000000', 'CNBC': '#005594', 'Bloomberg': '#000000'
+            'BBC News': '#BB1919', 
+            'CNN': '#CC0000', 
+            'Fox News': '#003366',
+            'Guardian': '#052962', 
+            'The Guardian': '#052962',
+            'New York Times': '#000000',
+            'The New York Times': '#000000',
+            'Reuters': '#FF8000', 
+            'Associated Press': '#0C4B86',
+            'AP': '#0C4B86',
+            'Washington Post': '#1955A5', 
+            'CNBC': '#005594', 
+            'Bloomberg': '#000000',
+            'ABC News': '#0976B4',
+            'NBC News': '#5A83B1',
+            'CBS News': '#000000',
+            'USA Today': '#0078BE',
+            'Wall Street Journal': '#173B67',
+            'Breitbart': '#A91100',
+            'Breitbart News': '#A91100',
+            'Business Insider': '#2668B0',
+            'NPR': '#D62021',
+            'The Times of India': '#E34925',
+            'Gizmodo': '#00AEEF',
+            'Gizmodo.com': '#00AEEF',
+            'The Verge': '#5F9DF7',
+            'Wired': '#95ADC0',
+            'Newsweek': '#FF0500'
         };
-        return sourceColors[sourceName] || `hsl(${(index * 137.5) % 360}, 70%, 50%)`;
+        
+        // Return predefined color if available
+        if (sourceColors[sourceName]) {
+            return sourceColors[sourceName];
+        }
+        
+        // Generate a vibrant color based on index
+        // Using a golden ratio approach for better distribution
+        const hue = (index * 137.5) % 360; // Golden ratio approximation
+        return `hsl(${hue}, 75%, 45%)`;
     }
     
     // Calculate balance score
@@ -153,43 +154,102 @@ $(document).ready(function() {
         $sourceChart.empty();
         $sourceLegend.empty();
         
-        const sources = Object.keys(sourceDistribution);
-        const totalArticles = Object.values(sourceDistribution).reduce((sum, count) => sum + count, 0);
+        // Process the source distribution to handle object-like strings
+        const processedDistribution = {};
+        for (const source in sourceDistribution) {
+            let sourceName = source;
+            
+            // Handle string that looks like object
+            if (typeof sourceName === 'string' && sourceName.startsWith('{') && sourceName.includes('name')) {
+                try {
+                    // Try to extract using regex first
+                    const nameMatch = sourceName.match(/['"]name['"]:\s*['"]([^'"]+)['"]/);
+                    if (nameMatch && nameMatch[1]) {
+                        sourceName = nameMatch[1];
+                    } else {
+                        // Try parsing as JSON if regex fails
+                        const sourceObj = JSON.parse(sourceName.replace(/'/g, '"'));
+                        if (sourceObj && sourceObj.name) {
+                            sourceName = sourceObj.name;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing source object string:', e);
+                }
+            }
+            
+            // Add to processed distribution, combining counts for same source
+            if (processedDistribution[sourceName]) {
+                processedDistribution[sourceName] += sourceDistribution[source];
+            } else {
+                processedDistribution[sourceName] = sourceDistribution[source];
+            }
+        }
+        
+        const sources = Object.keys(processedDistribution);
+        const totalArticles = Object.values(processedDistribution).reduce((sum, count) => sum + count, 0);
         
         $('#source-count').text(sources.length);
-        const balanceScore = calculateBalanceScore(sourceDistribution);
+        const balanceScore = calculateBalanceScore(processedDistribution);
         $('#balance-score').text(balanceScore + '/100');
         
-        sources.forEach((source, index) => {
-            const count = sourceDistribution[source];
+        // Sort sources by count for better visualization
+        const sortedSources = sources.sort((a, b) => processedDistribution[b] - processedDistribution[a]);
+        
+        sortedSources.forEach((source, index) => {
+            const count = processedDistribution[source];
             const percentage = Math.round((count / totalArticles) * 100);
-            const height = Math.max(20, percentage * 2);
+            const height = Math.max(30, percentage * 2); // Minimum height of 30px
             const color = getSourceColor(source, index);
             
+            // Create the bar with appropriate height and color
             const $bar = $('<div>')
                 .addClass('source-bar tooltip')
-                .css({ 'height': height + 'px', 'background-color': color })
+                .css({ 
+                    'height': height + 'px', 
+                    'background-color': color,
+                    'flex-grow': count, // Make wider bars for sources with more articles
+                })
                 .appendTo($sourceChart);
+            
+            // Add percentage label to each bar
             $('<div>').addClass('source-percentage').text(percentage + '%').appendTo($bar);
+            
+            // Add tooltip with detailed information
             $('<span>').addClass('tooltip-text').text(`${source}: ${count} articles (${percentage}%)`).appendTo($bar);
             
+            // Create legend item
             const $legendItem = $('<div>').addClass('legend-item').appendTo($sourceLegend);
             $('<div>').addClass('legend-color').css('background-color', color).appendTo($legendItem);
             $('<div>').addClass('legend-label').text(`${source} (${count})`).appendTo($legendItem);
         });
         
+        // Show/hide toggle for mobile
         if (window.innerWidth <= 640 && sources.length > 6) {
             const $legendItems = $sourceLegend.find('.legend-item');
             $legendItems.slice(6).hide();
-            $('<button>')
-                .addClass('clear-button')
-                .text('Show All Sources')
-                .css({ 'margin-top': '0.5rem', 'width': 'auto', 'padding': '0.5rem' })
-                .appendTo($sourceLegend)
-                .on('click', function() {
-                    $legendItems.slice(6).toggle();
-                    $(this).text($(this).text() === 'Show All Sources' ? 'Show Less' : 'Show All Sources');
-                });
+            
+            // Check if button already exists
+            if (!$sourceLegend.find('.show-all-button').length) {
+                $('<button>')
+                    .addClass('show-all-button')
+                    .text('Show All Sources')
+                    .css({ 
+                        'margin-top': '0.5rem', 
+                        'width': 'auto', 
+                        'padding': '0.5rem',
+                        'background-color': 'var(--accent)',
+                        'color': 'white',
+                        'border': 'none',
+                        'border-radius': '4px',
+                        'cursor': 'pointer'
+                    })
+                    .appendTo($sourceLegend)
+                    .on('click', function() {
+                        $legendItems.slice(6).toggle();
+                        $(this).text($(this).text() === 'Show All Sources' ? 'Show Less' : 'Show All Sources');
+                    });
+            }
         }
     }
 
@@ -229,6 +289,32 @@ $(document).ready(function() {
         $loading.hide();
         if (articles && articles.length > 0) {
             let articlesHtml = articles.map(article => {
+                // Extract source name if it's an object or an object string
+                let sourceName = article.source;
+                
+                // Handle if sourceName is a string that looks like an object
+                if (typeof sourceName === 'string' && sourceName.startsWith('{') && sourceName.includes('name')) {
+                    try {
+                        // Try to extract using regex first
+                        const nameMatch = sourceName.match(/['"]name['"]:\s*['"]([^'"]+)['"]/);
+                        if (nameMatch && nameMatch[1]) {
+                            sourceName = nameMatch[1];
+                        } else {
+                            // Try parsing as JSON if regex fails
+                            const sourceObj = JSON.parse(sourceName.replace(/'/g, '"'));
+                            if (sourceObj && sourceObj.name) {
+                                sourceName = sourceObj.name;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing source object string:', e);
+                    }
+                }
+                // Handle if sourceName is an actual object
+                else if (typeof sourceName === 'object' && sourceName !== null) {
+                    sourceName = sourceName.name || sourceName.title || 'Unknown Source';
+                }
+                
                 return `
                     <div class="article-card">
                         <h3 class="article-title">
@@ -237,17 +323,10 @@ $(document).ready(function() {
                             </a>
                         </h3>
                         <div class="article-meta">
-                            <span class="source">${article.source}</span>
+                            <span class="source">${sourceName}</span>
                             ${article.published_at ? `<span class="article-date"> • ${new Date(article.published_at).toLocaleDateString()}</span>` : ''}
                         </div>
                         <p class="article-content">${article.content}</p>
-                        <div class="sentiment-bar">
-                            <div class="sentiment-indicator" style="
-                                width: ${getSentimentWidth(article.sentiment_score)};
-                                background-color: ${getSentimentColor(article.sentiment_score)};
-                            "></div>
-                        </div>
-                        <div class="sentiment-label">${getSentimentLabel(article.sentiment_score)}</div>
                     </div>
                 `;
             }).join('');
@@ -258,13 +337,6 @@ $(document).ready(function() {
             console.log('After update:', {
                 summaryContent: $results.find('.summary-card .summary-content').html(),
                 summaryCardVisible: $results.find('.summary-card').is(':visible')
-            });
-            
-            $results.find('#articles-analyzed').text(articles.length);
-            $results.find('#average-sentiment').text(getSentimentLabel(metadata.average_sentiment));
-            $results.find('#sentiment-gauge-indicator').css({
-                'width': getSentimentWidth(metadata.average_sentiment),
-                'background-color': getSentimentColor(metadata.average_sentiment)
             });
             
             if (metadata.source_distribution) {
@@ -327,14 +399,13 @@ $(document).ready(function() {
                 console.log('Image container updated with responsive picture element');
             } else {
                 console.log('No image path in metadata');
-                $imageContainer.html('<p>No image available.</p>').show();
+                $imageContainer.hide();
             }
             
             $results.show();
             $results.find('.summary-card').show();
             $results.find('.articles-card').show();
             $results.find('.clear-button').show();
-            $results.find('.sentiment-summary').show();
         } else {
             console.log('No articles found, showing error message');
             $errorMessage.text('No articles found.').show();
@@ -363,7 +434,6 @@ $(document).ready(function() {
         $results.find('.summary-card').hide();
         $results.find('.articles-card').hide();
         $results.find('.clear-button').hide();
-        $results.find('.sentiment-summary').hide();
         $results.find('.source-dashboard').hide();
         $trendingContainer.hide();
         $imageContainer.hide();
@@ -449,7 +519,6 @@ $(document).ready(function() {
         $results.find('.summary-card').hide();
         $results.find('.articles-card').hide();
         $results.find('.clear-button').hide();
-        $results.find('.sentiment-summary').hide();
         $results.find('.source-dashboard').hide();
         $trendingContainer.hide();
         $imageContainer.hide();

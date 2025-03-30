@@ -1,0 +1,20 @@
+{
+  "month": "2025-03",
+  "count": 0,
+  "total_cost": 0.0,
+  "history": [],
+  "queries": [
+    {
+      "timestamp": "2025-03-30T10:56:54.539271",
+      "query": "Test query"
+    },
+    {
+      "timestamp": "2025-03-30T10:56:54.539856",
+      "query": "Test query exceeding limit"
+    },
+    {
+      "timestamp": "2025-03-30T10:57:49.721743",
+      "query": "beautiful-park"
+    }
+  ]
+}

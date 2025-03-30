@@ -985,89 +985,177 @@ def fetch_trending_articles(topics, max_articles_per_topic=3):
                 trending_data[topic] = []
     return trending_data
 
-async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
+async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK, min_articles=15):
     """
-    Asynchronously fetch articles from multiple sources using asyncio.
-    This replaces the ThreadPoolExecutor approach with true non-blocking async IO.
-    Uses a diversified fetcher for NewsAPI.org to improve article quality and source diversity.
+    Asynchronously fetch articles from multiple sources using asyncio with priority-based fetching.
+    Groups APIs into tiers based on speed and reliability, starts all fetches concurrently,
+    but processes results in priority order for faster response times.
     """
-    logger.info(f"Starting async fetching of articles for '{event}'")
+    logger.info(f"Starting priority-based parallel fetching for '{event}'")
     # Log the current timeout settings
     log_request_timeout_settings()
     
-    fetch_functions = [
+    # Define API tiers based on typical speed/reliability
+    tier1_apis = [
         (async_fetch_newsapi_org_diversified, "NewsAPI.org (Diversified)", USE_NEWSAPI_ORG),
-        (async_fetch_guardian, "Guardian", USE_GUARDIAN),
-        (async_fetch_aylien_articles, "Aylien", USE_AYLIEN),
+        (async_fetch_guardian, "Guardian", USE_GUARDIAN)
+    ]
+    
+    tier2_apis = [
         (async_fetch_gnews_articles, "GNews", USE_GNEWS),
-        (async_fetch_nyt_articles, "NYT", USE_NYT),
+        (async_fetch_nyt_articles, "NYT", USE_NYT)
+    ]
+    
+    tier3_apis = [
         (async_fetch_mediastack_articles, "Mediastack", USE_MEDIASTACK),
+        (async_fetch_aylien_articles, "Aylien", USE_AYLIEN),
         (async_fetch_newsapi_ai_articles, "NewsAPI.ai", USE_NEWSDATA)
     ]
     
-    # Filter out disabled sources
-    enabled_functions = [(func, name) for func, name, enabled in fetch_functions if enabled]
+    # Initialize results array with empty lists for each API
+    all_results = [[] for _ in range(7)]  # 7 APIs total
+    api_names = []
+    api_tasks = {}
     
-    if not enabled_functions:
+    # Track indices for mapping task results back to the correct position
+    api_indices = {}
+    current_index = 0
+    
+    # Start all fetch operations concurrently
+    for tier in [tier1_apis, tier2_apis, tier3_apis]:
+        for func, name, enabled in tier:
+            if enabled:
+                logger.info(f"Creating task for {name}")
+                task = asyncio.create_task(func(event, days_back=days_back))
+                api_tasks[task] = (name, current_index)
+                api_indices[name] = current_index
+                api_names.append(name)
+                current_index += 1
+    
+    if not api_tasks:
         logger.warning("No news sources are enabled. Check your configuration.")
         return [], [], [], [], [], [], []
-        
-    # Execute all enabled fetchers concurrently
+    
+    # Process tiers in priority order
+    successful_sources = []
+    failed_sources = []
+    total_articles = 0
+    
     try:
-        tasks = [func(event, days_back=days_back) for func, name in enabled_functions]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        
-        # Process results and handle exceptions
-        processed_results = []
-        successful_sources = []
-        failed_sources = []
-        
-        for i, result in enumerate(results):
-            func, name = enabled_functions[i]
-            if isinstance(result, Exception):
-                logger.error(f"Error in {name} fetcher: {result}")
-                processed_results.append([])
-                failed_sources.append(name)
-            else:
-                processed_results.append(result)
-                if not result:  # Empty result list
-                    logger.warning(f"No articles found from {name} for '{event}'")
-                    failed_sources.append(name)
-                else:
-                    logger.info(f"{name}: Fetched {len(result)} articles for '{event}'")
-                    successful_sources.append(name)
+        # Process Tier 1 APIs first (fastest/most reliable)
+        tier1_names = [name for _, name, _ in tier1_apis if name in api_names]
+        if tier1_names:
+            logger.info(f"Awaiting Tier 1 APIs: {', '.join(tier1_names)}")
+            tier1_tasks = [task for task, (name, _) in api_tasks.items() if name in tier1_names]
+            tier1_results = await asyncio.gather(*tier1_tasks, return_exceptions=True)
+            
+            # Process Tier 1 results
+            for task, result in zip(tier1_tasks, tier1_results):
+                name, index = api_tasks[task]
                 
-        # Fill in gaps for disabled fetchers
-        final_results = []
-        result_index = 0
-        disabled_sources = []
+                if isinstance(result, Exception):
+                    logger.error(f"Error in {name} fetcher: {result}")
+                    failed_sources.append(name)
+                    all_results[index] = []
+                else:
+                    all_results[index] = result
+                    if not result:  # Empty result list
+                        logger.warning(f"No articles found from {name} for '{event}'")
+                        failed_sources.append(name)
+                    else:
+                        logger.info(f"{name}: Fetched {len(result)} articles for '{event}'")
+                        successful_sources.append(name)
+                        total_articles += len(result)
+            
+            # Early return if we have enough articles from Tier 1
+            if total_articles >= min_articles:
+                logger.info(f"Early return with {total_articles} articles from Tier 1 sources")
+                # Cancel remaining tasks
+                for task in list(api_tasks.keys()):
+                    if task not in tier1_tasks and not task.done():
+                        task.cancel()
+                        logger.info(f"Cancelled task for {api_tasks[task][0]} due to early return")
+                
+                return tuple(all_results)
         
-        for func, name, enabled in fetch_functions:
-            if enabled:
-                final_results.append(processed_results[result_index])
-                result_index += 1
-            else:
-                final_results.append([])
-                disabled_sources.append(name)
+        # Process Tier 2 APIs next
+        tier2_names = [name for _, name, _ in tier2_apis if name in api_names]
+        if tier2_names:
+            logger.info(f"Awaiting Tier 2 APIs: {', '.join(tier2_names)}")
+            tier2_tasks = [task for task, (name, _) in api_tasks.items() if name in tier2_names]
+            tier2_results = await asyncio.gather(*tier2_tasks, return_exceptions=True)
+            
+            # Process Tier 2 results
+            for task, result in zip(tier2_tasks, tier2_results):
+                name, index = api_tasks[task]
+                
+                if isinstance(result, Exception):
+                    logger.error(f"Error in {name} fetcher: {result}")
+                    failed_sources.append(name)
+                    all_results[index] = []
+                else:
+                    all_results[index] = result
+                    if not result:  # Empty result list
+                        logger.warning(f"No articles found from {name} for '{event}'")
+                        failed_sources.append(name)
+                    else:
+                        logger.info(f"{name}: Fetched {len(result)} articles for '{event}'")
+                        successful_sources.append(name)
+                        total_articles += len(result)
+            
+            # Early return if we have enough articles from Tiers 1-2
+            if total_articles >= min_articles:
+                logger.info(f"Early return with {total_articles} articles from Tier 1-2 sources")
+                # Cancel remaining tasks
+                for task in list(api_tasks.keys()):
+                    if task not in tier1_tasks and task not in tier2_tasks and not task.done():
+                        task.cancel()
+                        logger.info(f"Cancelled task for {api_tasks[task][0]} due to early return")
+                
+                return tuple(all_results)
         
-        success_rate = len(successful_sources) / len(enabled_functions) if enabled_functions else 0
-        logger.info(f"Async fetching complete for '{event}' - Success rate: {success_rate:.2%}")
+        # Process Tier 3 APIs last (slowest/least reliable)
+        tier3_names = [name for _, name, _ in tier3_apis if name in api_names]
+        if tier3_names:
+            logger.info(f"Awaiting Tier 3 APIs: {', '.join(tier3_names)}")
+            tier3_tasks = [task for task, (name, _) in api_tasks.items() if name in tier3_names]
+            tier3_results = await asyncio.gather(*tier3_tasks, return_exceptions=True)
+            
+            # Process Tier 3 results
+            for task, result in zip(tier3_tasks, tier3_results):
+                name, index = api_tasks[task]
+                
+                if isinstance(result, Exception):
+                    logger.error(f"Error in {name} fetcher: {result}")
+                    failed_sources.append(name)
+                    all_results[index] = []
+                else:
+                    all_results[index] = result
+                    if not result:  # Empty result list
+                        logger.warning(f"No articles found from {name} for '{event}'")
+                        failed_sources.append(name)
+                    else:
+                        logger.info(f"{name}: Fetched {len(result)} articles for '{event}'")
+                        successful_sources.append(name)
+                        total_articles += len(result)
+        
+        success_rate = len(successful_sources) / len(api_names) if api_names else 0
+        logger.info(f"Priority-based parallel fetching complete for '{event}' - Success rate: {success_rate:.2%}")
+        logger.info(f"Total articles fetched: {total_articles}")
         
         if successful_sources:
             logger.info(f"Successful sources ({len(successful_sources)}): {', '.join(successful_sources)}")
         if failed_sources:
             logger.warning(f"Failed sources ({len(failed_sources)}): {', '.join(failed_sources)}")
-        if disabled_sources:
-            logger.info(f"Disabled sources ({len(disabled_sources)}): {', '.join(disabled_sources)}")
         
         # Check if we have at least some minimum success rate
-        if success_rate < 0.3 and len(enabled_functions) > 2:
-            logger.error(f"Critical failure rate in news fetching for '{event}' - Only {len(successful_sources)}/{len(enabled_functions)} sources succeeded")
+        if success_rate < 0.3 and len(api_names) > 2:
+            logger.error(f"Critical failure rate in news fetching for '{event}' - Only {len(successful_sources)}/{len(api_names)} sources succeeded")
             
-        return tuple(final_results)
+        return tuple(all_results)
         
     except Exception as e:
-        logger.error(f"Error in async_fetch_articles: {e}")
+        logger.error(f"Error in priority-based parallel fetching: {e}")
         # Return empty lists for all fetchers
         return [], [], [], [], [], [], []
 

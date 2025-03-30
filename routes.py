@@ -11,7 +11,7 @@ from fetchers import (fetch_newsapi_org, fetch_guardian, fetch_aylien_articles,
                      fetch_gnews_articles, fetch_nyt_articles, fetch_mediastack_articles,
                      fetch_newsapi_ai_articles, async_fetch_articles)
 from processors import (process_articles, remove_duplicates, filter_relevant_articles,
-                       summarize_articles, ModelManager)
+                       summarize_articles)
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N, CACHE_CONFIG, DEBUG)
@@ -128,12 +128,13 @@ def fetch_and_process_data(event):
         all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
                         std_nyt + std_mediastack + std_newsapi_ai)
         
-        logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles to avoid crashes")
+        # Skip sentiment analysis, just set sentiment_score to 0 for all articles
+        logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles")
         sentiment_start = time.time()
         for article in all_articles:
             article['sentiment_score'] = 0
         sentiment_time = time.time() - sentiment_start
-        logger.info(f"Sentiment processing (disabled) took {sentiment_time:.2f} seconds")
+        logger.info(f"Sentiment processing (removed) took {sentiment_time:.2f} seconds")
         
         standardize_time = time.time() - standardize_start
         logger.info(f"Standardization took {standardize_time:.2f} seconds for event '{event}'")
@@ -351,10 +352,6 @@ def fetch_and_process_data(event):
     except Exception as e:
         total_time = time.time() - start_time
         logger.error(f"Exception occurred, total time: {total_time:.2f} seconds, error: {str(e)}, ending at {time.time()}", exc_info=True)
-        try:
-            ModelManager.get_instance().clear_models()
-        except Exception as clear_error:
-            logger.warning(f"Failed to clear models after error: {clear_error}")
         return None, None, f"An unexpected error occurred while processing '{event}'. Please try again later."
 
 @routes.route('/', methods=['GET', 'POST'])
@@ -702,12 +699,13 @@ def process_news_request(event, include_images=True):
                 if success_rate < 0.5:
                     warning_message = "Several news sources were unavailable. Results may be limited."
             
-            logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles to avoid crashes")
+            # Skip sentiment analysis, just set sentiment_score to 0 for all articles
+            logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles")
             sentiment_start = time.time()
             for article in all_articles:
                 article['sentiment_score'] = 0
             sentiment_time = time.time() - sentiment_start
-            logger.info(f"Sentiment processing (disabled) took {sentiment_time:.2f} seconds")
+            logger.info(f"Sentiment processing (removed) took {sentiment_time:.2f} seconds")
             
             standardize_time = time.time() - standardize_start
             logger.info(f"Standardization took {standardize_time:.2f} seconds for event '{event}'")
@@ -855,7 +853,8 @@ def process_news_request(event, include_images=True):
             
             # Store in database for caching
             try:
-                avg_sentiment = sum(article.get('sentiment_score', 0) for article in articles) / len(articles) if articles else 0
+                # Set sentiment score to 0 as we've removed sentiment analysis
+                avg_sentiment = 0
                 logger.info(f"Storing result in database for '{event}'")
                 c.execute("""INSERT INTO search_history 
                              (query, timestamp, summary, average_sentiment, 
@@ -1422,3 +1421,59 @@ def analytics_dashboard():
 def favicon():
     """Serve the favicon from the static folder."""
     return current_app.send_static_file('favicon/favicon.svg')
+
+@routes.route('/admin/budget-status')
+def budget_status():
+    """Admin endpoint to view budget status for Stability AI."""
+    from budget_control import get_budget_summary, MONTHLY_BUDGET_USD, COST_PER_IMAGE_USD, MAX_MONTHLY_GENERATIONS
+    import json
+    from flask import jsonify
+    from datetime import datetime
+    
+    # Get budget info
+    budget_info = get_budget_summary()
+    
+    # Add more helpful data
+    days_in_current_month = (datetime.now().replace(day=28) + timedelta(days=4)).replace(day=1).replace(day=1) - timedelta(days=1)
+    days_in_current_month = days_in_current_month.day
+    days_passed = datetime.now().day
+    days_remaining = days_in_current_month - days_passed
+    
+    # Calculate run rate and estimates
+    if days_passed > 0:
+        run_rate_per_day = budget_info['used'] / days_passed
+        estimated_monthly_total = run_rate_per_day * days_in_current_month
+    else:
+        run_rate_per_day = 0
+        estimated_monthly_total = 0
+    
+    # Format for display
+    return jsonify({
+        'status': 'ok',
+        'budget_info': budget_info,
+        'configuration': {
+            'monthly_budget_usd': MONTHLY_BUDGET_USD,
+            'cost_per_image_usd': COST_PER_IMAGE_USD,
+            'max_monthly_generations': MAX_MONTHLY_GENERATIONS
+        },
+        'current_month': {
+            'name': datetime.now().strftime('%B %Y'),
+            'days_total': days_in_current_month,
+            'days_passed': days_passed,
+            'days_remaining': days_remaining,
+            'percentage_of_month_passed': (days_passed / days_in_current_month) * 100
+        },
+        'usage': {
+            'total_images': budget_info['used'],
+            'remaining_images': budget_info['remaining'],
+            'total_cost': f"${budget_info['total_cost']:.2f}",
+            'remaining_budget': f"${budget_info['remaining_cost']:.2f}",
+            'usage_percentage': f"{budget_info['percentage_used']:.1f}%",
+            'run_rate_per_day': run_rate_per_day,
+            'estimated_monthly_total': estimated_monthly_total,
+            'on_budget': estimated_monthly_total <= MAX_MONTHLY_GENERATIONS
+        },
+        'message': f"Used {budget_info['used']}/{budget_info['limit']} images (${budget_info['total_cost']:.2f}/${budget_info['budget']:.2f})",
+        'remaining': f"{budget_info['remaining']} images (${budget_info['remaining_cost']:.2f})",
+        'budget_status': "Available" if budget_info['remaining'] > 0 else "Exhausted"
+    })

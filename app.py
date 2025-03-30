@@ -9,7 +9,6 @@ import sqlite3
 import json
 from datetime import date, timedelta
 from flask_cors import CORS
-from processors import ModelManager
 from topics import get_trending_topics, initialize_trending_images
 import requests
 import certifi
@@ -18,6 +17,7 @@ from utils import secure_log_key  # Import the secure logging function
 import threading
 import time
 import random
+from image_cache import get_instance
 
 # Set up logging
 logger = logging.getLogger('neutralnews')
@@ -41,6 +41,14 @@ CORS(app)
 
 # Set the application start time for health checks
 app.start_time = app_start_time
+
+# Import and add middleware to fix source names
+try:
+    from fix_source_names import fix_source_names_middleware
+    app.after_request(fix_source_names_middleware)
+    logger.info("Source name fixing middleware added")
+except ImportError:
+    logger.warning("fix_source_names module not found, source names may not display correctly")
 
 # Load environment variables - Use secure logging to mask API keys
 grok_key = secure_log_key(os.getenv("GROK_API_KEY", "Not set"))
@@ -132,7 +140,7 @@ def init_db():
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS search_history
                  (id INTEGER PRIMARY KEY, query TEXT NOT NULL, timestamp DATETIME NOT NULL,
-                  summary TEXT, average_sentiment REAL, articles TEXT, source_distribution TEXT, image_path TEXT)''')
+                  summary TEXT, average_sentiment REAL DEFAULT 0.0, articles TEXT, source_distribution TEXT, image_path TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS hot_topics
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, topics TEXT NOT NULL, fetch_date DATE NOT NULL)''')
     try:
@@ -156,10 +164,8 @@ def init_db():
 with app.app_context():
     init_db()
 
-# Preload sentiment model
-logger.info("Preloading sentiment analysis model...")
-ModelManager.get_instance()
-logger.info("Sentiment analysis model preloaded")
+# No need to preload sentiment model anymore
+logger.info("Starting app without sentiment analysis")
 
 # Import configuration
 from config_prod import cache, CACHE_CONFIG, MAX_ARTICLES_PER_SOURCE, DEBUG

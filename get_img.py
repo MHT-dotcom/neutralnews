@@ -7,6 +7,8 @@ import logging
 import requests
 from flask import current_app
 import image_cache
+# Import the budget control module
+import budget_control
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -141,7 +143,7 @@ def generate_and_save_image(summary, query, include_images=True):
         
         # Check if the image is in our cache (unless force regenerate)
         if not force_regenerate:
-            cached_path = cache.get_image_path(query)
+            cached_path = cache.get_image_path(query) if cache else None
             if cached_path:
                 logger.info(f"Image found in cache: {cached_path}")
                 
@@ -164,7 +166,8 @@ def generate_and_save_image(summary, query, include_images=True):
                             # If WebP file is smaller, update cache
                             if os.path.getsize(webp_path) < os.path.getsize(cached_path):
                                 logger.info(f"Optimized image from {file_size_kb:.1f}KB to {os.path.getsize(webp_path) / 1024:.1f}KB")
-                                cache.add_image(query, webp_path)
+                                if cache:
+                                    cache.add_image(query, webp_path)
                                 return webp_path, True
                             else:
                                 # Remove WebP if it's not smaller
@@ -181,12 +184,20 @@ def generate_and_save_image(summary, query, include_images=True):
         if not force_regenerate and os.path.exists(image_path):
             logger.info(f"Image already exists at {image_path}")
             # Add to cache for future fast access
-            cache.add_image(query, image_path)
+            if cache:
+                cache.add_image(query, image_path)
             return image_path, True
         
         # Ensure the images directory exists
         os.makedirs(os.path.dirname(image_path), exist_ok=True)
         logger.info(f"Images directory ensured: {os.path.dirname(image_path)}")
+
+        # === CHECK BUDGET BEFORE GENERATING ===
+        # Check if we have budget available for this month
+        if not budget_control.is_budget_available():
+            logger.warning(f"Monthly budget limit reached for Stability AI. Disabling image generation completely.")
+            # Return None to indicate no image, like when include_images=False
+            return None, False
 
         # Generate prompt from summary
         prompt = f"A digital illustration of: {summary}"
@@ -199,15 +210,27 @@ def generate_and_save_image(summary, query, include_images=True):
             if image.width > max_size or image.height > max_size:
                 image.thumbnail((max_size, max_size), Image.LANCZOS)
                 
-            # Save as WebP for better compression
+            # Save the image as WebP for better compression
             image.save(image_path, 'WEBP', quality=quality)
             logger.info(f"Image saved to {image_path} via Stability AI")
-            logger.info(f"File exists after save: {os.path.exists(image_path)}")
-            logger.info(f"File size: {os.path.getsize(image_path) / 1024:.1f}KB")
             
-            # Add to cache
-            cache.add_image(query, image_path)
-            return image_path, True
+            # Verify file exists and log size
+            file_exists = os.path.exists(image_path)
+            logger.info(f"File exists after save: {file_exists}")
+            
+            if file_exists:
+                file_size_kb = os.path.getsize(image_path) / 1024
+                logger.info(f"File size: {file_size_kb:.1f}KB")
+                
+                # Add to cache for future fast access
+                if cache:
+                    cache.add_image(query, image_path)
+                
+                # Log usage since we successfully generated an image
+                budget_control.increment_usage(query)
+                return image_path, True
+            else:
+                logger.error(f"File does not exist after save: {image_path}")
         
         # Fallback to OpenAI
         image = generate_with_openai(prompt)

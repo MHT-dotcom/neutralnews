@@ -398,17 +398,26 @@ def text_to_emoji(text):
 # Fallback topics for different time periods
 FALLBACK_TOPICS = {
     "today": [
+        ['U.S. Vice-President Advocates for Greenland Acquisition Amid Political Tensions', 'Greenland Acquisition'],
+        ['Leaked Signal Messages Reveal U.S. Military Plans, Prompting Investigations', 'U.S. Military Leak'],
+        ['Federal Judge Blocks Trumps Order Against Law Firm in Legal Setback', 'Trump Legal Setback'],
+        ['Dow Plummets 716 Points as U.S. Stocks Experience Significant Decline', 'Stock Market Decline'],
+        ['Death Toll Rises to 694 Following Powerful Earthquake in Myanmar', 'Myanmar Earthquake'],
+        ['ChatGPTs New Feature Transforms Photos into Studio Ghibli-Style Images', 'ChatGPT Ghibli'],
+        ['Nintendo Announces Live-Action "The Legend of Zelda" Movie Set for 2027 Release', 'Zelda Movie'],
+        ['Bitcoin Price Predictions Vary Amid Market Uncertainty', 'Bitcoin Prediction']
+        ],
+    "last_week": [
         ['Trump Imposes 25% Tariff on Venezuelan Oil Buyers', 'Trump Tariff'],
         ['Fed Signals Steady Rates Amid Inflation Watch', 'Fed Rates'],
         ['OpenAI Unveils Audio-Driven AI Agents', 'OpenAI Audio'],
         ['China Boosts Stimulus with New Infrastructure Plan', 'China Stimulus'],
-         ['JFK Files Released with New CIA Revelations', 'JFK assassination CIA'],
+        ['JFK Files Released with New CIA Revelations', 'JFK assassination CIA'],
         ['Russia Strikes Ukraine During Ceasefire Talks', 'Russia Ukraine'],
         ['Astronauts Splash Down After 9 Months in Space', 'Sunita Williams ISS'],
         ['Gemini Canvas Enhances AI Design Tools', 'Gemini Design']
-        ],
-
-    "last_week": [
+    ],
+    "last_month": [
         ['Tech Stocks Rebound After Volatile Week', 'Nasdaq recovery'],
         ['Tesla Unveils Robotaxi Plans for 2026 Rollout', 'Tesla robotaxi autonomous'],
         ['Federal Reserve Signals Potential Rate Cut', 'Fed interest rates economy'],
@@ -417,16 +426,6 @@ FALLBACK_TOPICS = {
         ['SpaceX Launches First Commercial Lunar Lander', 'SpaceX lunar lander commercial'],
         ['Greenland Protests Usha Vances Visit', 'Greenland Protest'],
         ['China Unveils New Economic Stimulus Package', 'China economy stimulus package']
-    ],
-    "last_month": [
-        ['US Passes Major Climate Legislation', 'climate bill emissions'],
-        ['Philippines Heatwave Prompts Emergency Measures', 'Philippines crisis'],
-        ['Major Tech Companies Announce Layoffs', 'tech layoffs recession'],
-        ['Japan Reopens Borders to International Tourism', 'Japan tourism COVID'],
-        ['Breakthrough in Nuclear Fusion Energy Announced', 'fusion energy breakthrough'],
-        ['Amazon Acquires Healthcare Provider for $4 Billion', 'Amazon healthcare acquisition'],
-        ['Ukraine-Russia Peace Talks Stall After New Sanctions', 'Ukraine Russia sanctions'],
-        ['New Malaria Vaccine Shows 80% Efficacy in Trials', 'malaria vaccine WHO']
     ]
 }
 
