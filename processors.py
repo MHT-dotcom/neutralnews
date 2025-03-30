@@ -243,6 +243,7 @@ def process_articles(articles, source):
                     'title': str(article.get('title', '')),
                     'url': str(article.get('url', '')),
                     'source': str(article.get('source', source)),
+                    'provider': source,
                     'description': str(article.get('description', '')),
                     'content': str(article.get('content', '')),
                     'published_at': str(article.get('published_at', '')),

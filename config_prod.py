@@ -19,7 +19,7 @@ GNEWS_API_KEY = os.environ.get("GNEWS_API_KEY", "")
 NYT_API_KEY = os.environ.get("NYT_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 MEDIASTACK_API_KEY = os.environ.get("MEDIASTACK_API_KEY", "")
-NEWSDATA_API_KEY = os.environ.get("NEWSDATA_API_KEY", "")
+NEWSDATAIO_API_KEY = os.environ.get("NEWSDATAIO_API_KEY", "")
 AYLIEN_APP_ID = os.environ.get("AYLIEN_APP_ID", "")
 AYLIEN_API_KEY = os.environ.get("AYLIEN_API_KEY", "")
 GROK_API_KEY = os.environ.get("GROK_API_KEY", "").replace("xai-", "")
@@ -52,7 +52,8 @@ USE_GNEWS = bool(GNEWS_API_KEY)
 USE_NYT = bool(NYT_API_KEY)
 USE_OPENAI = bool(OPENAI_API_KEY)
 USE_MEDIASTACK = bool(MEDIASTACK_API_KEY)
-USE_NEWSDATA = bool(NEWSDATA_API_KEY)
+USE_NEWSDATAIO = bool(NEWSDATAIO_API_KEY)
+USE_NEWSAPI_AI = bool(NEWSAPI_AI_KEY)
 USE_AYLIEN = bool(AYLIEN_APP_ID and AYLIEN_API_KEY)
 USE_GROK = bool(GROK_API_KEY)
 
@@ -73,9 +74,9 @@ GNEWS_URL = "https://gnews.io/api/v4/search"
 SUMMARIZER_MODEL = "facebook/bart-large-cnn"
 
 # Default Settings
-MAX_ARTICLES_PER_API = 15  # Increased from 8 to get more articles per API
-DEFAULT_TOP_N = 15  # Increased from 10 to 15 to allow more articles in the response
-RELEVANCE_THRESHOLD = 0.02  # Lowered from 0.05 to allow more articles through
+MAX_ARTICLES_PER_API = 25  # Increased from 8 to get more articles per API
+DEFAULT_TOP_N = 25  # Increased from 10 to 15 to allow more articles in the response
+RELEVANCE_THRESHOLD = 0.01  # Lowered from 0.05 to allow more articles through
 MAX_ARTICLES_PER_SOURCE = 5  # Adjusted to allow up to 4 articles per source for better distribution
 SUMMARIZER_MAX_LENGTH = 250
 SUMMARIZER_MIN_LENGTH = 100

@@ -97,7 +97,7 @@ def validate_critical_config():
         "GNEWS_API_KEY": os.getenv("GNEWS_API_KEY"),
         "NYT_API_KEY": os.getenv("NYT_API_KEY"),
         "MEDIASTACK_API_KEY": os.getenv("MEDIASTACK_API_KEY"),
-        "NEWSDATA_API_KEY": os.getenv("NEWSDATA_API_KEY"),
+        "NEWSDATAIO_API_KEY": os.getenv("NEWSDATAIO_API_KEY"),
         "GROK_API_KEY": os.getenv("GROK_API_KEY")
     }
     

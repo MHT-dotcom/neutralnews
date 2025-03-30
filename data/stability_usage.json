@@ -1,7 +1,7 @@
 {
   "month": "2025-03",
-  "count": 0,
-  "total_cost": 0.0,
+  "count": 9,
+  "total_cost": 1.3499999999999999,
   "history": [],
   "queries": [
     {
@@ -15,6 +15,42 @@
     {
       "timestamp": "2025-03-30T10:57:49.721743",
       "query": "beautiful-park"
+    },
+    {
+      "timestamp": "2025-03-30T19:32:04.949556",
+      "query": "airline news"
+    },
+    {
+      "timestamp": "2025-03-30T19:35:18.287065",
+      "query": "feral deer"
+    },
+    {
+      "timestamp": "2025-03-30T19:35:53.762091",
+      "query": "deforestation"
+    },
+    {
+      "timestamp": "2025-03-30T19:40:09.284418",
+      "query": "airline"
+    },
+    {
+      "timestamp": "2025-03-30T19:47:00.606284",
+      "query": "technology news"
+    },
+    {
+      "timestamp": "2025-03-30T20:00:27.078128",
+      "query": "space"
+    },
+    {
+      "timestamp": "2025-03-30T20:02:39.143039",
+      "query": "renewable energy"
+    },
+    {
+      "timestamp": "2025-03-30T20:05:27.946586",
+      "query": "cybersecurity"
+    },
+    {
+      "timestamp": "2025-03-30T20:06:19.319449",
+      "query": "elections"
     }
   ]
 }

@@ -14,7 +14,7 @@ from processors import (process_articles, remove_duplicates, filter_relevant_art
                        summarize_articles)
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
-                        NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N, CACHE_CONFIG, DEBUG)
+                        NEWSDATAIO_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N, CACHE_CONFIG, DEBUG)
 from get_img import generate_and_save_image, get_image_cache_stats, optimize_image_storage
 from topics import get_trending_topics
 
@@ -74,7 +74,7 @@ def fetch_and_process_data(event):
     logger.info(f"NYT_API_KEY: {'Available' if NYT_API_KEY else 'Missing'}")
     logger.info(f"OPENAI_API_KEY: {'Available' if OPENAI_API_KEY else 'Missing'}")
     logger.info(f"MEDIASTACK_API_KEY: {'Available' if MEDIASTACK_API_KEY else 'Missing'}")
-    logger.info(f"NEWSDATA_API_KEY: {'Available' if NEWSDATA_API_KEY else 'Missing'}")
+    logger.info(f"NEWSDATAIO_API_KEY: {'Available' if NEWSDATAIO_API_KEY else 'Missing'}")
     logger.info(f"AYLIEN keys: {'Available' if AYLIEN_APP_ID and AYLIEN_API_KEY else 'Missing'}")
     
     try:
@@ -91,7 +91,7 @@ def fetch_and_process_data(event):
         with ThreadPoolExecutor(max_workers=1) as executor:
             results = executor.submit(run_async_fetch).result()
         
-        newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles = results
+        newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles, newsdata_articles = results
         
         fetch_time = time.time() - fetch_start
         logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
@@ -103,12 +103,13 @@ def fetch_and_process_data(event):
                    f"GNews: {len(gnews_articles)}, "
                    f"NYT: {len(nyt_articles)}, "
                    f"Mediastack: {len(mediastack_articles)}, "
-                   f"NewsAPI.ai: {len(newsapi_ai_articles)}")
+                   f"NewsAPI.ai: {len(newsapi_ai_articles)}, "
+                   f"Newsdata: {len(newsdata_articles)}")
 
         total_fetched = (len(newsapi_org_articles) + len(guardian_articles) + 
                         len(aylien_articles) + len(gnews_articles) +
                         len(nyt_articles) + len(mediastack_articles) + 
-                        len(newsapi_ai_articles))
+                        len(newsapi_ai_articles) + len(newsdata_articles))
         logger.info(f"Total articles fetched for event '{event}': {total_fetched}")
         if total_fetched == 0:
             total_time = time.time() - start_time
@@ -124,9 +125,10 @@ def fetch_and_process_data(event):
         std_nyt = process_articles(nyt_articles, "NYT")
         std_mediastack = process_articles(mediastack_articles, "Mediastack")
         std_newsapi_ai = process_articles(newsapi_ai_articles, "NewsAPI.ai")
+        std_newsdata = process_articles(newsdata_articles, "NewsData.io")
         
         all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
-                        std_nyt + std_mediastack + std_newsapi_ai)
+                        std_nyt + std_mediastack + std_newsapi_ai + std_newsdata)
         
         # Skip sentiment analysis, just set sentiment_score to 0 for all articles
         logger.info(f"Skipping sentiment analysis for {len(all_articles)} articles")
@@ -180,11 +182,21 @@ def fetch_and_process_data(event):
         group_and_cap_start = time.time()
         logger.info(f"Starting grouping and capping for event '{event}' at {group_and_cap_start}")
         source_groups = {}
-        for article in relevant_articles:
+        
+        # Debug provider fields
+        logger.info(f"DEBUG: Provider fields in articles:")
+        for i, article in enumerate(relevant_articles[:10]):  # Log first 10 for brevity
+            provider = article.get('provider', 'None')
             source = article.get('source', 'Unknown')
-            if source not in source_groups:
-                source_groups[source] = []
-            source_groups[source].append(article)
+            logger.info(f"Article {i}: Provider={provider}, Source={source}, Title={article.get('title', 'No title')[:30]}...")
+        
+        for article in relevant_articles:
+            # For NewsData.io articles, use provider as the source group key
+            # For others, use the regular source field
+            source_key = article.get('provider', article.get('source', 'Unknown'))
+            if source_key not in source_groups:
+                source_groups[source_key] = []
+            source_groups[source_key].append(article)
         
         logger.info(f"Articles per source before capping for '{event}':")
         for source, articles_list in source_groups.items():
@@ -237,6 +249,7 @@ def fetch_and_process_data(event):
         group_and_cap_time = time.time() - group_and_cap_start
         logger.info(f"Grouping and capping took {group_and_cap_time:.2f} seconds for event '{event}'")
 
+        # Final distribution - counting by source not provider
         final_source_counts = {}
         for article in final_articles:
             source = article.get('source', 'Unknown')
@@ -272,6 +285,8 @@ def fetch_and_process_data(event):
             failed_sources.append("Mediastack")
         if not newsapi_ai_articles:
             failed_sources.append("NewsAPI.ai")
+        if not newsdata_articles:
+            failed_sources.append("NewsData.io")
         
         if failed_sources:
             error_message = "Showing results from available sources"
@@ -544,7 +559,7 @@ def process_news_request(event, include_images=True):
         logger.info(f"NYT_API_KEY: {'Available' if NYT_API_KEY else 'Missing'}")
         logger.info(f"OPENAI_API_KEY: {'Available' if OPENAI_API_KEY else 'Missing'}")
         logger.info(f"MEDIASTACK_API_KEY: {'Available' if MEDIASTACK_API_KEY else 'Missing'}")
-        logger.info(f"NEWSDATA_API_KEY: {'Available' if NEWSDATA_API_KEY else 'Missing'}")
+        logger.info(f"NEWSDATAIO_API_KEY: {'Available' if NEWSDATAIO_API_KEY else 'Missing'}")
         logger.info(f"AYLIEN keys: {'Available' if AYLIEN_APP_ID and AYLIEN_API_KEY else 'Missing'}")
         
         try:
@@ -561,7 +576,7 @@ def process_news_request(event, include_images=True):
             with ThreadPoolExecutor(max_workers=1) as executor:
                 results = executor.submit(run_async_fetch).result()
             
-            newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles = results
+            newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles, newsdata_articles = results
             
             fetch_time = time.time() - fetch_start
             logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
@@ -573,7 +588,8 @@ def process_news_request(event, include_images=True):
                       f"GNews: {len(gnews_articles)}, "
                       f"NYT: {len(nyt_articles)}, "
                       f"Mediastack: {len(mediastack_articles)}, "
-                      f"NewsAPI.ai: {len(newsapi_ai_articles)}")
+                      f"NewsAPI.ai: {len(newsapi_ai_articles)}, "
+                      f"Newsdata: {len(newsdata_articles)}")
 
             # Add debug logging for USE_* variables
             try:
@@ -584,10 +600,10 @@ def process_news_request(event, include_images=True):
                 logger.info(f"USE_GNEWS defined: {'Yes' if 'USE_GNEWS' in globals() else 'No'}")
                 logger.info(f"USE_NYT defined: {'Yes' if 'USE_NYT' in globals() else 'No'}")
                 logger.info(f"USE_MEDIASTACK defined: {'Yes' if 'USE_MEDIASTACK' in globals() else 'No'}")
-                logger.info(f"USE_NEWSDATA defined: {'Yes' if 'USE_NEWSDATA' in globals() else 'No'}")
+                logger.info(f"USE_NEWSDATAIO defined: {'Yes' if 'USE_NEWSDATAIO' in globals() else 'No'}")
                 
                 # Try importing directly from config
-                from config_prod import USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, USE_NYT, USE_MEDIASTACK, USE_NEWSDATA
+                from config_prod import USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, USE_NYT, USE_MEDIASTACK, USE_NEWSDATAIO
                 logger.info("Successfully imported USE_* flags from config_prod")
             except Exception as e:
                 logger.error(f"Error importing USE_* flags: {str(e)}")
@@ -598,7 +614,8 @@ def process_news_request(event, include_images=True):
                 USE_GNEWS = GNEWS_API_KEY is not None
                 USE_NYT = NYT_API_KEY is not None
                 USE_MEDIASTACK = MEDIASTACK_API_KEY is not None
-                USE_NEWSDATA = NEWSDATA_API_KEY is not None
+                USE_NEWSDATAIO = NEWSDATAIO_API_KEY is not None
+                USE_NEWSAPI_AI = NEWSAPI_AI_KEY is not None
                 logger.info("Using fallback values for USE_* flags based on API key availability")
                 
             # Identify failed sources
@@ -615,12 +632,14 @@ def process_news_request(event, include_images=True):
                 failed_sources.append("NYT")
             if not mediastack_articles and USE_MEDIASTACK:
                 failed_sources.append("Mediastack")
-            if not newsapi_ai_articles and USE_NEWSDATA:
+            if not newsapi_ai_articles and USE_NEWSDATAIO:
                 failed_sources.append("NewsAPI.ai")
+            if not newsdata_articles and USE_NEWSDATAIO:
+                failed_sources.append("NewsData.io")
             
             # Calculate success rate
             enabled_sources = sum([USE_NEWSAPI_ORG, USE_GUARDIAN, USE_AYLIEN, USE_GNEWS, 
-                                  USE_NYT, USE_MEDIASTACK, USE_NEWSDATA])
+                                  USE_NYT, USE_MEDIASTACK, USE_NEWSDATAIO])
             successful_sources = enabled_sources - len(failed_sources)
             success_rate = successful_sources / enabled_sources if enabled_sources > 0 else 0
             
@@ -658,7 +677,7 @@ def process_news_request(event, include_images=True):
             total_fetched = (len(newsapi_org_articles) + len(guardian_articles) + 
                             len(aylien_articles) + len(gnews_articles) +
                             len(nyt_articles) + len(mediastack_articles) + 
-                            len(newsapi_ai_articles))
+                            len(newsapi_ai_articles) + len(newsdata_articles))
             logger.info(f"Total articles fetched for event '{event}': {total_fetched}")
             if total_fetched == 0:
                 total_time = time.time() - start_time
@@ -688,9 +707,10 @@ def process_news_request(event, include_images=True):
             std_nyt = process_articles(nyt_articles, "NYT")
             std_mediastack = process_articles(mediastack_articles, "Mediastack")
             std_newsapi_ai = process_articles(newsapi_ai_articles, "NewsAPI.ai")
+            std_newsdata = process_articles(newsdata_articles, "NewsData.io")
             
             all_articles = (std_newsapi + std_guardian + std_aylien + std_gnews +
-                            std_nyt + std_mediastack + std_newsapi_ai)
+                            std_nyt + std_mediastack + std_newsapi_ai + std_newsdata)
             
             # If we got this far but have some failed sources, add a note to the response
             warning_message = None
@@ -751,11 +771,21 @@ def process_news_request(event, include_images=True):
             group_and_cap_start = time.time()
             logger.info(f"Starting grouping and capping for event '{event}' at {group_and_cap_start}")
             source_groups = {}
-            for article in relevant_articles:
+            
+            # Debug provider fields
+            logger.info(f"DEBUG: Provider fields in articles:")
+            for i, article in enumerate(relevant_articles[:10]):  # Log first 10 for brevity
+                provider = article.get('provider', 'None')
                 source = article.get('source', 'Unknown')
-                if source not in source_groups:
-                    source_groups[source] = []
-                source_groups[source].append(article)
+                logger.info(f"Article {i}: Provider={provider}, Source={source}, Title={article.get('title', 'No title')[:30]}...")
+            
+            for article in relevant_articles:
+                # For NewsData.io articles, use provider as the source group key
+                # For others, use the regular source field
+                source_key = article.get('provider', article.get('source', 'Unknown'))
+                if source_key not in source_groups:
+                    source_groups[source_key] = []
+                source_groups[source_key].append(article)
             
             logger.info(f"Articles per source before capping for '{event}':")
             for source, articles_list in source_groups.items():
@@ -808,6 +838,7 @@ def process_news_request(event, include_images=True):
             group_and_cap_time = time.time() - group_and_cap_start
             logger.info(f"Grouping and capping took {group_and_cap_time:.2f} seconds for event '{event}'")
 
+            # Final distribution - counting by source not provider
             final_source_counts = {}
             for article in final_articles:
                 source = article.get('source', 'Unknown')
@@ -1146,7 +1177,7 @@ def health_check():
         'GNEWS_API_KEY': GNEWS_API_KEY,
         'NYT_API_KEY': NYT_API_KEY,
         'MEDIASTACK_API_KEY': MEDIASTACK_API_KEY,
-        'NEWSDATA_API_KEY': NEWSDATA_API_KEY
+        'NEWSDATAIO_API_KEY': NEWSDATAIO_API_KEY
     }
     
     missing_keys = [name for name, key in api_keys.items() if not key]

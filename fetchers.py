@@ -23,11 +23,11 @@ from dotenv import load_dotenv
 try:
     from config_prod import (
         NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, GNEWS_API_KEY, NYT_API_KEY,
-        MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
+        MEDIASTACK_API_KEY, NEWSDATAIO_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
         USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
-        USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
+        USE_MEDIASTACK, USE_NEWSDATAIO, USE_AYLIEN, USE_NEWSAPI_AI,
         DEFAULT_DAYS_BACK, NEWSAPI_AI_KEY, MAX_ARTICLES_PER_SOURCE,
-        GROK_API_KEY  # Added for Grok API
+        GROK_API_KEY, DEBUG
     )
 except ImportError:
     raise Exception("Could not load production config")
@@ -985,6 +985,110 @@ def fetch_trending_articles(topics, max_articles_per_topic=3):
                 trending_data[topic] = []
     return trending_data
 
+async def async_fetch_newsdata_io_articles(event, api_key=NEWSDATAIO_API_KEY, days_back=DEFAULT_DAYS_BACK):
+    """Async version of fetch_newsdata_io_articles to get articles from NewsData.io"""
+    url = "https://newsdata.io/api/1/news"
+    logger.info(f"NewsData.io: Debug - API key length: {len(api_key)}")
+    params = {
+        "apikey": api_key,
+        "q": event,
+        "language": "en",
+        "size": MAX_ARTICLES_PER_SOURCE  # Number of articles to return
+    }
+    
+    logger.info(f"NewsData.io: Making async request for event '{event}'")
+    data, error = await async_fetch_with_error_handling(url, params=params)
+    
+    if error:
+        logger.error(f"NewsData.io: Error fetching articles: {error}")
+        return []
+        
+    if data.get('status') != "success":
+        logger.error(f"NewsData.io API error: {data.get('results', {}).get('message', 'Unknown error')}")
+        return []
+        
+    articles = data.get('results', [])
+    logger.info(f"NewsData.io: Fetched {len(articles)} articles for event '{event}'")
+    
+    # Transform NewsData.io format to our standard format
+    standardized_articles = []
+    for article in articles:
+        source_name = article.get("source_name", article.get("source_id", ""))
+        
+        standardized_article = {
+            "title": article.get("title", ""),
+            "description": article.get("description", ""),
+            "content": article.get("content", ""),
+            "url": article.get("link", ""),
+            "urlToImage": article.get("image_url", ""),
+            "publishedAt": article.get("pubDate", ""),
+            "source": {
+                "id": article.get("source_id", ""),
+                "name": source_name
+            },
+            "keywords": article.get("keywords", []),
+            "creator": article.get("creator", []),
+            "video_url": article.get("video_url", ""),
+            "full_description": article.get("description", ""),
+            "_query": event,
+            "provider": "NewsData.io"  # Add a provider field to indicate it came from NewsData.io
+        }
+        standardized_articles.append(standardized_article)
+    
+    return standardized_articles
+
+def fetch_newsdata_io_articles(event, api_key=NEWSDATAIO_API_KEY, days_back=DEFAULT_DAYS_BACK):
+    """Fetches articles from NewsData.io API"""
+    url = "https://newsdata.io/api/1/news"
+    logger.info(f"NewsData.io: Debug - API key length: {len(api_key)}")
+    params = {
+        "apikey": api_key,
+        "q": event,
+        "language": "en",
+        "size": MAX_ARTICLES_PER_SOURCE  # Number of articles to return
+    }
+    
+    logger.info(f"NewsData.io: Making request for event '{event}'")
+    data, error = fetch_with_error_handling(url, params=params)
+    
+    if error:
+        logger.error(f"NewsData.io: Error fetching articles: {error}")
+        return []
+        
+    if data.get('status') != "success":
+        logger.error(f"NewsData.io API error: {data.get('results', {}).get('message', 'Unknown error')}")
+        return []
+        
+    articles = data.get('results', [])
+    logger.info(f"NewsData.io: Fetched {len(articles)} articles for event '{event}'")
+    
+    # Transform NewsData.io format to our standard format
+    standardized_articles = []
+    for article in articles:
+        source_name = article.get("source_name", article.get("source_id", ""))
+        
+        standardized_article = {
+            "title": article.get("title", ""),
+            "description": article.get("description", ""),
+            "content": article.get("content", ""),
+            "url": article.get("link", ""),
+            "urlToImage": article.get("image_url", ""),
+            "publishedAt": article.get("pubDate", ""),
+            "source": {
+                "id": article.get("source_id", ""),
+                "name": source_name
+            },
+            "keywords": article.get("keywords", []),
+            "creator": article.get("creator", []),
+            "video_url": article.get("video_url", ""),
+            "full_description": article.get("description", ""),
+            "_query": event,
+            "provider": "NewsData.io"  # Add a provider field to indicate it came from NewsData.io
+        }
+        standardized_articles.append(standardized_article)
+    
+    return standardized_articles
+
 async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK, min_articles=15):
     """
     Asynchronously fetch articles from multiple sources using asyncio with priority-based fetching.
@@ -1009,11 +1113,12 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK, min_articles=
     tier3_apis = [
         (async_fetch_mediastack_articles, "Mediastack", USE_MEDIASTACK),
         (async_fetch_aylien_articles, "Aylien", USE_AYLIEN),
-        (async_fetch_newsapi_ai_articles, "NewsAPI.ai", USE_NEWSDATA)
+        (async_fetch_newsapi_ai_articles, "NewsAPI.ai", USE_NEWSAPI_AI),
+        (async_fetch_newsdata_io_articles, "NewsData.io", USE_NEWSDATAIO)
     ]
     
     # Initialize results array with empty lists for each API
-    all_results = [[] for _ in range(7)]  # 7 APIs total
+    all_results = [[] for _ in range(8)]  # Updated to 8 APIs total with NewsData.io
     api_names = []
     api_tasks = {}
     
@@ -1034,7 +1139,7 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK, min_articles=
     
     if not api_tasks:
         logger.warning("No news sources are enabled. Check your configuration.")
-        return [], [], [], [], [], [], []
+        return [], [], [], [], [], [], [], []
     
     # Process tiers in priority order
     successful_sources = []
@@ -1157,7 +1262,7 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK, min_articles=
     except Exception as e:
         logger.error(f"Error in priority-based parallel fetching: {e}")
         # Return empty lists for all fetchers
-        return [], [], [], [], [], [], []
+        return [], [], [], [], [], [], [], []
 
 def fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     """
@@ -1174,14 +1279,16 @@ def fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     log_request_timeout_settings()
     
     try:
+        # Define functions with their proper API keys and feature flags
         fetch_functions = [
-            (fetch_newsapi_org, USE_NEWSAPI_ORG),
-            (fetch_aylien_articles, USE_AYLIEN),
-            (fetch_gnews_articles, USE_GNEWS),
-            (fetch_guardian, USE_GUARDIAN),
-            (fetch_nyt_articles, USE_NYT),
-            (fetch_mediastack_articles, USE_MEDIASTACK),
-            (fetch_newsapi_ai_articles, USE_NEWSDATA)
+            (lambda e, d: fetch_newsapi_org(e, d), USE_NEWSAPI_ORG),
+            (lambda e, d: fetch_aylien_articles(e, AYLIEN_APP_ID, AYLIEN_API_KEY, d), USE_AYLIEN),
+            (lambda e, d: fetch_gnews_articles(e, GNEWS_API_KEY, d), USE_GNEWS),
+            (lambda e, d: fetch_guardian(e, d), USE_GUARDIAN),
+            (lambda e, d: fetch_nyt_articles(e, NYT_API_KEY, d), USE_NYT),
+            (lambda e, d: fetch_mediastack_articles(e, MEDIASTACK_API_KEY, d), USE_MEDIASTACK),
+            (lambda e, d: fetch_newsapi_ai_articles(e, NEWSAPI_AI_KEY, d), USE_NEWSAPI_AI),
+            (lambda e, d: fetch_newsdata_io_articles(e, NEWSDATAIO_API_KEY, d), USE_NEWSDATAIO)
         ]
         
         articles = []
