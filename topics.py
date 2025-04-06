@@ -398,6 +398,16 @@ def text_to_emoji(text):
 # Fallback topics for different time periods
 FALLBACK_TOPICS = {
     "today": [
+        ["Iceland Volcanic Eruption", "Volcanic Iceland"],
+        ["U.S. Trade Policy Shift: Trump Imposes Tariffs", "Tariffs Trump"],
+        ["Hungarys ICC Withdrawal and Netanyahu Visit", "Netanyahu"],
+        ["Middle East Escalation: Israeli Airstrike in Beirut", "Israeli Beirut"],
+        ["Malaysia Gas Pipeline Explosion", "Explosion Malaysia"],
+        ["Global Tech Talks on AI Regulation", "AI Regulation"],
+        ["Meta Releases Llama 4 Models", "Llama Meta"], 
+        ["Space Milestone: Fram2 Mission Launches", "fram2"]
+        ],
+    "last_week": [
         ['U.S. Vice-President Advocates for Greenland Acquisition Amid Political Tensions', 'Greenland Acquisition'],
         ['Leaked Signal Messages Reveal U.S. Military Plans, Prompting Investigations', 'U.S. Military Leak'],
         ['Federal Judge Blocks Trumps Order Against Law Firm in Legal Setback', 'Trump Legal Setback'],
@@ -407,8 +417,8 @@ FALLBACK_TOPICS = {
         ['Nintendo Announces Live-Action "The Legend of Zelda" Movie Set for 2027 Release', 'Zelda Movie'],
         ['Bitcoin Price Predictions Vary Amid Market Uncertainty', 'Bitcoin Prediction']
         ],
-    "last_week": [
-        ['Trump Imposes 25% Tariff on Venezuelan Oil Buyers', 'Trump Tariff'],
+    "last_month": [
+        ['Tesla Unveils Robotaxi Plans for 2026 Rollout', 'Tesla robotaxi autonomous'],
         ['Fed Signals Steady Rates Amid Inflation Watch', 'Fed Rates'],
         ['OpenAI Unveils Audio-Driven AI Agents', 'OpenAI Audio'],
         ['China Boosts Stimulus with New Infrastructure Plan', 'China Stimulus'],
@@ -416,16 +426,6 @@ FALLBACK_TOPICS = {
         ['Russia Strikes Ukraine During Ceasefire Talks', 'Russia Ukraine'],
         ['Astronauts Splash Down After 9 Months in Space', 'Sunita Williams ISS'],
         ['Gemini Canvas Enhances AI Design Tools', 'Gemini Design']
-    ],
-    "last_month": [
-        ['Tech Stocks Rebound After Volatile Week', 'Nasdaq recovery'],
-        ['Tesla Unveils Robotaxi Plans for 2026 Rollout', 'Tesla robotaxi autonomous'],
-        ['Federal Reserve Signals Potential Rate Cut', 'Fed interest rates economy'],
-        ['Trump Pushes Ukraine-Russia Ceasefire Talks', 'Trump Zelensky Putin'],
-        ['UN Warns of Escalating Ocean Pollution', 'Ocean Pollution'],
-        ['SpaceX Launches First Commercial Lunar Lander', 'SpaceX lunar lander commercial'],
-        ['Greenland Protests Usha Vances Visit', 'Greenland Protest'],
-        ['China Unveils New Economic Stimulus Package', 'China economy stimulus package']
     ]
 }
 
