@@ -398,6 +398,16 @@ def text_to_emoji(text):
 # Fallback topics for different time periods
 FALLBACK_TOPICS = {
     "today": [
+        ["Massive Solar Flare Disrupts Global Communications", "Solar Flare"],
+        ["U.S. Announces New AI Partnership with Japan at Tech Summit", "AI Summit"],
+        ["Protests Erupt in Paris Over Climate Policy Reforms", "Paris Climate Protests"],
+        ["India Launches Lunar Rover Mission Chandrayaan-4", "Chandrayaan-4"],
+        ["Historic Snowstorm Paralyzes Northeastern U.S.", "U.S. Snowstorm"],
+        ["China Tests Hypersonic Missile in Pacific, Raising Tensions", "China Missile"],
+        ["UN Unveils Plan to Combat Rising Sea Levels by 2030", "UN Sea Levels"],
+        ["Breakthrough in Fusion Energy Achieved at UK Lab", "Fusion Energy"]
+    ],
+    "last_week": [
         ["Iceland Volcanic Eruption", "Volcanic Iceland"],
         ["U.S. Trade Policy Shift: Trump Imposes Tariffs", "Tariffs Trump"],
         ["Hungarys ICC Withdrawal and Netanyahu Visit", "Netanyahu"],
@@ -407,7 +417,7 @@ FALLBACK_TOPICS = {
         ["Meta Releases Llama 4 Models", "Llama Meta"], 
         ["Space Milestone: Fram2 Mission Launches", "fram2"]
         ],
-    "last_week": [
+    "last_month": [
         ['U.S. Vice-President Advocates for Greenland Acquisition Amid Political Tensions', 'Greenland Acquisition'],
         ['Leaked Signal Messages Reveal U.S. Military Plans, Prompting Investigations', 'U.S. Military Leak'],
         ['Federal Judge Blocks Trumps Order Against Law Firm in Legal Setback', 'Trump Legal Setback'],
@@ -416,17 +426,7 @@ FALLBACK_TOPICS = {
         ['ChatGPTs New Feature Transforms Photos into Studio Ghibli-Style Images', 'ChatGPT Ghibli'],
         ['Nintendo Announces Live-Action "The Legend of Zelda" Movie Set for 2027 Release', 'Zelda Movie'],
         ['Bitcoin Price Predictions Vary Amid Market Uncertainty', 'Bitcoin Prediction']
-        ],
-    "last_month": [
-        ['Tesla Unveils Robotaxi Plans for 2026 Rollout', 'Tesla robotaxi autonomous'],
-        ['Fed Signals Steady Rates Amid Inflation Watch', 'Fed Rates'],
-        ['OpenAI Unveils Audio-Driven AI Agents', 'OpenAI Audio'],
-        ['China Boosts Stimulus with New Infrastructure Plan', 'China Stimulus'],
-        ['JFK Files Released with New CIA Revelations', 'JFK assassination CIA'],
-        ['Russia Strikes Ukraine During Ceasefire Talks', 'Russia Ukraine'],
-        ['Astronauts Splash Down After 9 Months in Space', 'Sunita Williams ISS'],
-        ['Gemini Canvas Enhances AI Design Tools', 'Gemini Design']
-    ]
+        ]
 }
 
 def get_db_path():
