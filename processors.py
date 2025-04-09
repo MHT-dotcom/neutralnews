@@ -220,7 +220,6 @@ def process_articles(articles, source):
                         'description': str(article.get('description', '')),
                         'content': str(article.get('content', '')),
                         'published_at': str(article.get('published_at', '')),
-                        'image_url': str(article.get('image_url', ''))
                     }
                     
                     # Only add if it has at least a title and URL
@@ -247,7 +246,6 @@ def process_articles(articles, source):
                     'description': str(article.get('description', '')),
                     'content': str(article.get('content', '')),
                     'published_at': str(article.get('published_at', '')),
-                    'image_url': str(article.get('image_url', ''))
                 }
                 
                 # Only include articles with required fields

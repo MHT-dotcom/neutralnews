@@ -9,7 +9,7 @@ import sqlite3
 import json
 from datetime import date, timedelta
 from flask_cors import CORS
-from topics import get_trending_topics, initialize_trending_images
+from topics import get_trending_topics
 import requests
 import certifi
 from datetime import datetime
@@ -17,7 +17,6 @@ from utils import secure_log_key  # Import the secure logging function
 import threading
 import time
 import random
-from image_cache import get_instance
 
 # Set up logging
 logger = logging.getLogger('neutralnews')
@@ -50,25 +49,21 @@ try:
 except ImportError:
     logger.warning("fix_source_names module not found, source names may not display correctly")
 
-# Load environment variables - Use secure logging to mask API keys
-grok_key = secure_log_key(os.getenv("GROK_API_KEY", "Not set"))
-logger.info("Before .env load: GROK_API_KEY status: %s", grok_key)
+# Load environment variables
 load_dotenv()  # Loads .env from current directory if present
-grok_key = secure_log_key(os.getenv("GROK_API_KEY", "Not set"))
-logger.info("GROK_API_KEY status: %s", grok_key)
 
 # Determine base path for persistent storage
 BASE_PATH = os.getenv("BASE_PATH", os.path.join(os.path.dirname(__file__), "data"))
 DB_PATH = os.path.join(BASE_PATH, "search_db.sqlite")
-IMAGE_DIR = os.path.join(BASE_PATH, "images")
+
 
 # Ensure directories exist (locally and on Render)
 os.makedirs(BASE_PATH, exist_ok=True)
-os.makedirs(IMAGE_DIR, exist_ok=True)
+
 
 # Export paths as app config for use in routes.py
 app.config["DB_PATH"] = DB_PATH
-app.config["IMAGE_DIRECTORY"] = IMAGE_DIR
+
 
 # Set app version for health checks and monitoring
 app.config["APP_VERSION"] = os.getenv("APP_VERSION", "1.0.0")
@@ -86,10 +81,6 @@ def validate_critical_config():
     if not os.getenv("DB_PATH") and not app.config["DB_PATH"]:
         critical_errors.append("DB_PATH is not set in environment or app config")
     
-    # Check if the image directory is writable
-    if not os.access(IMAGE_DIR, os.W_OK):
-        critical_errors.append(f"Image directory {IMAGE_DIR} is not writable")
-    
     # Check API keys
     api_keys = {
         "NEWSAPI_ORG_KEY": os.getenv("NEWSAPI_ORG_KEY"),
@@ -97,8 +88,7 @@ def validate_critical_config():
         "GNEWS_API_KEY": os.getenv("GNEWS_API_KEY"),
         "NYT_API_KEY": os.getenv("NYT_API_KEY"),
         "MEDIASTACK_API_KEY": os.getenv("MEDIASTACK_API_KEY"),
-        "NEWSDATAIO_API_KEY": os.getenv("NEWSDATAIO_API_KEY"),
-        "GROK_API_KEY": os.getenv("GROK_API_KEY")
+        "NEWSDATAIO_API_KEY": os.getenv("NEWSDATAIO_API_KEY")
     }
     
     missing_keys = [name for name, key in api_keys.items() if not key]
@@ -140,7 +130,7 @@ def init_db():
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS search_history
                  (id INTEGER PRIMARY KEY, query TEXT NOT NULL, timestamp DATETIME NOT NULL,
-                  summary TEXT, average_sentiment REAL DEFAULT 0.0, articles TEXT, source_distribution TEXT, image_path TEXT)''')
+                  summary TEXT, average_sentiment REAL DEFAULT 0.0, articles TEXT, source_distribution TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS hot_topics
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, topics TEXT NOT NULL, fetch_date DATE NOT NULL)''')
     try:
@@ -149,7 +139,7 @@ def init_db():
         pass
     c.execute("UPDATE hot_topics SET period = 'today' WHERE period IS NULL")
     
-    # Add search_count column for image caching if not exists
+    # Add search_count column for tracking popular searches if not exists
     try:
         c.execute("ALTER TABLE search_history ADD COLUMN search_count INTEGER DEFAULT 1")
         logger.info("Added search_count column to search_history")
@@ -180,57 +170,8 @@ today_topics = get_trending_topics("today")
 last_week_topics = get_trending_topics("last_week")
 last_month_topics = get_trending_topics("last_month")
 
-# Start image cache system and optimization task
-if not DEBUG:
-    # Only run these in production to avoid consuming resources during development
-    from get_img import optimize_image_storage
-    
-    # Run periodic image optimization
-    def run_periodic_image_optimization(interval_hours=24):
-        """Run image storage optimization periodically."""
-        def optimization_worker():
-            logger.info("Starting periodic image optimization worker")
-            
-            while True:
-                try:
-                    # Sleep first to avoid immediate optimization on startup
-                    time.sleep(interval_hours * 3600)
-                    
-                    logger.info("Running scheduled image storage optimization")
-                    # Create new app context for each optimization run
-                    with app.app_context():
-                        # Optimize with 30-day retention and 500MB target size
-                        optimize_image_storage(max_age_days=30, target_size_mb=500)
-                    
-                    logger.info(f"Image optimization complete, next run in {interval_hours} hours")
-                except Exception as e:
-                    logger.error(f"Error in image optimization worker: {str(e)}")
-                    # Continue loop even after error
-        
-        # Start background thread
-        thread = threading.Thread(target=optimization_worker)
-        thread.daemon = True
-        thread.start()
-        logger.info(f"Image optimization scheduler started (interval: {interval_hours} hours)")
-    
-    run_periodic_image_optimization(interval_hours=12)  # Run every 12 hours
-    
-    # Delay the trending image initialization slightly to let app start up
-    def delayed_image_init():
-        time.sleep(30)  # 30 second delay
-        # Wrap in app context to avoid "Working outside of application context" errors
-        with app.app_context():
-            # Set configuration values that might be needed by workers
-            from image_cache import get_instance
-            cache = get_instance(
-                db_path=app.config.get("DB_PATH"),
-                image_dir=IMAGE_DIR
-            )
-            initialize_trending_images()
-    
-    threading.Thread(target=delayed_image_init, daemon=True).start()
-    logger.info("Scheduled delayed trending image initialization")
 
+    
 # Log startup details
 logger.info(f"Python version: {sys.version}")
 logger.info(f"Flask version: {flask.__version__}")

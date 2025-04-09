@@ -1,12 +1,5 @@
 from werkzeug.utils import secure_filename
 
-def get_image_filename(headline):
-    """
-    Convert a headline into the corresponding image filename.
-    Usage: print this when adding new topics to know what to name your image files.
-    """
-    return secure_filename(headline.lower())
-
 def secure_log_key(api_key, visible_chars=4):
     """
     Securely mask API keys and tokens for logging purposes.

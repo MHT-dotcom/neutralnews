@@ -15,7 +15,6 @@ from processors import (process_articles, remove_duplicates, filter_relevant_art
 from config_prod import (MAX_ARTICLES_PER_SOURCE, cache, NEWSAPI_ORG_KEY, GUARDIAN_API_KEY, 
                         GNEWS_API_KEY, NYT_API_KEY, OPENAI_API_KEY, MEDIASTACK_API_KEY, 
                         NEWSDATAIO_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY, DEFAULT_TOP_N, CACHE_CONFIG, DEBUG)
-from get_img import generate_and_save_image, get_image_cache_stats, optimize_image_storage
 from topics import get_trending_topics
 
 # Align blueprint name with app.py registration
@@ -68,14 +67,17 @@ def fetch_and_process_data(event):
         logger.info(f"ELECTIONS TOPIC DETECTED in search: '{event}'")
     
     logger.info(f"[Debug] API Keys for '{event}' search:")
-    logger.info(f"NEWSAPI_ORG_KEY: {'Available' if NEWSAPI_ORG_KEY else 'Missing'}")
-    logger.info(f"GUARDIAN_API_KEY: {'Available' if GUARDIAN_API_KEY else 'Missing'}")
-    logger.info(f"GNEWS_API_KEY: {'Available' if GNEWS_API_KEY else 'Missing'}")
-    logger.info(f"NYT_API_KEY: {'Available' if NYT_API_KEY else 'Missing'}")
-    logger.info(f"OPENAI_API_KEY: {'Available' if OPENAI_API_KEY else 'Missing'}")
-    logger.info(f"MEDIASTACK_API_KEY: {'Available' if MEDIASTACK_API_KEY else 'Missing'}")
-    logger.info(f"NEWSDATAIO_API_KEY: {'Available' if NEWSDATAIO_API_KEY else 'Missing'}")
-    logger.info(f"AYLIEN keys: {'Available' if AYLIEN_APP_ID and AYLIEN_API_KEY else 'Missing'}")
+    # Replace individual logger.info statements with a single summary
+    available_apis = sum([
+        bool(GUARDIAN_API_KEY), 
+        bool(GNEWS_API_KEY),
+        bool(NYT_API_KEY),
+        bool(OPENAI_API_KEY),
+        bool(MEDIASTACK_API_KEY),
+        bool(NEWSDATAIO_API_KEY),
+        bool(AYLIEN_APP_ID and AYLIEN_API_KEY)
+    ])
+    logger.info(f"API availability: {available_apis}/7 sources configured with valid keys")
     
     try:
         fetch_start = time.time()
@@ -91,25 +93,26 @@ def fetch_and_process_data(event):
         with ThreadPoolExecutor(max_workers=1) as executor:
             results = executor.submit(run_async_fetch).result()
         
-        newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles, newsdata_articles = results
+        # Unpack results in the new tier order
+        newsapi_org_articles, mediastack_articles, gnews_articles, nyt_articles, aylien_articles, newsapi_ai_articles, newsdata_articles, guardian_articles = results
         
         fetch_time = time.time() - fetch_start
         logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
 
         logger.info(f"Articles retrieved for event '{event}': "
                    f"NewsAPI.org: {len(newsapi_org_articles)}, "
-                   f"Guardian: {len(guardian_articles)}, "
-                   f"Aylien: {len(aylien_articles)}, "
+                   f"Mediastack: {len(mediastack_articles)}, "
                    f"GNews: {len(gnews_articles)}, "
                    f"NYT: {len(nyt_articles)}, "
-                   f"Mediastack: {len(mediastack_articles)}, "
+                   f"Aylien: {len(aylien_articles)}, "
                    f"NewsAPI.ai: {len(newsapi_ai_articles)}, "
-                   f"Newsdata: {len(newsdata_articles)}")
+                   f"Newsdata: {len(newsdata_articles)}, "
+                   f"Guardian: {len(guardian_articles)}")
 
-        total_fetched = (len(newsapi_org_articles) + len(guardian_articles) + 
-                        len(aylien_articles) + len(gnews_articles) +
-                        len(nyt_articles) + len(mediastack_articles) + 
-                        len(newsapi_ai_articles) + len(newsdata_articles))
+        total_fetched = (len(newsapi_org_articles) + len(mediastack_articles) + 
+                        len(gnews_articles) + len(nyt_articles) +
+                        len(aylien_articles) + len(newsapi_ai_articles) + 
+                        len(newsdata_articles) + len(guardian_articles))
         logger.info(f"Total articles fetched for event '{event}': {total_fetched}")
         if total_fetched == 0:
             total_time = time.time() - start_time
@@ -182,13 +185,6 @@ def fetch_and_process_data(event):
         group_and_cap_start = time.time()
         logger.info(f"Starting grouping and capping for event '{event}' at {group_and_cap_start}")
         source_groups = {}
-        
-        # Debug provider fields
-        logger.info(f"DEBUG: Provider fields in articles:")
-        for i, article in enumerate(relevant_articles[:10]):  # Log first 10 for brevity
-            provider = article.get('provider', 'None')
-            source = article.get('source', 'Unknown')
-            logger.info(f"Article {i}: Provider={provider}, Source={source}, Title={article.get('title', 'No title')[:30]}...")
         
         for article in relevant_articles:
             # For NewsData.io articles, use provider as the source group key
@@ -415,7 +411,6 @@ def index():
     articles = []
     event = None
     error = None
-    image_path = None
 
     if request.method == 'POST':
         event = request.form.get('event')
@@ -433,15 +428,9 @@ def index():
             result = c.fetchone()
             
             if result:
-                logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}..., Image Path: {result[7]}")
+                logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}...")
                 summary = result[3]
                 articles = json.loads(result[5])
-                image_path = result[7]
-                if image_path and os.path.exists(image_path):
-                    logger.info(f"Using cached image: {image_path}")
-                else:
-                    logger.warning(f"Cached image not found: {image_path}")
-                    image_path = None
             else:
                 logger.info(f"No cache hit for '{event}', processing request")
                 summary, articles, error = process_news_request(event)
@@ -450,14 +439,6 @@ def index():
                     logger.error(f"Error processing '{event}': {error}")
                 else:
                     logger.info(f"Success processing '{event}': {summary[:50]}..., {len(articles)} articles")
-                    
-                    # Generate or fetch image for the topic
-                    try:
-                        image_path = generate_and_save_image("", event, True)
-                        logger.info(f"Generated image: {image_path}")
-                    except Exception as img_error:
-                        logger.error(f"Failed to generate image: {img_error}")
-                        image_path = None
                         
             conn.close()
 
@@ -474,15 +455,13 @@ def index():
                           articles=articles, 
                           event=event,
                           error=error,
-                          image_path=image_path,
                           today_topics=today_topics,
                           last_week_topics=last_week_topics,
                           last_month_topics=last_month_topics)
 
-def process_news_request(event, include_images=True):
+def process_news_request(event):
     """Process a news data request."""
     try:
-        logger.info(f"Starting process_news_request for '{event}' with include_images={include_images} (type: {type(include_images)})")
         
         # Additional checks
         if not event:
@@ -504,34 +483,7 @@ def process_news_request(event, include_images=True):
         result = c.fetchone()
         
         if result:
-            logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}..., Image Path: {result[7]}")
-            image_path = result[7] if include_images else None
-            logger.info(f"Initial image_path after cache hit: {image_path} (include_images={include_images})")
-            
-            if image_path and os.path.exists(image_path):
-                logger.info(f"Existing image found at {image_path}")
-                image_filename = os.path.basename(image_path)
-                image_path = f"/images/{image_filename}"  # Convert to relative URL
-                logger.info(f"Converted to relative URL: {image_path}")
-            else:
-                if include_images:
-                    logger.info(f"No valid image in cache or on disk, generating for '{event}'")
-                    image_path, image_status = generate_and_save_image(result[3], event, include_images)
-                    logger.info(f"Image generation returned: path={image_path}, status={image_status}")
-                    
-                    if image_status:
-                        logger.info(f"Generated new image: {image_path}")
-                        image_filename = os.path.basename(image_path)
-                        image_path = f"/images/{image_filename}"  # Convert to relative URL
-                        logger.info(f"Converted to relative URL: {image_path}")
-                        c.execute("UPDATE search_history SET image_path = ? WHERE query = ?", (image_path, event))
-                        conn.commit()
-                    else:
-                        logger.warning(f"Image generation failed for cached entry '{event}'")
-                        image_path = None
-                else:
-                    logger.info("Image generation skipped because include_images=False")
-                    image_path = None
+            logger.info(f"Cache hit for '{event}' - Summary: {result[3][:50]}...")
             
             data = {
                 'success': True,
@@ -540,10 +492,7 @@ def process_news_request(event, include_images=True):
                 'metadata': {
                     'average_sentiment': result[4],
                     'source_distribution': json.loads(result[6]),
-                    'image': {
-                        'path': image_path if include_images else None,
-                        'generated': bool(image_path)
-                    } if include_images else None
+                    'image': null
                 }
             }
             conn.close()
@@ -576,20 +525,21 @@ def process_news_request(event, include_images=True):
             with ThreadPoolExecutor(max_workers=1) as executor:
                 results = executor.submit(run_async_fetch).result()
             
-            newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles, newsdata_articles = results
+            # Unpack results in the new tier order
+            newsapi_org_articles, mediastack_articles, gnews_articles, nyt_articles, aylien_articles, newsapi_ai_articles, newsdata_articles, guardian_articles = results
             
             fetch_time = time.time() - fetch_start
             logger.info(f"API Fetching took {fetch_time:.2f} seconds for event '{event}'")
 
             logger.info(f"Articles retrieved for event '{event}': "
                       f"NewsAPI.org: {len(newsapi_org_articles)}, "
-                      f"Guardian: {len(guardian_articles)}, "
-                      f"Aylien: {len(aylien_articles)}, "
+                      f"Mediastack: {len(mediastack_articles)}, "
                       f"GNews: {len(gnews_articles)}, "
                       f"NYT: {len(nyt_articles)}, "
-                      f"Mediastack: {len(mediastack_articles)}, "
+                      f"Aylien: {len(aylien_articles)}, "
                       f"NewsAPI.ai: {len(newsapi_ai_articles)}, "
-                      f"Newsdata: {len(newsdata_articles)}")
+                      f"Newsdata: {len(newsdata_articles)}, "
+                      f"Guardian: {len(guardian_articles)}")
 
             # Add debug logging for USE_* variables
             try:
@@ -674,10 +624,10 @@ def process_news_request(event, include_images=True):
                     conn.close()
                     return fallback_data, 503  # Service Unavailable
 
-            total_fetched = (len(newsapi_org_articles) + len(guardian_articles) + 
-                            len(aylien_articles) + len(gnews_articles) +
-                            len(nyt_articles) + len(mediastack_articles) + 
-                            len(newsapi_ai_articles) + len(newsdata_articles))
+            total_fetched = (len(newsapi_org_articles) + len(mediastack_articles) + 
+                            len(gnews_articles) + len(nyt_articles) +
+                            len(aylien_articles) + len(newsapi_ai_articles) + 
+                            len(newsdata_articles) + len(guardian_articles))
             logger.info(f"Total articles fetched for event '{event}': {total_fetched}")
             if total_fetched == 0:
                 total_time = time.time() - start_time
@@ -772,13 +722,6 @@ def process_news_request(event, include_images=True):
             logger.info(f"Starting grouping and capping for event '{event}' at {group_and_cap_start}")
             source_groups = {}
             
-            # Debug provider fields
-            logger.info(f"DEBUG: Provider fields in articles:")
-            for i, article in enumerate(relevant_articles[:10]):  # Log first 10 for brevity
-                provider = article.get('provider', 'None')
-                source = article.get('source', 'Unknown')
-                logger.info(f"Article {i}: Provider={provider}, Source={source}, Title={article.get('title', 'No title')[:30]}...")
-            
             for article in relevant_articles:
                 # For NewsData.io articles, use provider as the source group key
                 # For others, use the regular source field
@@ -871,34 +814,20 @@ def process_news_request(event, include_images=True):
             summarize_time = time.time() - summarize_start
             logger.info(f"Summarization took {summarize_time:.2f} seconds for event '{event}'")
             
-            # Generate image for the event
-            logger.info(f"Generating image for event '{event}'")
-            image_path, image_status = generate_and_save_image(summary, event, include_images)
-            if image_status:
-                logger.info(f"Image generation successful: {image_path}")
-                image_filename = os.path.basename(image_path)
-                image_path = f"/images/{image_filename}"  # Convert to relative URL
-            else:
-                logger.warning(f"Image generation failed for event '{event}'")
-                image_path = None
-            
             # Store in database for caching
             try:
-                # Set sentiment score to 0 as we've removed sentiment analysis
-                avg_sentiment = 0
-                logger.info(f"Storing result in database for '{event}'")
-                c.execute("""INSERT INTO search_history 
-                             (query, timestamp, summary, average_sentiment, 
-                              articles, source_distribution, image_path) 
-                             VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                          (event, datetime.now().isoformat(), summary, 
-                           avg_sentiment, json.dumps(articles), 
-                           json.dumps(final_source_counts), image_path))
+                conn = sqlite3.connect(db_path)
+                c = conn.cursor()
+                c.execute("""INSERT INTO search_history (query, timestamp, summary, average_sentiment, 
+                          articles, source_distribution)
+                          VALUES (?, ?, ?, ?, ?, ?)""", 
+                         (event, datetime.now().isoformat(), summary, 0, json.dumps(articles), 
+                          json.dumps(final_source_counts)))
                 conn.commit()
-            except Exception as db_error:
-                logger.error(f"Error storing results in database: {db_error}")
-            finally:
                 conn.close()
+                logger.info(f"Stored '{event}' in search_history database")
+            except Exception as db_error:
+                logger.error(f"Error storing in database: {str(db_error)}")
             
             # Return response with appropriate warning if sources failed
             total_time = time.time() - start_time
@@ -909,14 +838,6 @@ def process_news_request(event, include_images=True):
             for i, article in enumerate(articles[:10]):  # Log up to 10 articles
                 logger.info(f"DIAGNOSTIC: Article {i+1}: '{article.get('title', 'No title')[:40]}...' - Source: {article.get('source', 'Unknown')}")
             
-            # Build image metadata structure based on include_images flag
-            image_metadata = None
-            if include_images:
-                image_metadata = {
-                    'path': image_path,
-                    'generated': bool(image_path)
-                }
-            
             if warning_message:
                 return {
                     'success': True, 
@@ -924,9 +845,8 @@ def process_news_request(event, include_images=True):
                     'articles': articles,
                     'warning': warning_message,
                     'metadata': {
-                        'average_sentiment': avg_sentiment,
+                        'average_sentiment': 0,
                         'source_distribution': final_source_counts,
-                        'image': image_metadata,
                         'source_health': {
                             'success_rate': success_rate,
                             'failed_sources': failed_sources,
@@ -936,9 +856,8 @@ def process_news_request(event, include_images=True):
                 }, 200
             else:
                 return {'success': True, 'summary': summary, 'articles': articles, 'metadata': {
-                    'average_sentiment': avg_sentiment,
-                    'source_distribution': final_source_counts,
-                    'image': image_metadata
+                    'average_sentiment': 0,
+                    'source_distribution': final_source_counts
                 }}, 200
         except Exception as e:
             logger.error(f"Error processing request: {str(e)}", exc_info=True)
@@ -957,44 +876,8 @@ def process_news_request(event, include_images=True):
 def get_news_data():
     """Handle news data requests"""
     try:
-        # Get the search query and image toggle state
-        event = request.form.get('event') or request.json.get('event')
-        
-        # More robust handling of include_images parameter with extensive error handling
-        try:
-            raw_include_images = request.form.get('include_images')
-            logger.info(f"Received include_images raw value: '{raw_include_images}' (type: {type(raw_include_images).__name__})")
-            
-            # Parse include_images in a more robust way with clear error handling
-            try:
-                if raw_include_images is None:
-                    include_images = request.json.get('include_images', True)
-                    logger.info(f"Using JSON parameter or default: {include_images}")
-                else:
-                    # Convert various true values to boolean True
-                    if isinstance(raw_include_images, bool):
-                        include_images = raw_include_images
-                        logger.info(f"Using boolean value directly: {include_images}")
-                    else:
-                        # Handle string values safely
-                        try:
-                            include_images = str(raw_include_images).lower() in ('true', 't', 'yes', 'y', '1')
-                            logger.info(f"Parsed string value to boolean: {include_images}")
-                        except Exception as str_error:
-                            logger.error(f"Error parsing string value: {str_error}")
-                            include_images = True  # Default to True on error
-                            logger.info(f"Using default value after string parsing error: {include_images}")
-            except Exception as parse_error:
-                logger.error(f"Error in include_images parsing: {parse_error}")
-                include_images = True  # Default to True on error
-                logger.info(f"Using default value after parsing error: {include_images}")
-        except Exception as param_error:
-            logger.error(f"Error extracting include_images parameter: {param_error}")
-            include_images = True  # Default to True on error
-            logger.info(f"Using default value after parameter error: {include_images}")
-        
-        logger.info(f"Final include_images value: {include_images} (type: {type(include_images).__name__})")
-        logger.info(f"Received request for event '{event}' with include_images={include_images}")
+        event = request.form.get('event', '')
+        logger.info(f"Received request for event '{event}'")
         
         if not event:
             logger.error("No event provided in request")
@@ -1002,7 +885,7 @@ def get_news_data():
         
         # Process the request
         try:
-            result = process_news_request(event, include_images)
+            result = process_news_request(event)
             
             if isinstance(result, tuple) and len(result) == 2:
                 data, status_code = result
@@ -1056,8 +939,6 @@ def get_news_data():
         
         # Log the response data
         logger.info(f"Returning response with {len(data.get('articles', [])) if 'articles' in data and isinstance(data['articles'], list) else 0} articles")
-        if 'metadata' in data and 'image' in data['metadata'] and data['metadata']['image']:
-            logger.info(f"Image in response: {data['metadata']['image']}")
         
         return jsonify(data)
     except Exception as e:
@@ -1073,16 +954,6 @@ def get_news_data():
                 'image': None
             }
         }), 500
-
-@routes.route('/images/<filename>')
-def serve_image(filename):
-    """Serve an image file from the image directory."""
-    try:
-        logger.info(f"Serving image: {filename} from {current_app.config['IMAGE_DIRECTORY']}")
-        return send_from_directory(current_app.config["IMAGE_DIRECTORY"], filename)
-    except Exception as e:
-        logger.error(f"Error serving image: {str(e)}")
-        return jsonify({"error": "Image not found"}), 404
 
 @routes.route('/health', methods=['GET'])
 def health_check():
@@ -1120,51 +991,11 @@ def health_check():
             cursor.execute('''CREATE TABLE IF NOT EXISTS search_history
                           (id INTEGER PRIMARY KEY, query TEXT NOT NULL, timestamp DATETIME NOT NULL,
                           summary TEXT, average_sentiment REAL, articles TEXT, source_distribution TEXT, 
-                          image_path TEXT, search_count INTEGER DEFAULT 1)''')
+                          search_count INTEGER DEFAULT 1)''')
             conn.commit()
         conn.close()
     except Exception as e:
         health_status['checks']['database'] = {
-            'status': 'fail',
-            'message': str(e)
-        }
-        health_status['status'] = 'degraded'
-    
-    # Check image directory
-    try:
-        img_dir = os.path.join(os.path.dirname(get_db_path()), "images")
-        if os.path.exists(img_dir) and os.access(img_dir, os.W_OK):
-            try:
-                stats = get_image_cache_stats()
-                if 'count' in stats:
-                    health_status['checks']['image_cache'] = {
-                        'status': 'pass',
-                        'message': f"{stats['count']} images, {stats['size_mb']:.1f}MB"
-                    }
-                else:
-                    # Fallback to directory count
-                    count = len([f for f in os.listdir(img_dir) if f.endswith('.webp')])
-                    size_mb = sum(os.path.getsize(os.path.join(img_dir, f)) for f in os.listdir(img_dir) if f.endswith('.webp')) / (1024 * 1024)
-                    health_status['checks']['image_cache'] = {
-                        'status': 'pass',
-                        'message': f"{count} images, {size_mb:.1f}MB (from directory)"
-                    }
-            except Exception as cache_error:
-                # Fallback to directory count on error
-                count = len([f for f in os.listdir(img_dir) if f.endswith('.webp')])
-                size_mb = sum(os.path.getsize(os.path.join(img_dir, f)) for f in os.listdir(img_dir) if f.endswith('.webp')) / (1024 * 1024)
-                health_status['checks']['image_cache'] = {
-                    'status': 'warn',
-                    'message': f"{count} images, {size_mb:.1f}MB (fallback: {str(cache_error)})"
-                }
-        else:
-            health_status['checks']['image_cache'] = {
-                'status': 'fail',
-                'message': "Image directory missing or not writable"
-            }
-            health_status['status'] = 'degraded'
-    except Exception as e:
-        health_status['checks']['image_cache'] = {
             'status': 'fail',
             'message': str(e)
         }
@@ -1224,66 +1055,8 @@ def health_check():
     
     return jsonify(health_status), status_code
 
-@routes.route('/admin/image-cache', methods=['GET', 'POST'])
-def image_cache_admin():
-    """Admin endpoint for image cache management"""
-    if request.method == 'POST':
-        action = request.form.get('action')
-        if action == 'optimize':
-            # Get the image cache instance
-            from image_cache import get_instance
-            cache = get_instance(
-                db_path=get_db_path(),
-                image_dir=current_app.config["IMAGE_DIRECTORY"]
-            )
-            # Run optimization with parameters from form
-            max_age = int(request.form.get('max_age', 30))
-            target_size = int(request.form.get('target_size', 500))
-            optimize_image_storage(max_age_days=max_age, target_size_mb=target_size)
-            return jsonify({
-                'status': 'success',
-                'message': f'Optimization started with max_age={max_age}, target_size={target_size}MB'
-            })
-        return jsonify({'status': 'error', 'message': 'Invalid action'}), 400
-    
-    # Get current stats
-    stats = get_image_cache_stats()
-    
-    # Calculate directory size
-    image_dir = current_app.config["IMAGE_DIRECTORY"]
-    dir_size = 0
-    file_count = 0
-    
-    for path, dirs, files in os.walk(image_dir):
-        for f in files:
-            if f.endswith('.png'):
-                fp = os.path.join(path, f)
-                file_count += 1
-                dir_size += os.path.getsize(fp)
-    
-    stats['directory_size_mb'] = dir_size / (1024 * 1024)
-    stats['file_count'] = file_count
-    
-    # Get some sample entries from cache sorted by search count
-    conn = sqlite3.connect(get_db_path())
-    c = conn.cursor()
-    c.execute("""
-        SELECT query, image_path, search_count FROM search_history 
-        WHERE image_path IS NOT NULL
-        ORDER BY search_count DESC
-        LIMIT 10
-    """)
-    top_searches = [{'query': row[0], 'path': row[1], 'count': row[2]} for row in c.fetchall()]
-    conn.close()
-    
-    return jsonify({
-        'stats': stats,
-        'top_searches': top_searches,
-        'timestamp': datetime.now().isoformat()
-    })
-
 def init_db():
-    """Initialize the SQLite database with image_path column."""
+    """Initialize the SQLite database."""
     logger.info("Starting init_db function in routes.py")
     
     try:
@@ -1295,16 +1068,10 @@ def init_db():
         try:
             c.execute('''CREATE TABLE IF NOT EXISTS search_history
                          (query TEXT, timestamp TEXT, summary TEXT, average_sentiment REAL,
-                          articles TEXT, source_distribution TEXT, image_path TEXT)''')
+                          articles TEXT, source_distribution TEXT)''')
             logger.info("Created search_history table if it didn't exist")
         except sqlite3.OperationalError:
             logger.info("search_history table already exists")
-        try:
-            c.execute('''ALTER TABLE search_history 
-                         ADD COLUMN image_path TEXT''')
-            logger.info("Added image_path column to search_history")
-        except sqlite3.OperationalError:
-            logger.info("image_path column already exists")
         try:
             c.execute('''ALTER TABLE search_history 
                          ADD COLUMN search_count INTEGER DEFAULT 1''')
@@ -1455,56 +1222,48 @@ def favicon():
 
 @routes.route('/admin/budget-status')
 def budget_status():
-    """Admin endpoint to view budget status for Stability AI."""
-    from budget_control import get_budget_summary, MONTHLY_BUDGET_USD, COST_PER_IMAGE_USD, MAX_MONTHLY_GENERATIONS
-    import json
-    from flask import jsonify
-    from datetime import datetime
-    
-    # Get budget info
-    budget_info = get_budget_summary()
-    
-    # Add more helpful data
-    days_in_current_month = (datetime.now().replace(day=28) + timedelta(days=4)).replace(day=1).replace(day=1) - timedelta(days=1)
-    days_in_current_month = days_in_current_month.day
-    days_passed = datetime.now().day
-    days_remaining = days_in_current_month - days_passed
-    
-    # Calculate run rate and estimates
-    if days_passed > 0:
-        run_rate_per_day = budget_info['used'] / days_passed
-        estimated_monthly_total = run_rate_per_day * days_in_current_month
-    else:
-        run_rate_per_day = 0
-        estimated_monthly_total = 0
-    
-    # Format for display
-    return jsonify({
-        'status': 'ok',
-        'budget_info': budget_info,
-        'configuration': {
-            'monthly_budget_usd': MONTHLY_BUDGET_USD,
-            'cost_per_image_usd': COST_PER_IMAGE_USD,
-            'max_monthly_generations': MAX_MONTHLY_GENERATIONS
-        },
-        'current_month': {
-            'name': datetime.now().strftime('%B %Y'),
-            'days_total': days_in_current_month,
-            'days_passed': days_passed,
-            'days_remaining': days_remaining,
-            'percentage_of_month_passed': (days_passed / days_in_current_month) * 100
-        },
-        'usage': {
-            'total_images': budget_info['used'],
-            'remaining_images': budget_info['remaining'],
-            'total_cost': f"${budget_info['total_cost']:.2f}",
-            'remaining_budget': f"${budget_info['remaining_cost']:.2f}",
-            'usage_percentage': f"{budget_info['percentage_used']:.1f}%",
-            'run_rate_per_day': run_rate_per_day,
-            'estimated_monthly_total': estimated_monthly_total,
-            'on_budget': estimated_monthly_total <= MAX_MONTHLY_GENERATIONS
-        },
-        'message': f"Used {budget_info['used']}/{budget_info['limit']} images (${budget_info['total_cost']:.2f}/${budget_info['budget']:.2f})",
-        'remaining': f"{budget_info['remaining']} images (${budget_info['remaining_cost']:.2f})",
-        'budget_status': "Available" if budget_info['remaining'] > 0 else "Exhausted"
-    })
+    """Admin endpoint for budget monitoring."""
+    try:
+        # Budget control module has been removed
+        return jsonify({
+            'status': 'success',
+            'message': 'Image generation has been disabled, no budget tracking needed',
+            'data': {
+                'used': 0,
+                'limit': 0,
+                'budget': 0.0,
+                'remaining': 0,
+                'percentage_used': 0.0
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@routes.route('/admin/initialize-db', methods=['POST'])
+def initialize_db():
+    """Initialize the SQLite database."""
+    try:
+        db_path = current_app.config.get("DB_PATH", "news.db")
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        
+        # Create search_history table if not exists
+        c.execute('''CREATE TABLE IF NOT EXISTS search_history
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 query TEXT,
+                 timestamp TEXT,
+                 summary TEXT,
+                 average_sentiment REAL DEFAULT 0.0,
+                 articles TEXT,
+                 source_distribution TEXT,
+                 search_count INTEGER DEFAULT 1)''')
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "message": "Database initialized"}), 200
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500

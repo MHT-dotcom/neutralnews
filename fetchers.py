@@ -27,7 +27,7 @@ try:
         USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
         USE_MEDIASTACK, USE_NEWSDATAIO, USE_AYLIEN, USE_NEWSAPI_AI,
         DEFAULT_DAYS_BACK, NEWSAPI_AI_KEY, MAX_ARTICLES_PER_SOURCE,
-        GROK_API_KEY, DEBUG
+        DEBUG
     )
 except ImportError:
     raise Exception("Could not load production config")
@@ -939,13 +939,14 @@ def fetch_articles_for_topic(topic, max_articles=3, days_back=7):
     logger.info(f"Fetching articles for topic: {topic}")
     
     fetch_functions = [
-        fetch_newsapi_ai_articles,
-        fetch_guardian,
-        fetch_nyt_articles,
+        fetch_newsapi_org_diversified,
         fetch_mediastack_articles,
+        fetch_gnews_articles,
+        fetch_nyt_articles,
         fetch_aylien_articles,
-        fetch_newsapi_org,
-        fetch_gnews_articles
+        fetch_newsapi_ai_articles,
+        fetch_newsdata_io_articles,
+        fetch_guardian
     ]
     
     articles = []
@@ -988,7 +989,6 @@ def fetch_trending_articles(topics, max_articles_per_topic=3):
 async def async_fetch_newsdata_io_articles(event, api_key=NEWSDATAIO_API_KEY, days_back=DEFAULT_DAYS_BACK):
     """Async version of fetch_newsdata_io_articles to get articles from NewsData.io"""
     url = "https://newsdata.io/api/1/news"
-    logger.info(f"NewsData.io: Debug - API key length: {len(api_key)}")
     params = {
         "apikey": api_key,
         "q": event,
@@ -1040,7 +1040,6 @@ async def async_fetch_newsdata_io_articles(event, api_key=NEWSDATAIO_API_KEY, da
 def fetch_newsdata_io_articles(event, api_key=NEWSDATAIO_API_KEY, days_back=DEFAULT_DAYS_BACK):
     """Fetches articles from NewsData.io API"""
     url = "https://newsdata.io/api/1/news"
-    logger.info(f"NewsData.io: Debug - API key length: {len(api_key)}")
     params = {
         "apikey": api_key,
         "q": event,
@@ -1102,7 +1101,7 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK, min_articles=
     # Define API tiers based on typical speed/reliability
     tier1_apis = [
         (async_fetch_newsapi_org_diversified, "NewsAPI.org (Diversified)", USE_NEWSAPI_ORG),
-        (async_fetch_guardian, "Guardian", USE_GUARDIAN)
+        (async_fetch_mediastack_articles, "Mediastack", USE_MEDIASTACK)
     ]
     
     tier2_apis = [
@@ -1111,10 +1110,10 @@ async def async_fetch_articles(event, days_back=DEFAULT_DAYS_BACK, min_articles=
     ]
     
     tier3_apis = [
-        (async_fetch_mediastack_articles, "Mediastack", USE_MEDIASTACK),
         (async_fetch_aylien_articles, "Aylien", USE_AYLIEN),
         (async_fetch_newsapi_ai_articles, "NewsAPI.ai", USE_NEWSAPI_AI),
-        (async_fetch_newsdata_io_articles, "NewsData.io", USE_NEWSDATAIO)
+        (async_fetch_newsdata_io_articles, "NewsData.io", USE_NEWSDATAIO),
+        (async_fetch_guardian, "Guardian", USE_GUARDIAN)
     ]
     
     # Initialize results array with empty lists for each API
@@ -1281,14 +1280,14 @@ def fetch_articles(event, days_back=DEFAULT_DAYS_BACK):
     try:
         # Define functions with their proper API keys and feature flags
         fetch_functions = [
-            (lambda e, d: fetch_newsapi_org(e, d), USE_NEWSAPI_ORG),
-            (lambda e, d: fetch_aylien_articles(e, AYLIEN_APP_ID, AYLIEN_API_KEY, d), USE_AYLIEN),
-            (lambda e, d: fetch_gnews_articles(e, GNEWS_API_KEY, d), USE_GNEWS),
-            (lambda e, d: fetch_guardian(e, d), USE_GUARDIAN),
-            (lambda e, d: fetch_nyt_articles(e, NYT_API_KEY, d), USE_NYT),
+            (lambda e, d: fetch_newsapi_org_diversified(e, d), USE_NEWSAPI_ORG),
             (lambda e, d: fetch_mediastack_articles(e, MEDIASTACK_API_KEY, d), USE_MEDIASTACK),
+            (lambda e, d: fetch_gnews_articles(e, GNEWS_API_KEY, d), USE_GNEWS),
+            (lambda e, d: fetch_nyt_articles(e, NYT_API_KEY, d), USE_NYT),
+            (lambda e, d: fetch_aylien_articles(e, AYLIEN_APP_ID, AYLIEN_API_KEY, d), USE_AYLIEN),
             (lambda e, d: fetch_newsapi_ai_articles(e, NEWSAPI_AI_KEY, d), USE_NEWSAPI_AI),
-            (lambda e, d: fetch_newsdata_io_articles(e, NEWSDATAIO_API_KEY, d), USE_NEWSDATAIO)
+            (lambda e, d: fetch_newsdata_io_articles(e, NEWSDATAIO_API_KEY, d), USE_NEWSDATAIO),
+            (lambda e, d: fetch_guardian(e, d), USE_GUARDIAN)
         ]
         
         articles = []
@@ -1375,93 +1374,16 @@ check_domain("x.ai")
 def verify_key_format(key):
     """Check if key follows expected pattern and log securely"""
     import re
-    # Check if key has expected format (this is a guess based on the key you shared)
+    # Check if key has expected format
     if re.match(r'^xai-[a-zA-Z0-9]{64,}$', key):
         logger.info("Key format appears valid")
     else:
         logger.info("Key format may be incorrect")
     
-    # Check key length without exposing the key
-    logger.info(f"Key length: {len(key)} characters")
+    # No need to log key length as it could provide partial information about the key
     
-    # Only log a small masked portion of the key for verification
-    masked_key = secure_log_key(key, visible_chars=2)
-    logger.debug(f"Key format check complete for key: {masked_key}")
+    # Log securely with no visible characters
+    masked_key = secure_log_key(key, visible_chars=0)
+    logger.debug("Key format check complete")
 
-# Verify the key
-verify_key_format(GROK_API_KEY)
-
-def raw_request_test(base_url, api_key):
-    """Make a request with minimal dependencies"""
-    import http.client
-    import urllib.parse
-    import json
-    
-    # Parse URL
-    parsed = urllib.parse.urlparse(base_url)
-    conn = http.client.HTTPSConnection(parsed.netloc, port=443, context=ssl._create_unverified_context())
-    
-    # Prepare headers
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
-    
-    # Payload
-    payload = json.dumps({"query": "Get trending topics"})
-    
-    # Make request
-    path = parsed.path
-    print(f"Making raw request to {parsed.netloc}{path}")
-    conn.request("POST", path, payload, headers)
-    
-    # Get response
-    response = conn.getresponse()
-    data = response.read()
-    
-    print(f"Status: {response.status} {response.reason}")
-    print(f"Headers: {response.getheaders()}")
-    print(f"Body: {data.decode('utf-8')}")
-    
-    conn.close()
-
-# Comment out or remove this line:
-# raw_request_test("https://api.x.ai/grok/v1/query", GROK_API_KEY)
-
-def check_example_usage():
-    """
-    Look up the official API documentation and follow exactly the format shown.
-    This is a template - we'll need to fill in the actual example from the docs.
-    """
-    # Example assumes this is how the docs show it
-    import requests
-    
-    url = "https://api.x.ai/v1/completions"  # Replace with documented URL
-    headers = {
-        "Authorization": f"Bearer {GROK_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    
-    # Using exact payload format from docs
-    payload = {
-        "model": "grok-2",
-        "prompt": "Get the top 3 trending news topics right now",
-        "max_tokens": 500
-    }
-    
-    response = requests.post(url, json=payload, headers=headers)
-    print(f"Status code: {response.status_code}")
-    print(f"Response: {response.text}")
-
-# Checking if request validation is the issue
-def test_empty_request(url, key):
-    """Test if the API requires specific fields"""
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {key}"
-    }
-    
-    # Empty payload to see validation errors
-    response = requests.post(url, json={}, headers=headers)
-    print(f"Empty request status: {response.status_code}")
-    print(f"Response: {response.text}")
+# Verify the key removed as it's no longer needed

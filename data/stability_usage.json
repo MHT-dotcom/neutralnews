@@ -1,8 +1,14 @@
 {
-  "month": "2025-03",
-  "count": 9,
-  "total_cost": 1.3499999999999999,
-  "history": [],
+  "month": "2025-04",
+  "count": 8,
+  "total_cost": 1.2,
+  "history": [
+    {
+      "month": "2025-03",
+      "count": 13,
+      "total_cost": 1.9499999999999995
+    }
+  ],
   "queries": [
     {
       "timestamp": "2025-03-30T10:56:54.539271",
@@ -51,6 +57,54 @@
     {
       "timestamp": "2025-03-30T20:06:19.319449",
       "query": "elections"
+    },
+    {
+      "timestamp": "2025-03-30T23:16:56.188208",
+      "query": "sports"
+    },
+    {
+      "timestamp": "2025-03-30T23:21:40.984896",
+      "query": "financial news"
+    },
+    {
+      "timestamp": "2025-03-30T23:22:26.089628",
+      "query": "space exploration"
+    },
+    {
+      "timestamp": "2025-03-30T23:23:58.712004",
+      "query": "NBA basketball"
+    },
+    {
+      "timestamp": "2025-04-06T10:48:31.846852",
+      "query": "Iceland Volcanic Eruption"
+    },
+    {
+      "timestamp": "2025-04-06T10:48:39.196194",
+      "query": "U.S. Trade Policy Shift: Trump Imposes Tariffs"
+    },
+    {
+      "timestamp": "2025-04-06T10:48:45.887035",
+      "query": "Hungarys ICC Withdrawal and Netanyahu Visit"
+    },
+    {
+      "timestamp": "2025-04-06T10:48:53.167012",
+      "query": "Middle East Escalation: Israeli Airstrike in Beirut"
+    },
+    {
+      "timestamp": "2025-04-06T10:49:00.683422",
+      "query": "Malaysia Gas Pipeline Explosion"
+    },
+    {
+      "timestamp": "2025-04-06T10:49:07.493327",
+      "query": "Global Tech Talks on AI Regulation"
+    },
+    {
+      "timestamp": "2025-04-06T10:49:16.602372",
+      "query": "Meta Releases Llama 4 Models"
+    },
+    {
+      "timestamp": "2025-04-06T10:49:23.461581",
+      "query": "Space Milestone: Fram2 Mission Launches"
     }
   ]
 }

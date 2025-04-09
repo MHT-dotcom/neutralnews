@@ -11,6 +11,10 @@ from utils import secure_log_key
 cache = Cache()
 CACHE_CONFIG = {'CACHE_TYPE': 'simple'}
 
+# Article limits
+MAX_ARTICLES_PER_SOURCE = 5  # Adjusted to allow up to 4 articles per source for better distribution
+DEFAULT_TOP_N = 25  # Increased from 10 to 15 to allow more articles in the response
+
 # News API keys
 NEWSAPI_ORG_KEY = os.environ.get("NEWSAPI_ORG_KEY", "")
 NEWSAPI_AI_KEY = os.environ.get("NEWSAPI_AI_KEY", "")
@@ -22,9 +26,6 @@ MEDIASTACK_API_KEY = os.environ.get("MEDIASTACK_API_KEY", "")
 NEWSDATAIO_API_KEY = os.environ.get("NEWSDATAIO_API_KEY", "")
 AYLIEN_APP_ID = os.environ.get("AYLIEN_APP_ID", "")
 AYLIEN_API_KEY = os.environ.get("AYLIEN_API_KEY", "")
-GROK_API_KEY = os.environ.get("GROK_API_KEY", "").replace("xai-", "")
-STABILITY_API_KEY = os.environ.get('STABILITY_API_KEY')
-GETIMG_API_KEY = os.environ.get('GETIMG_API_KEY')
 
 # Helper function to check API key status without exposing the actual key
 def get_api_key_status(key_name, key_value):
@@ -43,7 +44,7 @@ def get_api_key_status(key_name, key_value):
 GUARDIAN_URL = "https://content.guardianapis.com/search"
 GNEWS_URL = "https://gnews.io/api/v4/search"
 # Default Settings
-DEFAULT_DAYS_BACK = 7
+DEFAULT_DAYS_BACK = 14  # Increased from 7 to 14 days to get more historical articles
 
 # Feature flags
 USE_NEWSAPI_ORG = bool(NEWSAPI_ORG_KEY)
@@ -55,7 +56,6 @@ USE_MEDIASTACK = bool(MEDIASTACK_API_KEY)
 USE_NEWSDATAIO = bool(NEWSDATAIO_API_KEY)
 USE_NEWSAPI_AI = bool(NEWSAPI_AI_KEY)
 USE_AYLIEN = bool(AYLIEN_APP_ID and AYLIEN_API_KEY)
-USE_GROK = bool(GROK_API_KEY)
 
 # Cache configuration
 CACHE_TYPE = "FileSystemCache"
@@ -75,22 +75,14 @@ SUMMARIZER_MODEL = "facebook/bart-large-cnn"
 
 # Default Settings
 MAX_ARTICLES_PER_API = 25  # Increased from 8 to get more articles per API
-DEFAULT_TOP_N = 25  # Increased from 10 to 15 to allow more articles in the response
 RELEVANCE_THRESHOLD = 0.01  # Lowered from 0.05 to allow more articles through
-MAX_ARTICLES_PER_SOURCE = 5  # Adjusted to allow up to 4 articles per source for better distribution
 SUMMARIZER_MAX_LENGTH = 250
 SUMMARIZER_MIN_LENGTH = 100
 AYLIEN_PER_PAGE = MAX_ARTICLES_PER_API
 GNEWS_MAX_ARTICLES = MAX_ARTICLES_PER_API
 REQUEST_TIMEOUT = 10
-DEFAULT_DAYS_BACK = 7
 SUMMARIZER_BY_GPT = 1
 WEIGHT_RELEVANCE = 0.6
 WEIGHT_POPULARITY = 0.4
-
-
-# Use secure logging to protect API key before .env load
-grok_key_before = secure_log_key(os.environ.get("GROK_API_KEY", "NOT SET"), visible_chars=2)
-print(f"Before .env load: GROK_API_KEY status: {grok_key_before}")
 
 load_dotenv()

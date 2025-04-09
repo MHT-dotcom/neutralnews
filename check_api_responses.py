@@ -26,17 +26,18 @@ async def check_api_responses():
     # Fetch articles from all sources
     results = await async_fetch_articles(query)
     
-    newsapi_org_articles, guardian_articles, aylien_articles, gnews_articles, nyt_articles, mediastack_articles, newsapi_ai_articles = results
+    newsapi_org_articles, mediastack_articles, gnews_articles, nyt_articles, aylien_articles, newsapi_ai_articles, newsdata_articles, guardian_articles = results
     
     # Log the number of articles from each source
     sources = {
         "NewsAPI.org": newsapi_org_articles,
-        "Guardian": guardian_articles,
-        "Aylien": aylien_articles,
+        "Mediastack": mediastack_articles,
         "GNews": gnews_articles,
         "NYT": nyt_articles,
-        "Mediastack": mediastack_articles,
-        "NewsAPI.ai": newsapi_ai_articles
+        "Aylien": aylien_articles,
+        "NewsAPI.ai": newsapi_ai_articles,
+        "NewsData.io": newsdata_articles,
+        "Guardian": guardian_articles
     }
     
     logger.info(f"=== API Response Summary for '{query}' ===")

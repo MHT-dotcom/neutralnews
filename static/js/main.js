@@ -36,7 +36,6 @@ $(document).ready(function() {
     var $errorMessage = $results.find('.error-message');
     var $pullIndicator = $('.pull-indicator');
     var $trendingContainer = $('.trending-container');
-    var $imageContainer = $('#image-container'); // Ensure this exists in HTML
     var startY = 0;
     var pullThreshold = 80;
     var isPulling = false;
@@ -346,62 +345,6 @@ $(document).ready(function() {
                 $results.find('.source-dashboard').hide();
             }
             
-            // When image data is in the response
-            if (metadata && metadata.image && metadata.image.path) {
-                console.log("Raw image path received:", metadata.image.path);
-                console.log('Displaying image from metadata:', metadata.image.path);
-                
-                // Parse the image path to create responsive image paths
-                const imagePath = metadata.image.path;
-                const lastDotIndex = imagePath.lastIndexOf('.');
-                const imageBase = imagePath.substring(0, lastDotIndex);
-                const imageExt = imagePath.substring(lastDotIndex + 1);
-                
-                // Create picture element for responsive images
-                const pictureElement = $('<picture>');
-                
-                // Add WebP source with responsive sizes
-                const webpSource = $('<source>')
-                    .attr('type', 'image/webp')
-                    .attr('srcset', `${imageBase}_400.webp 400w, ${imageBase}_800.webp 800w, ${imagePath} 1024w`)
-                    .attr('sizes', '(max-width: 600px) 400px, (max-width: 1200px) 800px, 1024px');
-                
-                // Add fallback source with responsive sizes
-                const fallbackSource = $('<source>')
-                    .attr('srcset', `${imageBase}_400.${imageExt} 400w, ${imageBase}_800.${imageExt} 800w, ${imagePath} 1024w`)
-                    .attr('sizes', '(max-width: 600px) 400px, (max-width: 1200px) 800px, 1024px');
-                
-                // Create the image element (fallback)
-                const imgElement = $('<img>')
-                    .attr('src', imagePath)
-                    .attr('alt', 'News topic visualization')
-                    .attr('class', 'responsive-image')
-                    .attr('loading', 'lazy')
-                    .css({
-                        'max-width': '100%',
-                        'height': 'auto',
-                        'display': 'block'
-                    })
-                    .on('error', function(e) {
-                        console.error('Image load failed:', imagePath, 'Error details:', e);
-                        console.error('Image element state:', this);
-                        $imageContainer.html('<p>Image failed to load.</p>');
-                    })
-                    .on('load', function() {
-                        console.log('Image loaded successfully:', imagePath);
-                    });
-                
-                // Assemble the picture element
-                pictureElement.append(webpSource).append(fallbackSource).append(imgElement);
-                
-                // Update container and show it
-                $imageContainer.html(pictureElement).show();
-                console.log('Image container updated with responsive picture element');
-            } else {
-                console.log('No image path in metadata');
-                $imageContainer.hide();
-            }
-            
             $results.show();
             $results.find('.summary-card').show();
             $results.find('.articles-card').show();
@@ -409,7 +352,6 @@ $(document).ready(function() {
         } else {
             console.log('No articles found, showing error message');
             $errorMessage.text('No articles found.').show();
-            $imageContainer.hide();
         }
     }
 
@@ -436,24 +378,14 @@ $(document).ready(function() {
         $results.find('.clear-button').hide();
         $results.find('.source-dashboard').hide();
         $trendingContainer.hide();
-        $imageContainer.hide();
-
-        // Get the image toggle state
-        const includeImages = $('#image-toggle').is(':checked');
-        console.log('Image toggle state (trending card):', includeImages);
         
-        // Hide image container initially
-        $imageContainer.hide();
-        
-        // Make the AJAX request with the properly formatted include_images parameter
+        // Make the AJAX request
         const formData = {
-            event: searchTerm,
-            include_images: includeImages ? 'true' : 'false' // Standardize to string format
+            event: searchTerm
         };
         console.log('Sending form data (trending card):', formData);
         
         $.post('/data', formData, function(data) {
-            console.log('Received response with include_images:', includeImages);
             console.log('Response received:', data);
             if (data.error) {
                 console.log('Error found in response:', data.error);
@@ -521,24 +453,14 @@ $(document).ready(function() {
         $results.find('.clear-button').hide();
         $results.find('.source-dashboard').hide();
         $trendingContainer.hide();
-        $imageContainer.hide();
-
-        // Get the image toggle state
-        const includeImages = $('#image-toggle').is(':checked');
-        console.log('Image toggle state:', includeImages);
         
-        // Hide image container initially
-        $imageContainer.hide();
-        
-        // Make the AJAX request with the properly formatted include_images parameter
+        // Make the AJAX request
         const formData = {
-            event: eventQuery,
-            include_images: includeImages ? 'true' : 'false' // Standardize to string format
+            event: eventQuery
         };
         console.log('Sending form data:', formData);
         
         $.post('/data', formData, function(data) {
-            console.log('Received response with include_images:', includeImages);
             console.log('Response received:', data);
             if (data.error) {
                 console.log('Error found in response:', data.error);
@@ -588,11 +510,6 @@ $(document).ready(function() {
 
     // Clear button handler
     $results.find('.clear-button').on('click', function() {
-        $('.topic-image-card').hide();
-        $('.image-loading').hide();
-        $('.image-error').hide();
-        $('#topic-image').hide();
-        $imageContainer.hide();
         window.location.href = "/";
     });
 
@@ -603,7 +520,6 @@ $(document).ready(function() {
         $('.trending-container').show();
         $('.current-topic').hide();
         $('.error-message').hide();
-        $imageContainer.hide();
         document.title = 'Neutral News';
     });
 
@@ -620,10 +536,6 @@ $(document).ready(function() {
     // Track feature views
     $('.summary-card').on('inview', function() {
         Analytics.trackFeatureView('summary');
-    });
-    
-    $('#image-container').on('inview', function() {
-        Analytics.trackFeatureView('visualization');
     });
     
     $('.articles-card').on('inview', function() {

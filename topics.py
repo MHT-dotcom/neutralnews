@@ -400,11 +400,11 @@ FALLBACK_TOPICS = {
     "today": [
         ["Massive Solar Flare Disrupts Global Communications", "Solar Flare"],
         ["U.S. Announces New AI Partnership with Japan at Tech Summit", "AI Summit"],
-        ["Protests Erupt in Paris Over Climate Policy Reforms", "Paris Climate Protests"],
-        ["India Launches Lunar Rover Mission Chandrayaan-4", "Chandrayaan-4"],
+        ["Protests Erupt in Paris Over Climate Policy Reforms", "Paris Climate"],
+        ["India Launches Lunar Rover Mission Chandrayaan-4", "India Lunar"],
         ["Historic Snowstorm Paralyzes Northeastern U.S.", "U.S. Snowstorm"],
         ["China Tests Hypersonic Missile in Pacific, Raising Tensions", "China Missile"],
-        ["UN Unveils Plan to Combat Rising Sea Levels by 2030", "UN Sea Levels"],
+        ["UN Unveils Plan to Combat Rising Sea Levels by 2030", "Sea Levels"],
         ["Breakthrough in Fusion Energy Achieved at UK Lab", "Fusion Energy"]
     ],
     "last_week": [
@@ -577,62 +577,4 @@ def get_trending_topics(period="today", force_refresh=False, max_topics=8):
     if topics:
         cache_topics(topics, period)
     
-    return topics
-
-def pregenerate_topic_images(topics):
-    """Start background tasks to pregenerate images for topics
-    
-    Args:
-        topics (list): List of topic pairs [headline, keywords]
-    """
-    if not topics:
-        logger.warning("No topics provided for image pregeneration")
-        return
-    
-    try:
-        # Import here to avoid circular imports
-        from get_img import generate_and_save_image
-        from flask import current_app
-        
-        # Capture the app instance instead of using current_app in the thread
-        app = current_app._get_current_object()
-        
-        def generate_images():
-            # Use the captured app instance for the context
-            with app.app_context():
-                for topic in topics:
-                    try:
-                        # Use the headline as the query
-                        headline = topic[0]
-                        logger.info(f"Pregenerating image for topic: {headline}")
-                        generate_and_save_image("", headline, True)  # Empty summary since we don't have one
-                        # Sleep briefly to avoid overloading the system
-                        time.sleep(1)
-                    except Exception as e:
-                        logger.error(f"Error generating image for {topic[0]}: {str(e)}")
-        
-        # Start a background thread
-        thread = threading.Thread(target=generate_images)
-        thread.daemon = True
-        thread.start()
-        logger.info(f"Started background task for trending image generation")
-    except Exception as e:
-        logger.error(f"Error starting image pregeneration: {str(e)}")
-
-def initialize_trending_images():
-    """Initialize image generation for all trending topic periods"""
-    logger.info("Starting trending image pre-generation for all periods...")
-    try:
-        # Get trending topics for all periods
-        today_topics = get_trending_topics("today")
-        last_week_topics = get_trending_topics("last_week")
-        last_month_topics = get_trending_topics("last_month")
-        
-        # Pre-generate images
-        pregenerate_topic_images(today_topics)
-        pregenerate_topic_images(last_week_topics)
-        pregenerate_topic_images(last_month_topics)
-        
-        logger.info("Trending image pre-generation tasks started for all periods")
-    except Exception as e:
-        logger.error(f"Error initializing trending images: {str(e)}") 
+    return topics 

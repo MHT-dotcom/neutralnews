@@ -13,8 +13,7 @@ certifi==2025.1.31
 urllib3==2.3.0
 
 # Image Processing
-Pillow==10.0.0
-stability-sdk==0.8.6
+# Removed as part of image generation cleanup
 
 # Machine Learning and AI
 openai==1.64.0

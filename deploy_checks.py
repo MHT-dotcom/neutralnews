@@ -36,7 +36,7 @@ try:
         MEDIASTACK_API_KEY, NEWSDATA_API_KEY, AYLIEN_APP_ID, AYLIEN_API_KEY,
         USE_NEWSAPI_ORG, USE_GUARDIAN, USE_GNEWS, USE_NYT,
         USE_MEDIASTACK, USE_NEWSDATA, USE_AYLIEN,
-        NEWSAPI_AI_KEY, GROK_API_KEY
+        NEWSAPI_AI_KEY
     )
     from fetchers import REQUEST_TIMEOUT, MAX_RETRIES, fetch_with_error_handling
     # Import the Flask app to create an application context
@@ -67,7 +67,6 @@ def check_environment_variables():
         "NEWSDATA_API_KEY": (NEWSDATA_API_KEY, USE_NEWSDATA),
         "AYLIEN_APP_ID": (AYLIEN_APP_ID, USE_AYLIEN),
         "AYLIEN_API_KEY": (AYLIEN_API_KEY, USE_AYLIEN),
-        "GROK_API_KEY": (GROK_API_KEY, True)  # Always check for GROK API key
     }
     
     # Check essential variables
@@ -213,20 +212,17 @@ def check_port_availability(port=5005):
     return result
 
 def check_disk_space():
-    """Check if there's enough disk space available"""
-    logger.info("Checking available disk space...")
+    """Check that there is enough disk space available"""
+    logger.info("Checking disk space...")
     
-    # Get the disk space in the current directory
-    if sys.platform == "win32":
-        free_space = psutil.disk_usage(os.getcwd()).free
-    else:
-        stat = os.statvfs(os.getcwd())
-        free_space = stat.f_frsize * stat.f_bavail
+    try:
+        import psutil
+        disk = psutil.disk_usage('/')
+        free_space_mb = disk.free / (1024 * 1024)  # Convert to MB
+    except ImportError:
+        logger.warning("❌ psutil not installed, can't check disk space")
+        return False
     
-    # Convert to MB
-    free_space_mb = free_space / (1024 * 1024)
-    
-    # Required free space in MB
     required_space = 500
     
     if free_space_mb < required_space:
@@ -235,32 +231,6 @@ def check_disk_space():
     else:
         logger.info(f"✅ Sufficient disk space available: {free_space_mb:.2f} MB")
         return True
-        
-def check_image_directory():
-    """Check that the image directory exists and is writable"""
-    logger.info("Checking image directory...")
-    
-    image_dir = os.path.join(os.path.dirname(app.config.get("DB_PATH")), "images")
-    
-    if not os.path.exists(image_dir):
-        try:
-            os.makedirs(image_dir)
-            logger.info(f"✅ Created image directory at {image_dir}")
-        except Exception as e:
-            logger.error(f"❌ Failed to create image directory: {e}")
-            return False
-    
-    # Check if the directory is writable
-    try:
-        test_file = os.path.join(image_dir, "test_write.tmp")
-        with open(test_file, 'w') as f:
-            f.write("test")
-        os.remove(test_file)
-        logger.info(f"✅ Image directory is writable")
-        return True
-    except Exception as e:
-        logger.error(f"❌ Image directory is not writable: {e}")
-        return False
 
 def run_all_checks():
     """Run all deployment checks and summarize results"""
@@ -275,7 +245,6 @@ def run_all_checks():
         "Database Connection": check_database_connection(),
         "API Connectivity": check_api_connectivity(),
         "Port Availability": check_port_availability(),
-        "Image Directory": check_image_directory(),
     }
     
     # Optional checks that might fail on certain systems
@@ -285,7 +254,7 @@ def run_all_checks():
         logger.warning("⚠️ Disk space check skipped (psutil might not be installed)")
     
     # Calculate overall result - pass if all required checks pass
-    required_checks = ["Environment Variables", "Database Connection", "API Connectivity", "Image Directory"]
+    required_checks = ["Environment Variables", "Database Connection", "API Connectivity"]
     overall_result = all(results[check] for check in required_checks)
     
     # Print summary
