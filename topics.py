@@ -6,7 +6,6 @@ from datetime import date, datetime, timedelta
 import os
 from flask import current_app
 import time
-from textblob import TextBlob  # Add this import for sentiment analysis
 
 # Configure logging
 logger = logging.getLogger("neutralnews")
@@ -381,23 +380,22 @@ def text_to_emoji(text):
         if keyword in text:
             return emoji
     
-    # Fallback to sentiment analysis
-    blob = TextBlob(text)
-    polarity = blob.sentiment.polarity
-    if polarity > 0.3:
-        return "😊"
-    elif polarity > 0:
-        return "🙂"
-    elif polarity < -0.3:
-        return "😢"
-    elif polarity < 0:
-        return "😕"
-    else:
-        return "😐"
+    # Default neutral emoji instead of sentiment analysis
+    return "📰"
 
 # Fallback topics for different time periods
 FALLBACK_TOPICS = {
     "today": [
+    ["Power Blackout Hits All of Puerto Rico During Easter", "Puerto Rico Blackout"],
+    ["S&P 500 Plummets 5% After Tariff Increase", "S&P 500 Drop"],
+    ["Israel Continues Blockade Despite UN Warning", "Israel Blockade"],
+    ["American Tariffs Send International Trade into Reverse", "U.S. Tariffs"],
+    ["James Webb Space Telescope Detects Life-Associated Gas", "Webb Telescope"],
+    ["Massive Nightclub Collapse in Dominican Republic", "Dominican Nightclub"],
+    ["Lebanese Army Detains Suspects in Attacks on Israel", "Lebanon Detentions"],
+    ["Putin Meets Freed Russian Gaza Hostages", "Putin Hostages"]
+    ],
+    "last_week": [
         ["Massive Solar Flare Disrupts Global Communications", "Solar Flare"],
         ["U.S. Announces New AI Partnership with Japan at Tech Summit", "AI Summit"],
         ["Protests Erupt in Paris Over Climate Policy Reforms", "Paris Climate"],
@@ -407,7 +405,7 @@ FALLBACK_TOPICS = {
         ["UN Unveils Plan to Combat Rising Sea Levels by 2030", "Sea Levels"],
         ["Breakthrough in Fusion Energy Achieved at UK Lab", "Fusion Energy"]
     ],
-    "last_week": [
+    "last_month": [
         ["Iceland Volcanic Eruption", "Volcanic Iceland"],
         ["U.S. Trade Policy Shift: Trump Imposes Tariffs", "Tariffs Trump"],
         ["Hungarys ICC Withdrawal and Netanyahu Visit", "Netanyahu"],
@@ -417,16 +415,6 @@ FALLBACK_TOPICS = {
         ["Meta Releases Llama 4 Models", "Llama Meta"], 
         ["Space Milestone: Fram2 Mission Launches", "fram2"]
         ],
-    "last_month": [
-        ['U.S. Vice-President Advocates for Greenland Acquisition Amid Political Tensions', 'Greenland Acquisition'],
-        ['Leaked Signal Messages Reveal U.S. Military Plans, Prompting Investigations', 'U.S. Military Leak'],
-        ['Federal Judge Blocks Trumps Order Against Law Firm in Legal Setback', 'Trump Legal Setback'],
-        ['Dow Plummets 716 Points as U.S. Stocks Experience Significant Decline', 'Stock Market Decline'],
-        ['Death Toll Rises to 694 Following Powerful Earthquake in Myanmar', 'Myanmar Earthquake'],
-        ['ChatGPTs New Feature Transforms Photos into Studio Ghibli-Style Images', 'ChatGPT Ghibli'],
-        ['Nintendo Announces Live-Action "The Legend of Zelda" Movie Set for 2027 Release', 'Zelda Movie'],
-        ['Bitcoin Price Predictions Vary Amid Market Uncertainty', 'Bitcoin Prediction']
-        ]
 }
 
 def get_db_path():
